@@ -27,6 +27,7 @@ cron_log();
 $kukarow['yhtio'] = $argv[1];
 $kukarow['kuka'] = "admin";
 $yhtiorow = hae_yhtion_parametrit($argv[1]);
+$kukarow['kieli'] = $yhtiorow['kieli'];
 
 if ($yhtiorow["epakurantoinnin_myyntihintaleikkuri"] != 'Z') {
   die(t("Tämä toiminto on käytettävissä vain, jos yhtiöparametri epakurantoinnin_myyntihintaleikkuri on 'Z'"));
@@ -36,10 +37,9 @@ if ($yhtiorow["epakurantoinnin_myyntihintaleikkuri"] != 'Z') {
 $query  = "SELECT t.tuoteno,
            a.selitetark        as orig_myyntihinta,
            MAX(t.myyntihinta)  as varahinta,
-           SUM(p.saldo)        as saldosumma,
-           t.osasto
+           SUM(p.saldo)        as saldosumma
            FROM tuote t
-                 JOIN tuotteen_avainsanat a ON (t.yhtio = a.yhtio AND a.kieli = '{$yhtiorow['kieli']}' AND t.tuoteno = a.tuoteno AND a.laji = 'zeniorparts' and a.selite = 'K')
+           LEFT JOIN tuotteen_avainsanat a ON (t.yhtio = a.yhtio AND a.kieli = '{$yhtiorow['kieli']}' AND t.tuoteno = a.tuoteno AND a.laji = 'zeniorparts' and a.selite = 'K')
            JOIN tuotepaikat p ON (a.yhtio = p.yhtio AND a.tuoteno = p.tuoteno)
            WHERE t.yhtio           = '{$kukarow["yhtio"]}'
            and t.epakurantti25pvm != '0000-00-00'
@@ -48,7 +48,6 @@ $query  = "SELECT t.tuoteno,
 $result = pupe_query($query);
 
 while ($row = mysql_fetch_assoc($result)) {
-
   if ($yhtiorow['epakurantti_automaattimuutokset'] == 'Z') {
     $puun_tunnus = t_avainsana("ZEPA_OS_PUUNALK", "", "AND selitetark = (SELECT selitetark FROM tuotteen_avainsanat WHERE yhtio = '{$kukarow["yhtio"]}' AND kieli = '{$yhtiorow["kieli"]}' AND tuoteno = '{$row["tuoteno"]}' AND laji = 'zeniorparts' AND selite = 'ALKUP_OSASTO' LIMIT 1)", "", "", "selite");
     if ($puun_tunnus != "") {

@@ -64,6 +64,7 @@ else {
   $kukarow['yhtio'] = $argv[1];
   $kukarow['kuka'] = "admin";
   $yhtiorow = hae_yhtion_parametrit($argv[1]);
+  $kukarow['kieli'] = $yhtiorow['kieli'];
 
   $php_cli     = TRUE;
   $kaikkiepakur  = "";
