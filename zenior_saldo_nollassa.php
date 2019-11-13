@@ -55,11 +55,22 @@ while ($row = mysql_fetch_assoc($result)) {
       pupe_query($query);
     }
 
-    $set_lisakentat = "try      = (SELECT selitetark FROM tuotteen_avainsanat WHERE yhtio = '{$kukarow["yhtio"]}' AND kieli = '{$yhtiorow["kieli"]}' AND tuoteno = '{$row["tuoteno"]}' AND laji = 'zeniorparts' AND selite = 'ALKUP_TRY' LIMIT 1),
-                       aleryhma = (SELECT selitetark FROM tuotteen_avainsanat WHERE yhtio = '{$kukarow["yhtio"]}' AND kieli = '{$yhtiorow["kieli"]}' AND tuoteno = '{$row["tuoteno"]}' AND laji = 'zeniorparts' AND selite = 'ALKUP_ALERYHMA' LIMIT 1),
-                       osasto   = (SELECT selitetark FROM tuotteen_avainsanat WHERE yhtio = '{$kukarow["yhtio"]}' AND kieli = '{$yhtiorow["kieli"]}' AND tuoteno = '{$row["tuoteno"]}' AND laji = 'zeniorparts' AND selite = 'ALKUP_OSASTO' LIMIT 1),
-                       hinnastoon  = 'E',
-                       ostoehdotus = 'E',";
+    $set_lisakentat = "hinnastoon  = 'E', ostoehdotus = 'E', ";
+
+    $alkup_try = executescalar("SELECT selitetark FROM tuotteen_avainsanat WHERE yhtio = '{$kukarow["yhtio"]}' AND kieli = '{$yhtiorow["kieli"]}' AND tuoteno = '{$row["tuoteno"]}' AND laji = 'zeniorparts' AND selite = 'ALKUP_TRY' LIMIT 1");
+    if ($alkup_try != null) {
+      $set_lisakentat .= "try = '{$alkup_try}', ";
+    }
+
+    $alkup_ale = executescalar("SELECT selitetark FROM tuotteen_avainsanat WHERE yhtio = '{$kukarow["yhtio"]}' AND kieli = '{$yhtiorow["kieli"]}' AND tuoteno = '{$row["tuoteno"]}' AND laji = 'zeniorparts' AND selite = 'ALKUP_ALERYHMA' LIMIT 1");
+    if ($alkup_ale != null) {
+      $set_lisakentat .= "aleryhma = '{$alkup_ale}', ";
+    }
+
+    $alkup_ost = executescalar("SELECT selitetark FROM tuotteen_avainsanat WHERE yhtio = '{$kukarow["yhtio"]}' AND kieli = '{$yhtiorow["kieli"]}' AND tuoteno = '{$row["tuoteno"]}' AND laji = 'zeniorparts' AND selite = 'ALKUP_OSASTO' LIMIT 1");
+    if ($alkup_ost != null) {
+      $set_lisakentat .= "osasto = '{$alkup_ost}', ";
+    }
   }
   else {
     $set_lisakentat = "";
