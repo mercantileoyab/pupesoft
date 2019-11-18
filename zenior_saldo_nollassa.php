@@ -34,15 +34,20 @@ if ($yhtiorow["epakurantoinnin_myyntihintaleikkuri"] != 'Z') {
 }
 
 // hae nollasaldoiset epäkurantit, tarvitaan tuoteno ja avainsanalle tallennettu alkuperäinen hinta
-$query  = "SELECT t.tuoteno,
-           a.selitetark        as orig_myyntihinta,
-           MAX(t.myyntihinta)  as varahinta,
-           SUM(p.saldo)        as saldosumma
-           FROM tuote t
-           LEFT JOIN tuotteen_avainsanat a ON (t.yhtio = a.yhtio AND a.kieli = '{$yhtiorow['kieli']}' AND t.tuoteno = a.tuoteno AND a.laji = 'zeniorparts' and a.selite = 'K')
-           JOIN tuotepaikat p ON (a.yhtio = p.yhtio AND a.tuoteno = p.tuoteno)
-           WHERE t.yhtio           = '{$kukarow["yhtio"]}'
-           and t.epakurantti25pvm != '0000-00-00'
+$query  = "SELECT tuote.tuoteno,
+           tuotteen_avainsanat.selitetark AS orig_myyntihinta,
+           MAX(tuote.myyntihinta)         AS varahinta,
+           SUM(tuotepaikat.saldo)         AS saldosumma
+           FROM tuote
+           LEFT JOIN tuotteen_avainsanat ON (tuote.yhtio = tuotteen_avainsanat.yhtio 
+              AND tuotteen_avainsanat.kieli = '{$yhtiorow['kieli']}' 
+              AND tuote.tuoteno = tuotteen_avainsanat.tuoteno 
+              AND tuotteen_avainsanat.laji = 'zeniorparts' 
+              AND tuotteen_avainsanat.selite = 'K')
+           JOIN tuotepaikat ON (tuotepaikat.yhtio = tuote.yhtio 
+              AND tuotepaikat.tuoteno = tuote.tuoteno)
+           WHERE tuote.yhtio           = '{$kukarow["yhtio"]}'
+           AND tuote.epakurantti25pvm != '0000-00-00'
            GROUP BY 1, 2
            HAVING saldosumma = 0";
 $result = pupe_query($query);
