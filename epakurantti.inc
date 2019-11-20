@@ -484,10 +484,7 @@ if ($tee == "paalle" or $tee == "25paalle" or $tee == "puolipaalle" or $tee == "
                 AND laji    = 'zeniorparts'";
     $z_result = pupe_query($z_query);
 
-    if (mysql_num_rows($z_result) == 0) {
-      $on_jo_epakurantti = 0;  // Tämä on epäkurantoitu ennen zeniorparts-toiminnon käyttöönottoa. Poistetaan hinnastot mutta talteen otettava tuote.myyntihinta saattaa olla käsin muutettu
-    }
-    else {
+    if (mysql_num_rows($z_result) != 0) {
       while ($z_row = mysql_fetch_assoc($z_result)) {
         if ($z_row['selite'] == "K") {
           $z_orig_hinta = (floatval($z_row["selitetark"]) > 0) ? floatval($z_row["selitetark"]) : $tuoterow["myyntihinta"];
@@ -586,12 +583,6 @@ if ($tee == "paalle" or $tee == "25paalle" or $tee == "puolipaalle" or $tee == "
         $set_zenior .= "myyntihinta = {$z_orig_hinta}, ";
 
       if ($yhtiorow['epakurantti_automaattimuutokset'] == 'Z') {
-        $puun_tunnus = t_avainsana("ZEPA_OS_PUUNALK", "", "AND selitetark = {$z_orig_osasto}", "", "", "selite");
-        if ($puun_tunnus != "") {
-          $query = "DELETE FROM puun_alkio WHERE yhtio = '{$kukarow["yhtio"]}' AND liitos = '{$tuoterow["tuoteno"]}' AND puun_tunnus = {$puun_tunnus}";
-          pupe_query($query);
-        }
-
         if ($z_orig_try != null) {
           $set_zenior .= "try = '{$z_orig_try}', ";
         }
@@ -600,6 +591,12 @@ if ($tee == "paalle" or $tee == "25paalle" or $tee == "puolipaalle" or $tee == "
         }
         if ($z_orig_osasto != null) {
           $set_zenior .= "osasto = '{$z_orig_osasto}', ";
+
+          $puun_tunnus = t_avainsana("ZEPA_OS_PUUNALK", "", "AND selitetark = '{$z_orig_osasto}'", "", "", "selite");
+          if ($puun_tunnus != "") {
+            $query = "DELETE FROM puun_alkio WHERE yhtio = '{$kukarow["yhtio"]}' AND liitos = '{$tuoterow["tuoteno"]}' AND puun_tunnus = {$puun_tunnus}";
+            pupe_query($query);
+          }
         }
       }
 
