@@ -3334,8 +3334,18 @@ if (!function_exists("tulosta_lasku")) {
       $laskuvaikuitti = t("Kuitti", $kieli);
     }
 
+    $kutsu = $laskuvaikuitti." ".$laskurow["laskunro"];
+
+    if ($yhtiorow["liitetiedostojen_nimeaminen"] == "N") {
+      $kutsu .= ", ".trim($laskurow["nimi"]);
+    }
+
     // jos tämä haluttiin suoraan asiakkaalle sähköpostiin
     if ($tee == 'NAYTATILAUS') {
+      if ($toim == "LASKU") {
+        header('Content-Disposition: inline; filename="' . $kutsu . '"');
+      }
+
       //Työnnetään tuo pdf vaan putkeen!
       echo file_get_contents($pdf_laskufilenimi);
     }
@@ -3420,11 +3430,6 @@ if (!function_exists("tulosta_lasku")) {
 
       if (($komento == "email" and $kukarow["eposti"] != '') or substr($komento, 0, 12) == 'asiakasemail') {
         // lähetetään meili
-        $kutsu = $laskuvaikuitti." ".$laskurow["laskunro"];
-
-        if ($yhtiorow["liitetiedostojen_nimeaminen"] == "N") {
-          $kutsu .= ", ".trim($laskurow["nimi"]);
-        }
 
         $liite = $pdf_laskufilenimi;
         $sahkoposti_cc = "";
