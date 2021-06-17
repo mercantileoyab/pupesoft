@@ -137,16 +137,16 @@ echo "<script type='text/javascript'>
   var is_mobile = navigator.userAgent.match(/Opera Mob/i) != null;
 
   $(document).ready(function() {
-    $('#viivakoodi').on('keyup', function() {
+    $('#siirtolista').on('keyup', function() {
       // Autosubmit vain jos on syötetty tarpeeksi pitkä viivakoodi
-      if (is_mobile && $('#viivakoodi').val().length > 8) {
+      if (is_mobile && $('#siirtolista').val().length > 6) {
         document.getElementById('haku_nappi').click();
       }
     });
   });
 
   function doFocus() {
-      var focusElementId = 'viivakoodi';
+      var focusElementId = 'siirtolista';
       var textBox = document.getElementById(focusElementId);
       textBox.focus();
     }
