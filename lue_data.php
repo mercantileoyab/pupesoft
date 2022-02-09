@@ -1444,11 +1444,24 @@ if ($kasitellaan_tiedosto) {
           }
           else {
             $tpttrow = mysql_fetch_array($tpres);
-
+            
             // Lis‰t‰‰n ehtoon
             $valinta .= " and liitostunnus='$tpttrow[tunnus]' ";
           }
         }
+<<<<<<< Updated upstream
+=======
+        elseif ($table_mysql == "tuotteen_avainsanat") {
+          if (in_array("SELITE", $taulunotsikot[$taulu])) {
+            if (preg_match('/\.\d{3,}/', $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])])) {
+              $_t_avainsanat_selite = floatval(number_format($taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])], 2));
+            } else {
+              $_t_avainsanat_selite = $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])];
+            }
+            $valinta .= " and selite = '" . $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])] . "'";
+          }
+        }
+>>>>>>> Stashed changes
 
         $query = "SELECT *
                   FROM $table_mysql
@@ -1880,6 +1893,14 @@ if ($kasitellaan_tiedosto) {
 
               if ($otsikko == 'MONIKERTA' and $taulunrivit[$taulu][$eriviindex][$r] != '') {
                 $chmonikerta = $taulunrivit[$taulu][$eriviindex][$r];
+              }
+            }
+
+            if ($table_mysql == 'tuotteen_avainsanat') {
+              if ($otsikko == 'SELITE') {
+                if (preg_match('/\.\d{3,}/', $taulunrivit[$taulu][$eriviindex][$r])) {
+                  $taulunrivit[$taulu][$eriviindex][$r] = floatval(number_format($taulunrivit[$taulu][$eriviindex][$r], 2));
+                }
               }
             }
 
