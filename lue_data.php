@@ -1456,7 +1456,9 @@ if ($kasitellaan_tiedosto) {
             } else {
               $_t_avainsanat_selite = $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])];
             }
-            $valinta .= " and selite = '" . $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])] . "'";
+            if($taulunrivit[$taulu][$eriviindex][$postoiminto] != "MUUTA") {
+              $valinta .= " and selite = '" . $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])] . "'";
+            }
           }
         }
 
