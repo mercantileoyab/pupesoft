@@ -1449,8 +1449,6 @@ if ($kasitellaan_tiedosto) {
             $valinta .= " and liitostunnus='$tpttrow[tunnus]' ";
           }
         }
-<<<<<<< Updated upstream
-=======
         elseif ($table_mysql == "tuotteen_avainsanat") {
           if (in_array("SELITE", $taulunotsikot[$taulu])) {
             if (preg_match('/\.\d{3,}/', $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])])) {
@@ -1461,7 +1459,6 @@ if ($kasitellaan_tiedosto) {
             $valinta .= " and selite = '" . $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])] . "'";
           }
         }
->>>>>>> Stashed changes
 
         $query = "SELECT *
                   FROM $table_mysql
