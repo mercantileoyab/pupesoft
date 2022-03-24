@@ -375,6 +375,9 @@ if (!function_exists("tilauksesta_ostotilaus")) {
             if ($oletusostovarasto != 0) {
               $oletuspaikka_lisa = "AND tuotepaikat.varasto = '{$oletusostovarasto}'";
             }
+            else if($tilrivirow['var'] == "T") {
+              $oletuspaikka_lisa = "AND tuotepaikat.hyllytaso = 'A'";
+            }
             else {
               $oletuspaikka_lisa = "AND tuotepaikat.oletus != ''";
             }
@@ -386,6 +389,7 @@ if (!function_exists("tilauksesta_ostotilaus")) {
                       AND tuotepaikat.tuoteno = '{$tilrivirow['tuoteno']}'
                       {$oletuspaikka_lisa}
                       LIMIT 1";
+                      
             $jtsre = pupe_query($query);
             $jtstu = mysql_fetch_assoc($jtsre);
 
