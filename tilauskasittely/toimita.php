@@ -40,8 +40,8 @@ if ($tee == 'P' and $maksutapa == 'seka') {
   echo "<input type='hidden' name='vaihdakateista' value='$vaihdakateista'>";
   echo "<input type='hidden' name='maksutapa' value='$maksuehtorow[tunnus]'>";
 
-  echo "  <script type='text/javascript' language='JavaScript'>
-      <!--
+  echo "<script type='text/javascript' language='JavaScript'>
+        <!--
         function update_summa(rivihinta) {
 
           kateinen = Number(document.getElementById('kateismaksu').value.replace(\",\",\".\"));
@@ -61,8 +61,8 @@ if ($tee == 'P' and $maksutapa == 'seka') {
 
           document.getElementById('loppusumma').innerHTML = '<b>' + summa.toFixed(2) + '</b>';
         }
-      -->
-      </script>";
+        -->
+        </script>";
 
   echo "<tr><th>".t("Laskun loppusumma")."</th><td align='right'>$rivihinta</td><td>$valkoodi</td></tr>";
 
@@ -86,8 +86,13 @@ if ($tee == 'maksu') {
     $tee == 'P';
   }
 }
+echo "<style>
+      .nt_nm_tb > tbody > *:not(.nt_nm) {
+        display: none;
+      }
+      </style>";
 
-if ($tee=='P') {
+if ($tee == 'P') {
 
   // jos kyseessä ei ole nouto tai noutajan nimi on annettu, voidaan merkata tilaus toimitetuksi..
   if (($nouto != 'yes') or ($noutaja != '')) {
@@ -144,7 +149,7 @@ if ($tee=='P') {
     $ures  = pupe_query($query);
 
     // jos kyseessä on käteiskauppaa ja EI vientiä, laskutetaan ja tulostetaan tilaus..
-    if ($tilrow['kateinen']!='' and $tilrow["vienti"]=='') {
+    if ($myos_laskuta or ($tilrow['kateinen']!='' and $tilrow["vienti"]=='')) {
 
       //tulostetaan käteislasku...
       $laskutettavat  = $otunnus;
@@ -288,7 +293,7 @@ if ($id == '0') {
     // etsitään sopivia tilauksia
     $query = "SELECT lasku.yhtio, lasku.yhtio_nimi, lasku.tunnus 'tilaus', 
               concat_ws(' ', lasku.nimi, lasku.nimitark) asiakas, maksuehto.teksti maksuehto, lasku.toimitustapa,
-              date_format(lasku.luontiaika, '%Y-%m-%d') laadittu, kuka.nimi laatija, lasku.toimaika, lasku.chn, maksuehto.kateinen, lasku.mapvm
+              date_format(lasku.luontiaika, '%Y-%m-%d') laadittu, kuka.nimi laatija, lasku.toimaika, lasku.chn, maksuehto.kateinen, lasku.mapvm, lasku.toimitusehto 
               FROM lasku
               LEFT JOIN maksuehto ON (maksuehto.yhtio = lasku.yhtio AND maksuehto.tunnus = lasku.maksuehto)
               LEFT JOIN kuka on (kuka.yhtio = lasku.yhtio and kuka.kuka = lasku.laatija)
@@ -366,7 +371,7 @@ if ($id == '0') {
       $tores = pupe_query($query);
       $toita = mysql_fetch_assoc($tores);
 
-      echo "<table style='display: none;'>";
+      echo "<table class='nt_nm_tb tumma'>";
 
       if ($toita['nouto'] != '' and $row['kateinen'] != '' and $row["chn"] != '999' and ($row["mapvm"] == "" or $row["mapvm"] == '0000-00-00')) {
 
@@ -441,7 +446,7 @@ if ($id == '0') {
       if (($toita['nouto'] !='' and $row['kateinen'] == '' ) or ($row["chn"] == '999' and $row["mapvm"] != "" and $row["mapvm"] != '0000-00-00')) {
 
        // jos kyseessä on nouto jota *EI* makseta käteisellä, kysytään noutajan nimeä..
-        echo "<tr><th>".t("Syötä noutajan nimi")."</th>";
+        echo "<tr class='nt_nm'><th>".t("Syötä noutajan nimi")."</th>";
         echo "<td><input size='60' type='text' name='noutaja'></td></tr>";
         echo "<input type='hidden' name='nouto' value='yes'>";
         echo "<input type='hidden' name='kassalipas' value=''>";
@@ -499,8 +504,12 @@ if ($id == '0') {
 
       echo "</table>";
 
-      echo "<input type='submit' class='tee_tarjous_btn' style='color: #000' name='tila' value='".t("Toimita heti oletusasetuksilla")."'></form></td>";
-
+      echo "<table><tbody><tr><td class='tumma'>";
+      if($toita['nouto'] != '' and isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']])) {
+        echo "<label for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'>";
+      }
+      echo "<input type='submit' name='tila' value='".t("Toimita heti oletusasetuksilla")."'></form></td>";
+      echo "</td></tr></tbody></table>";
       echo "</tr>";
     }
   }
@@ -735,7 +744,7 @@ if ($id > 0) {
   if (($toita['nouto'] !='' and $row['kateinen'] == '' ) or ($row["chn"] == '999' and $row["mapvm"] != "" and $row["mapvm"] != '0000-00-00')) {
 
     // jos kyseessä on nouto jota *EI* makseta käteisellä, kysytään noutajan nimeä..
-    echo "<tr><th>".t("Syötä noutajan nimi")."</th>";
+    echo "<tr class='nt_nm'><th>".t("Syötä noutajan nimi")."</th>";
     echo "<td><input size='60' type='text' name='noutaja'></td></tr>";
     echo "<input type='hidden' name='nouto' value='yes'>";
     echo "<input type='hidden' name='kassalipas' value=''>";
