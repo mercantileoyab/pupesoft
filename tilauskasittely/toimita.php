@@ -32,6 +32,12 @@ else {
   .lisays_z td {
     background-color: #eee;
   }
+  .lisays_p > td:first-child {
+    padding-right: 30px;
+  }
+  .lisays_z > td:first-child {
+    padding-left: 30px;
+  }
 </style>
 <script>
   $(document).ready(function() {
@@ -396,7 +402,7 @@ if ($id == '0') {
 
     while ($row = mysql_fetch_assoc($result)) {
 
-      if($jarjestys) {
+      if($jarjestys and $jarjestys != "tunnus") {
         if(!isset($gruppaus[$row[$jarjestys]])) {
           $gruppaus[$row[$jarjestys]] = array();
         }
