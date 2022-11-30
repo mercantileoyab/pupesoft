@@ -42,8 +42,12 @@ else {
 <script>
   $(document).ready(function() {
     $(".lisays_p").each(function() {
-      console.log($(this));
-      $(this).prev(".lisays_z").children("td:last-child").show();
+      if($(this).prev(".lisays_z").length) {
+        var lisvar = $(this).prev(".lisays_z");
+        var lisvar2 = lisvar.prevAll('.lisays_p').first();
+        lisvar2.children().first().text(lisvar.attr("data"));
+        lisvar2.children("td:last-child").show();
+      }
     });
   });
 </script>
@@ -359,16 +363,22 @@ if ($id == '0') {
     $sorttaus = preg_replace("/[^A-Za-z0-9.]/",'',$sorttaus);
   }
 
+  if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
+    $ryhmitys_lisa = "GROUP_CONCAT(lasku.tunnus) as tunnukset, ";
+    $ryhmitys = "GROUP BY $jarjestys";
+  }
+
   $query = "SELECT distinct otunnus, 
-            concat_ws(' ', lasku.nimi, lasku.nimitark) asiakas,
-            lasku.maksuehto, lasku.tunnus 
+            concat_ws(' ', lasku.nimi, lasku.nimitark) asiakas, 
+            lasku.maksuehto, 
+            lasku.tunnus 
             FROM lasku
             JOIN tilausrivi ON (tilausrivi.yhtio = lasku.yhtio and tilausrivi.otunnus = lasku.tunnus and tilausrivi.toimitettu = '' and tilausrivi.keratty != '')
             JOIN toimitustapa ON (toimitustapa.yhtio = lasku.yhtio and toimitustapa.selite = lasku.toimitustapa and toimitustapa.nouto != '')
             where lasku.$logistiikka_yhtiolisa
             and lasku.tila    = 'L'
             and lasku.alatila in ('C','B')
-            and lasku.vienti  = ''
+            and lasku.vienti  = '' 
             ORDER BY $jarjestys $sorttaus";
   $tilre = pupe_query($query);
 
@@ -384,7 +394,7 @@ if ($id == '0') {
               concat_ws(' ', lasku.nimi, lasku.nimitark) asiakas, maksuehto.teksti maksuehto, lasku.toimitustapa,
               date_format(lasku.luontiaika, '%Y-%m-%d') laadittu, kuka.nimi laatija, lasku.toimaika, lasku.chn, maksuehto.kateinen, lasku.mapvm, lasku.toimitusehto, 
               lasku.ytunnus 
-              FROM lasku
+              FROM lasku 
               LEFT JOIN maksuehto ON (maksuehto.yhtio = lasku.yhtio AND maksuehto.tunnus = lasku.maksuehto)
               LEFT JOIN kuka on (kuka.yhtio = lasku.yhtio and kuka.kuka = lasku.laatija)
               WHERE lasku.tunnus = '$tilrow[otunnus]'
@@ -397,12 +407,12 @@ if ($id == '0') {
     $result = pupe_query($query);
 
     $piilotetut_kentat = array(
-      'ytunnus' 
+      'ytunnus', 'tunnus'
     );
 
     while ($row = mysql_fetch_assoc($result)) {
 
-      if($jarjestys and $jarjestys != "tunnus") {
+      if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         if(!isset($gruppaus[$row[$jarjestys]])) {
           $gruppaus[$row[$jarjestys]] = array();
         }
@@ -444,7 +454,7 @@ if ($id == '0') {
         echo "</tr>";
       }
 
-      echo "<tr class='$lisaluokka lisays aktiivi ".implode(",", $gruppaus[$row[$jarjestys]])."'>";
+      echo "<tr data='".implode(",", $gruppaus[$row[$jarjestys]])."' class='$lisaluokka lisays aktiivi'>";
 
       for ($i=0; $i<mysql_num_fields($result); $i++) {
         $fname = mysql_field_name($result, $i);
@@ -564,7 +574,7 @@ if ($id == '0') {
 
        // jos kyseessä on nouto jota *EI* makseta käteisellä, kysytään noutajan nimeä..
         echo "<tr class='nt_nm'><th>".t("Syötä noutajan nimi")."</th>";
-        echo "<td><input size='60' type='text' name='noutaja'></td></tr>";
+        echo "<td><input size='32' type='text' name='noutaja'></td></tr>";
         echo "<input type='hidden' name='nouto' value='yes'>";
         echo "<input type='hidden' name='kassalipas' value=''>";
 
