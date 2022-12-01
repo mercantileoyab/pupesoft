@@ -698,8 +698,9 @@ if ($id == '0') {
         if($jarjestys == 'tunnus') {
           $_ots = t("tunnuksen");
         }
-
-        echo "<input type='submit' name='tila' value='".t("Ketjuta")."'></form></td>";
+        echo "<label style='color: #000000;' for='myos_laskuta_2'>".t('Laskuta nouto')."</label><input id='myos_laskuta_2' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'>";
+        echo "<input type='submit' name='tila' value='".t("Ketjuta")."'>";
+        echo "</form></td>";
         echo "</td></tr></tbody></table></td>";
       }
       echo "</tr>";
