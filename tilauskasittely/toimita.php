@@ -230,9 +230,9 @@ if ($tee == 'P') {
       $ures  = pupe_query($query);
 
       if($myos_laskuta) {
-        $_query = "SELECT * FROM toimitustapa WHERE yhtio='$kukarow[yhtio]' AND selite='$tilrow[toimitustapa]'";
-        $_tores = pupe_query($query);
-        $_toita = mysql_fetch_assoc($tores);
+        $_query = "SELECT * FROM toimitustapa WHERE yhtio='$kukarow[yhtio]' AND selite = '$tilrow[toimitustapa]'";
+        $_tores = pupe_query($_query);
+        $_toita = mysql_fetch_assoc($_tores);
       }
 
       // jos kyseessä on käteiskauppaa ja EI vientiä, tai toimitustapa nouto ja on automaattisesti laskuttava, laskutetaan ja tulostetaan tilaus..
