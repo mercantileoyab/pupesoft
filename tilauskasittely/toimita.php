@@ -211,7 +211,7 @@ if ($tee == 'P') {
       $ures  = pupe_query($query);
 
       // jos kyseessä on käteismyyntiä, tulostetaaan käteislasku
-      $query  = "SELECT *
+      $query  = "SELECT * 
                  from lasku, maksuehto
                  where lasku.tunnus   = '$otunnus_s'
                  and lasku.yhtio      = '$kukarow[yhtio]'
@@ -237,7 +237,11 @@ if ($tee == 'P') {
 
       // jos kyseessä on käteiskauppaa ja EI vientiä, tai toimitustapa nouto ja on automaattisesti laskuttava, laskutetaan ja tulostetaan tilaus..
       if (
-        ($myos_laskuta and $_toita['nouto'] != '' and isset($automaattisesti_laskuttavat_nouto[$tilrow['toimitusehto']])) 
+        (
+          $myos_laskuta and $_toita['nouto'] != '' and 
+          isset($automaattisesti_laskuttavat_nouto[$tilrow['toimitusehto']]) and 
+          !isset($automaattisesti_laskuttavat_maksutavat[$tilrow['maksuehto']])
+        ) 
         or ($tilrow['kateinen']!='' and $tilrow["vienti"]=='')
         ) {
 
@@ -544,8 +548,13 @@ if ($id == '0') {
       $tores = pupe_query($query);
       $toita = mysql_fetch_assoc($tores);
       
-      echo "<td class='back'><form method='post'><input type='hidden' name='id' value='$row[tilaus]'><input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>";
-      if($toita['nouto'] != '' and isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']])) {
+      echo "<td class='back'><form method='post'><input type='hidden' name='id' value='$row[tilaus]'>";
+
+      echo "<input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>";
+      if($toita['nouto'] != '' and 
+        isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']]) and 
+        !isset($automaattisesti_laskuttavat_maksutavat[$row['maksuehto']])
+      ) {
         echo "<label for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'>";
       }
       echo "<input type='submit' name='tila' value='".t("Toimita")."'></form></td>";
