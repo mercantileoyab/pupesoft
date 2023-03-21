@@ -85,7 +85,7 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
       
       if(lisvar && lisvar.attr("data").indexOf(',') > -1) {
         var lisvar2 = lisvar.prevAll('.lisays_p').first();
-        lisvar2.children().first().html(lisvar.attr("data").replace(",", "<hr>").replaceAll(",", ", ") + "<br><a><?php echo t("Näytä tilaukset"); ?><b class='x'>&#8595</b><b class='c'>&#8593</b></a>");
+        lisvar2.children().first().html(lisvar.attr("data").replace(",", "<hr><div style='min-width: 150px; max-width: 200px'>").replaceAll(",", ", ") + "</div><a><?php echo t("Näytä tilaukset"); ?><b class='x'>&#8595</b><b class='c'>&#8593</b></a>");
         lisvar2.children().first().find("a").click(function () {
           $(this).toggleClass('active');
           lisvar2.nextUntil(".lisays_p").toggle();
@@ -95,6 +95,16 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         lisvar2.children("td:last-child").show();
       }
     });
+    $(".merkka_ketjuta").each(function() {
+      $(this).on("change",function() {
+        var idz = $(this).attr("data");
+        if($(this).is(':checked')){
+          $(".ketjuform_input[value="+idz+"]").attr("name", "otunnus[]");
+        } else {
+          $(".ketjuform_input[value="+idz+"]").attr("name", "");
+        }
+      })
+    })
   });
 </script>
 <?php 
@@ -468,7 +478,7 @@ if ($id == '0') {
     $result = pupe_query($query);
 
     $piilotetut_kentat = array(
-      'ytunnus', 'tunnus'
+      'ytunnus', 'tunnus', 'chn', 'kateinen', 'mapvm', 'toimaika'
     );
 
     while ($row = mysql_fetch_assoc($result)) {
@@ -557,12 +567,12 @@ if ($id == '0') {
       ) {
         echo "<label for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'>";
       }
-      echo "<input type='submit' name='tila' value='".t("Toimita")."'></form></td>";
+      echo "<input type='submit' name='tila' value='".t("Toimita")."'></form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>Ketjuta</label</td>";
 
       if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         echo "<td class='back ketjuform'><form method='post'>";
         foreach($gruppaus[$row[$jarjestys]] as $input_otunnus) {
-          echo "<input type='hidden' name='otunnus[]' value='$input_otunnus'>";
+          echo "<input type='hidden' class='ketjuform_input' name='otunnus[]' value='$input_otunnus'>";
         }
         echo "<input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>
               <input type='hidden' name='tee' value='P'>";
@@ -708,8 +718,8 @@ if ($id == '0') {
         if($jarjestys == 'tunnus') {
           $_ots = t("tunnuksen");
         }
-        echo "<label style='color: #000000;' for='myos_laskuta_2'>".t('Laskuta nouto')."</label><input id='myos_laskuta_2' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'>";
-        echo "<input type='submit' name='tila' value='".t("Ketjuta")."'>";
+        echo "<label style='color: #000000;' for='myos_laskuta_$row[tilaus]'>".t('Laskuta nouto')."</label><input id='myos_laskuta_$row[tilaus]' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'>";
+        echo "<input type='submit' name='tila' value='".t("Ketjuta valitut")."'>";
         echo "</form></td>";
         echo "</td></tr></tbody></table></td>";
       }
