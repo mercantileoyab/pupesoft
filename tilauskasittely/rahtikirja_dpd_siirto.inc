@@ -331,6 +331,10 @@ if ($kollityht > 0) {
         $ftpfile = realpath($filenimi);
         $ftpskey = $dpd_ds_skey;
 
+        $getfileinfo = pathinfo($ftpfile);
+
+        copy($ftpfile, $pupe_root_polku."/datain/dpd/".$getfileinfo['filename']);
+
         require "inc/sftp-send.inc";
       }
       else {
@@ -353,6 +357,10 @@ if ($kollityht > 0) {
         $ftppath = (trim($toitarow['lajittelupiste']) != '' and empty($dpd_telli_siirto)) ? $dpd_ds_path . trim($toitarow['lajittelupiste']) . "/" : $dpd_ds_path;
         $ftpfile = realpath($filenimi);
 
+        $getfileinfo = pathinfo($ftpfile);
+
+        copy($ftpfile, $pupe_root_polku."/datain/dpd/".$getfileinfo['filename']);
+
         require "inc/ftp-send.inc";
       }
     }
@@ -363,6 +371,10 @@ if ($kollityht > 0) {
       if (file_put_contents($filenimi, $aineisto) === FALSE) {
         echo "<br><font class='error'>".t("tiedoston kirjoitus EPÄONNISTUI")."</font><br>";
       }
+
+      $getfileinfo = pathinfo($filenimi);
+
+      copy($filenimi, $pupe_root_polku."/datain/dpd/".$getfileinfo['filename']);
     }
   }
   else {
