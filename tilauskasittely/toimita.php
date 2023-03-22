@@ -19,8 +19,8 @@ else {
 }
 ?>
 <style>
-  .lisays_p .merkka_ketjuta + label,
-  .lisays_p .merkka_ketjuta {
+  .lisays:not(.lisays_z) .merkka_ketjuta + label,
+  .lisays:not(.lisays_z) .merkka_ketjuta {
     display: none;
   }
 </style>
