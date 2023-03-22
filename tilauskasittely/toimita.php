@@ -63,9 +63,7 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
   }
 
   .lisays_p>td:first-child b.c,
-  .lisays_p>td:first-child .active b.x,
-  .lisays_p .merkka_ketjuta + label,
-  .lisays_p .merkka_ketjuta {
+  .lisays_p>td:first-child .active b.x {
     display: none;
   }
 
@@ -575,7 +573,7 @@ if ($id == '0') {
       ) {
         echo "<label for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'><br>";
       }
-      echo "</form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>Ketjuta</label</td>";
+      echo "</form><input checked='checked' data='$row[tilaus]' style='display: none;' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label style='display: none;' for='merkka_ketjuta_$row[tilaus]'>Ketjuta</label</td>";
 
       if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         echo "<td class='back ketjuform'><form method='post'>";
