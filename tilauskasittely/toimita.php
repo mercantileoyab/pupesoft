@@ -63,7 +63,9 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
   }
 
   .lisays_p>td:first-child b.c,
-  .lisays_p>td:first-child .active b.x {
+  .lisays_p>td:first-child .active b.x,
+  .lisays_p .merkka_ketjuta + label,
+  .lisays_p .merkka_ketjuta {
     display: none;
   }
 
@@ -79,20 +81,25 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         var lisvar = $(this).prev(".lisays_z");
       }
       if($(this).is(":last-child")) {
-        console.log();
         var lisvar = $(this);
       }
       
       if(lisvar && lisvar.attr("data").indexOf(',') > -1) {
         var lisvar2 = lisvar.prevAll('.lisays_p').first();
+        console.log(lisvar);
         lisvar2.children().first().html(lisvar.attr("data").replace(",", "<hr><div style='min-width: 150px; max-width: 200px'>").replaceAll(",", ", ") + "</div><a><?php echo t("Näytä tilaukset"); ?><b class='x'>&#8595</b><b class='c'>&#8593</b></a>");
         lisvar2.children().first().find("a").click(function () {
           $(this).toggleClass('active');
           lisvar2.nextUntil(".lisays_p").toggle();
         });
+        lisvar2.children().first().find("a").trigger("click");
         lisvar2.children("td:last-child").html("");
         lisvar2.children("td:last-child").append($(this).prev(".lisays_z").children("td:last-child").children());
         lisvar2.children("td:last-child").show();
+        lisvar2.find(".toimita_form").hide();
+        $(".lisays_z").find(".toimita_form").hide();
+        lisvar2.find(".merkka_ketjuta + label").show();
+        lisvar2.find(".merkka_ketjuta").show();
       }
     });
     $(".merkka_ketjuta").each(function() {
@@ -558,16 +565,17 @@ if ($id == '0') {
       $tores = pupe_query($query);
       $toita = mysql_fetch_assoc($tores);
       
-      echo "<td class='back'><form method='post'><input type='hidden' name='id' value='$row[tilaus]'>";
+      echo "<td class='back'><form class='toimita_form' method='post'><input type='hidden' name='id' value='$row[tilaus]'>";
 
       echo "<input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>";
+      echo "<input type='submit' name='tila' value='".t("Toimita")."'><br>";
       if($toita['nouto'] != '' and 
         isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']]) and 
         !isset($automaattisesti_laskuttavat_maksutavat[$row['maksuehto']])
       ) {
-        echo "<label for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'>";
+        echo "<label for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'><br>";
       }
-      echo "<input type='submit' name='tila' value='".t("Toimita")."'></form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>Ketjuta</label</td>";
+      echo "</form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>Ketjuta</label</td>";
 
       if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         echo "<td class='back ketjuform'><form method='post'>";
@@ -718,8 +726,8 @@ if ($id == '0') {
         if($jarjestys == 'tunnus') {
           $_ots = t("tunnuksen");
         }
-        echo "<label style='color: #000000;' for='myos_laskuta_$row[tilaus]'>".t('Laskuta nouto')."</label><input id='myos_laskuta_$row[tilaus]' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'>";
-        echo "<input type='submit' name='tila' value='".t("Ketjuta valitut")."'>";
+        echo "<input type='submit' name='tila' value='".t("Toimita valitut")."'>";
+        echo "<label style='color: #000000;' for='myos_laskuta_$row[tilaus]'>".t('Myös laskuta nouto')."</label><input id='myos_laskuta_$row[tilaus]' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'>";
         echo "</form></td>";
         echo "</td></tr></tbody></table></td>";
       }
