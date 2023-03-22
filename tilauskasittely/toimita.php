@@ -70,7 +70,7 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
   }
 
   .lisays_p>td:first-child b.c,
-  .lisays_p>td:first-child .active b.x {
+  .lisays_p>td:first-child .active b.x, .laskutakaikki {
     display: none;
   }
 
@@ -80,6 +80,13 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
 </style>
 <script>
   $(document).ready(function () {
+
+    $(".lisays_p, .lisays_z").each(function() {
+      if($(this).find(".laskutayksi").length) {
+        $(this).find(".laskutakaikki").show();
+      }
+    })
+
     $(".lisays_p, .lisays_z:last-child").each(function () {
       var lisvar = false;
       if ($(this).prev(".lisays_z").length) {
@@ -91,7 +98,6 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
       
       if(lisvar && lisvar.attr("data").indexOf(',') > -1) {
         var lisvar2 = lisvar.prevAll('.lisays_p').first();
-        console.log(lisvar);
         lisvar2.children().first().html(lisvar.attr("data").replace(",", "<hr><div style='min-width: 150px; max-width: 200px'>").replaceAll(",", ", ") + "</div><a><?php echo t("Näytä tilaukset"); ?><b class='x'>&#8595</b><b class='c'>&#8593</b></a>");
         lisvar2.children().first().find("a").click(function () {
           $(this).toggleClass('active');
@@ -578,7 +584,7 @@ if ($id == '0') {
         isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']]) and 
         !isset($automaattisesti_laskuttavat_maksutavat[$row['maksuehto']])
       ) {
-        echo "<label for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'><br>";
+        echo "<label class='laskutayksi' for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'><br>";
       }
       echo "</form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>Ketjuta</label</td>";
 
@@ -732,7 +738,7 @@ if ($id == '0') {
           $_ots = t("tunnuksen");
         }
         echo "<input type='submit' name='tila' value='".t("Toimita valitut")."'>";
-        echo "<label style='color: #000000;' for='myos_laskuta_$row[tilaus]'>".t('Myös laskuta nouto')."</label><input id='myos_laskuta_$row[tilaus]' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'>";
+        echo "<span class='laskutakaikki'><label style='color: #000000;' for='myos_laskuta_$row[tilaus]'>".t('Myös laskuta')."</label><input id='myos_laskuta_$row[tilaus]' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'></span>";
         echo "</form></td>";
         echo "</td></tr></tbody></table></td>";
       }
