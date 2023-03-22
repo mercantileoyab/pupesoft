@@ -19,10 +19,10 @@ else {
 }
 ?>
 <style>
-.lisays_p>td:first-child b.c,
-.lisays_p>td:first-child .active b.x {
-  display: none;
-}
+  .lisays_p .merkka_ketjuta + label,
+  .lisays_p .merkka_ketjuta {
+    display: none;
+  }
 </style>
 <?php
 if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
@@ -67,6 +67,11 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
 
   .lisays_p>td:first-child b {
     margin-left: 5px;
+  }
+
+  .lisays_p>td:first-child b.c,
+  .lisays_p>td:first-child .active b.x {
+    display: none;
   }
 
   .lisays_p>td:first-child .active b.c {
