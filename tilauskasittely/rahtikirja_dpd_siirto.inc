@@ -333,7 +333,7 @@ if ($kollityht > 0) {
 
         $getfileinfo = pathinfo($ftpfile);
 
-        copy($ftpfile, $pupe_root_polku."/datain/dpd/".$getfileinfo['filename']);
+        copy($ftpfile, $pupe_root_polku."/datain/dpd".str_replace("/regular/Export", "", $dpd_ds_path)."/".$getfileinfo['filename']);
 
         require "inc/sftp-send.inc";
       }
@@ -359,7 +359,7 @@ if ($kollityht > 0) {
 
         $getfileinfo = pathinfo($ftpfile);
 
-        copy($ftpfile, $pupe_root_polku."/datain/dpd/".$getfileinfo['filename']);
+        copy($ftpfile, $pupe_root_polku."/datain/dpd".str_replace("/regular/Export", "", $dpd_ds_path)."/".$getfileinfo['filename']);
 
         require "inc/ftp-send.inc";
       }
@@ -374,7 +374,7 @@ if ($kollityht > 0) {
 
       $getfileinfo = pathinfo($filenimi);
 
-      copy($filenimi, $pupe_root_polku."/datain/dpd/".$getfileinfo['filename']);
+      copy($filenimi, $pupe_root_polku."/datain/dpd".str_replace("/regular/Export", "", $dpd_ds_path)."/".$getfileinfo['filename']);
     }
   }
   else {
