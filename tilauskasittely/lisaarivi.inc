@@ -3576,22 +3576,25 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
       $tlisatied_lisa2 .= ", kohde_hyllyalue='$kohde_alue' , kohde_hyllynro='$kohde_nro' , kohde_hyllyvali='$kohde_vali' , kohde_hyllytaso='$kohde_taso'";
     }
 
-    $query = "SELECT *
-              FROM tilausrivi 
-              WHERE yhtio          = '$kukarow[yhtio]'
-              and perheid = '$lisatty_tun'";
-    $perhe_lisatied_res = pupe_query($query);
-    if(mysql_num_rows($perhe_lisatied_res) > 1 and $trow['suoratoimitus'] != '' and $toimittajan_tunnus and $rivityyppi == 'L' and $paikka) {
-      $query = "UPDATE tilausrivi 
+    if($trow['suoratoimitus'] != '' and $toimittajan_tunnus and $rivityyppi == 'L' and $paikka) {
+      $query = "SELECT *
+                  FROM tilausrivi 
+                WHERE yhtio          = '$kukarow[yhtio]' 
+                  and otunnus = '$laskurow[tunnus]' 
+                  and perheid = '$lisatty_tun'";
+      $perhe_lisatied_res = pupe_query($query);
+      if(mysql_num_rows($perhe_lisatied_res) > 1) {
+        $query = "UPDATE tilausrivi 
                   SET 
                     hyllyalue       = '',
                     hyllynro        = '',
                     hyllyvali       = '',
                     hyllytaso       = ''
                   WHERE yhtio          = '$kukarow[yhtio]' 
-                  and otunnus = '$laskurow[tunnus]' 
-                  and perheid = '$lisatty_tun'";
-      pupe_query($query);
+                    and otunnus = '$laskurow[tunnus]' 
+                    and perheid = '$lisatty_tun'";
+        pupe_query($query);
+      }
     }
 
     $jt_manual_lisa = (isset($jt_manual) and trim($jt_manual) != '') ? ", jt_manual = 'K'" : ", jt_manual = ''";
