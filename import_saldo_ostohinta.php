@@ -560,7 +560,6 @@ class ImportSaldoHinta
               FROM tuotteen_toimittajat 
               WHERE yhtio = '".$this->yhtio."' 
                 AND liitostunnus = '".$toimittaja_id."' 
-                AND tehdas_saldo_varastot != '' 
                 AND tehdas_saldo != '' AND tehdas_saldo > 0 
               ";
     $resetoittavat = pupe_query($query);

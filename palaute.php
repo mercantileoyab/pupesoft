@@ -55,17 +55,19 @@ if (!isset($asiakas)) $asiakas = false;
 if (!isset($tuoteno)) $tuoteno = false;
 if (!isset($status)) $status = false;
 if (!isset($ostoehdotus)) $ostoehdotus = false;
+if (!isset($tuotepaallikko)) $tuotepaallikko = false;
 if (!isset($palaute_kuka)) $palaute_kuka = false;
 
-if($palaute_lisaa and $maara and $hinta and $tuoteno and $palaute_kuka and $asiakas) {
+if($palaute_lisaa and $maara and $hinta and $tuoteno and $tuotepaallikko and $palaute_kuka and $asiakas) {
   
   $lisataan = array(
     $asiakas,
-    $tuoteno, 
-    $maara, 
+    $tuoteno,
+    $maara,
     $hinta,
-    $status, 
-    $ostoehdotus, 
+    $status,
+    $ostoehdotus,
+    $tuotepaallikko,
     $palaute_kuka,
     date("d.m.Y H:i:s")
   );
@@ -78,7 +80,7 @@ if($palaute_lisaa and $maara and $hinta and $tuoteno and $palaute_kuka and $asia
     }
  
     if(!$first_row) {
-      $header = "Asiakas;Tuotenumero;Maara;Hinta;Status;Ostoehdotus;Kayttaja;Milloin \r\n";
+      $header = "Asiakas;Tuotenumero;Maara;Hinta;Status;Ostoehdotus;Tuotepaallikko,Kayttaja;Milloin \r\n";
       $tiedosto_data = file_get_contents($palaute_dl_tiedosto);
       file_put_contents($palaute_dl_tiedosto, $header.$tiedosto_data);
     }
@@ -90,8 +92,6 @@ if($palaute_lisaa and $maara and $hinta and $tuoteno and $palaute_kuka and $asia
   } else {
     echo t('VIRHE!');
   }
-
-
 
   exit;
 }

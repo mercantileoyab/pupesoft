@@ -39,25 +39,41 @@ if ($operaattori == "") {
   exit;
 }
 
+if (!function_exists('yhdista_ftp')) {
+  function yhdista_ftp($ftpget_port, $ftpget_host, $ftpget_user, $ftpget_pass, $operaattori, $ssl) {
+    if (isset($ftpget_port[$operaattori]) and (int) $ftpget_port[$operaattori] > 0) {
+      $ftpget_port[$operaattori] = (int) $ftpget_port[$operaattori];
+      $conn_id = $ssl($ftpget_host[$operaattori], $ftpget_port[$operaattori]);
+    }
+    else {
+      $conn_id = $ssl($ftpget_host[$operaattori]);
+    }
+
+    // jos connectio ok, kokeillaan loginata
+    if ($conn_id) {
+      if($login_result = ftp_login($conn_id, $ftpget_user[$operaattori], $ftpget_pass[$operaattori])) {
+        return array(
+          "login_result" => $login_result,
+          "conn_id" => $conn_id
+        );
+      }
+    }
+    return false;
+  }
+}
+
 if ($ftpget_host[$operaattori] != '' and $ftpget_user[$operaattori] != '' and $ftpget_pass[$operaattori] != '' and $ftpget_path[$operaattori] != '' and $ftpget_dest[$operaattori] != '') {
 
-  if (isset($ftpget_port[$operaattori]) and (int) $ftpget_port[$operaattori] > 0) {
-    $ftpget_port[$operaattori] = (int) $ftpget_port[$operaattori];
-
-    $conn_id = ftp_connect($ftpget_host[$operaattori], $ftpget_port[$operaattori]);
-  }
-  else {
-    $conn_id = ftp_connect($ftpget_host[$operaattori]);
+  if ($conn_id_info = yhdista_ftp($ftpget_port, $ftpget_host, $ftpget_user, $ftpget_pass, $operaattori, 'ftp_ssl_connect')) {
+  } else if($conn_id_info = yhdista_ftp($ftpget_port, $ftpget_host, $ftpget_user, $ftpget_pass, $operaattori, 'ftp_connect')) {
   }
 
-  // jos connectio ok, kokeillaan loginata
-  if ($conn_id) {
-    $login_result = ftp_login($conn_id, $ftpget_user[$operaattori], $ftpget_pass[$operaattori]);
+  if($conn_id_info) {
+    $conn_id = $conn_id_info['conn_id'];
+    $login_result = $conn_id_info['login_result'];
   }
 
-  if ($login_result) {
-    $changedir = ftp_chdir($conn_id, $ftpget_path[$operaattori]);
-  }
+  $changedir = ftp_chdir($conn_id, $ftpget_path[$operaattori]);
 
   // haetaan filet active modella
   if ($changedir) {
