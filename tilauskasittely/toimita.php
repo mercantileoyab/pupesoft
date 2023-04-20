@@ -105,7 +105,11 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         });
         lisvar2.children().first().find("a").trigger("click");
         lisvar2.children("td:last-child").html("");
-        lisvar2.children("td:last-child").append($(this).prev(".lisays_z").children("td:last-child").children());
+        if($(this).prev(".lisays_z").children("td:last-child").length) {
+          lisvar2.children("td:last-child").append($(this).prev(".lisays_z").children("td:last-child").children());
+        } else {
+          lisvar2.children("td:last-child").append($(this).children("td:last-child").children());
+        }
         lisvar2.children("td:last-child").show();
         lisvar2.find(".toimita_form").hide();
         $(".lisays_z").find(".toimita_form").hide();
