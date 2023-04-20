@@ -115,6 +115,17 @@ class ImportSaldoHinta
       "orum.csv" => "200"
     );
 
+    $this->eur_partners = array(
+      943=>"1",
+      1048=>"1",
+      1407=>"1",
+      1432=>"1",
+      1474=>"1",
+      1525=>"1",
+      1598=>"1",
+      200=>"1"
+    );
+
     $this->toimittajen_rajoitus = $toimittajen_rajoitus;
 
     /*
@@ -973,6 +984,7 @@ class ImportSaldoHinta
           $tehdas_saldo_varastot_lisa = "tuotteen_toimittajat.tehdas_saldo_varastot = '".$varastot_serialized."',";
         }
         
+        $tuotehinta = false;
         // Haetaan hintatiedot ja saldo price array:ista
         if(isset($rivit_prices_l['hinta']) and !isset($this->ohita_hinnat[$toimittaja_id])) {
           $tuotehinta = $rivit_prices_l['hinta'];
@@ -1017,9 +1029,61 @@ class ImportSaldoHinta
         $onnistunut_tuote = false;
         
         // onnistui
-        if (mysql_insert_id()) {
+        if ($lisatty_id = mysql_insert_id()) {
           $loydetyt_tuotteet[] = $rivi;
           $onnistunut_tuote = true;
+
+          if($tuotesaldo > 0 and 1==2) {
+
+            $toimittajat_idt = implode(",", array_values($this->toimittajat_tiedostot));
+
+            $query = "SELECT tuoteno  
+                      FROM tuotteen_toimittajat 
+                        WHERE yhtio = '".$this->yhtio."' 
+                        AND tunnus = $lisatty_id 
+                      ";
+            $loydatuoteno = pupe_query($query);
+            $loydatuoteno = mysql_fetch_assoc($loydatuoteno);
+            $loydatuoteno = $loydatuoteno['tuoteno'];
+
+            if($tuotehinta) {
+              $query = "SELECT max(ostohinta) 
+                          FROM tuotteen_toimittajat 
+                        WHERE yhtio = '".$this->yhtio."' 
+                          AND liitostunnus IN (".$toimittajat_idt.") 
+                          AND tuoteno = '".$loydatuoteno."' 
+                        ";
+              $max_hinta = pupe_query($query);
+              $max_hinta = mysql_fetch_array($max_hinta);
+              $max_hinta = 2*$max_hinta[0];
+
+              $query = "UPDATE 
+                          tuote 
+                        SET 
+                          myyntihinta = '$max_hinta',
+                          hinnastoon = '', 
+                          suoratoimitus = 'X'
+                        WHERE yhtio = '".$this->yhtio."' 
+                          AND tuoteno = '".$loydatuoteno."' 
+                          AND myyntihinta <= 0
+                        ";
+              $paivita_hinta = pupe_query($query);
+            }
+
+            if(isset($this->eur_partners[$toimittaja_id])) {
+              $query = "UPDATE 
+                          tuote 
+                        SET 
+                          suoratoimitus = 'X' 
+                        WHERE yhtio = '".$this->yhtio."' 
+                          AND tuoteno = '".$loydatuoteno."' 
+                          AND myyntihinta > 0
+                        ";
+              $paivita_suoratoimitus = pupe_query($query);
+            }
+
+          }
+
         }
 
         if (!$onnistunut_tuote) {

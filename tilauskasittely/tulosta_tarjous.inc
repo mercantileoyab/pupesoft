@@ -715,7 +715,12 @@ if (!function_exists('tarjous_rivi_otsikot')) {
         }
       }
 
-      if (!in_array($yhtiorow["tarjoustyyppi"], array(2, 4))) {
+      if (!in_array($yhtiorow["tarjoustyyppi"], array(2, 4)) 
+      and (trim($verolliset_verottomat_hinnat) == 'verolliset' 
+      or (trim($verolliset_verottomat_hinnat) == '' 
+        and $yhtiorow['tarjouksen_alv_kasittely'] != 'X' 
+        and $yhtiorow['alv_kasittely'] == ''
+      ))) {
         $pdf_tarjous->draw_text(498, $kala + 15, t("Alv", $kieli), $page_tarjous, $norm);
       }
 
@@ -1138,8 +1143,13 @@ if (!function_exists('tarjous_rivi_hinta_ale')) {
       $oikpos = $pdf_tarjous->strlen($ff_string, $ff_font);
       $pdf_tarjous->draw_text(482-$oikpos, $kala, $ff_string, $page_tarjous[$sivu], $norm);
     }
-
-    if (!in_array($yhtiorow["tarjoustyyppi"], array(2, 4))) {
+    
+    if (!in_array($yhtiorow["tarjoustyyppi"], array(2, 4)) 
+    and (trim($verolliset_verottomat_hinnat) == 'verolliset' 
+    or (trim($verolliset_verottomat_hinnat) == '' 
+      and $yhtiorow['tarjouksen_alv_kasittely'] != 'X' 
+      and $yhtiorow['alv_kasittely'] == ''
+    ))) {
       if ($row["alv"] >= 600) {
         $pdf_tarjous->draw_text(500, $kala, t("K.V.", $kieli), $page_tarjous[$sivu], $norm);
       }

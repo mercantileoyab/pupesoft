@@ -17,6 +17,120 @@ if ($yhtiorow['konsernivarasto'] != '' and $konsernivarasto_yhtiot != '') {
 else {
   $logistiikka_yhtiolisa = "yhtio = '$kukarow[yhtio]'";
 }
+?>
+<style>
+  .lisays:not(.lisays_z) .merkka_ketjuta + label,
+  .lisays:not(.lisays_z) .merkka_ketjuta {
+    display: none;
+  }
+</style>
+<?php
+if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
+?>
+<style>
+  .lisays_p>td {
+    border-top: 4px solid #ccc;
+  }
+
+  .lisays>td:last-child,
+  .lisays_z {
+    display: none;
+  }
+
+  .lisays_p td {
+    background-color: #fff;
+  }
+
+  .lisays_p td.ketjuta {
+    padding: 0;
+  }
+
+  .lisays_z td {
+    background-color: #eee;
+  }
+
+  .lisays_p>td:first-child {
+    padding-right: 30px;
+  }
+
+  .lisays_z>td:first-child {
+    padding-left: 30px;
+  }
+
+  .lisays_z>td:first-child {
+    padding-left: 30px;
+  }
+
+  .lisays_p>td:first-child a {
+    cursor: pointer;
+  }
+
+  .lisays_p>td:first-child b {
+    margin-left: 5px;
+  }
+
+  .lisays_p>td:first-child b.c,
+  .lisays_p>td:first-child .active b.x, .laskutakaikki {
+    display: none;
+  }
+
+  .lisays_p>td:first-child .active b.c {
+    display: inline;
+  }
+</style>
+<script>
+  $(document).ready(function () {
+
+    $(".lisays_p, .lisays_z").each(function() {
+      if($(this).find(".laskutayksi").length) {
+        $(this).find(".laskutakaikki").show();
+      }
+    })
+
+    $(".lisays_p, .lisays_z:last-child").each(function () {
+      var lisvar = false;
+      if ($(this).prev(".lisays_z").length) {
+        var lisvar = $(this).prev(".lisays_z");
+      }
+      if($(this).is(":last-child")) {
+        var lisvar = $(this);
+      }
+      
+      if(lisvar && lisvar.attr("data").indexOf(',') > -1) {
+        var lisvar2 = lisvar.prevAll('.lisays_p').first();
+        lisvar2.children().first().html(lisvar.attr("data").replace(",", "<hr><div style='min-width: 150px; max-width: 200px'>").replaceAll(",", ", ") + "</div><a><?php echo t("Näytä tilaukset"); ?><b class='x'>&#8595</b><b class='c'>&#8593</b></a>");
+        lisvar2.children().first().find("a").click(function () {
+          $(this).toggleClass('active');
+          lisvar2.nextUntil(".lisays_p").toggle();
+        });
+        lisvar2.children().first().find("a").trigger("click");
+        lisvar2.children("td:last-child").html("");
+        if($(this).prev(".lisays_z").children("td:last-child").length) {
+          lisvar2.children("td:last-child").append($(this).prev(".lisays_z").children("td:last-child").children());
+        } else {
+          lisvar2.children("td:last-child").append($(this).children("td:last-child").children());
+        }
+        lisvar2.children("td:last-child").show();
+        lisvar2.find(".toimita_form").hide();
+        $(".lisays_z").find(".toimita_form").hide();
+        lisvar2.find(".merkka_ketjuta + label").show();
+        lisvar2.find(".merkka_ketjuta").show();
+      }
+    });
+    $(".merkka_ketjuta").each(function() {
+      $(this).on("change",function() {
+        var idz = $(this).attr("data");
+        if($(this).is(':checked')){
+          $(".ketjuform_input[value="+idz+"]").attr("name", "otunnus[]");
+        } else {
+          $(".ketjuform_input[value="+idz+"]").attr("name", "");
+        }
+      })
+    })
+  });
+</script>
+<?php 
+}
 
 echo "<font class='head'>".t("Toimita tilaus").":</font><hr>";
 
@@ -40,8 +154,8 @@ if ($tee == 'P' and $maksutapa == 'seka') {
   echo "<input type='hidden' name='vaihdakateista' value='$vaihdakateista'>";
   echo "<input type='hidden' name='maksutapa' value='$maksuehtorow[tunnus]'>";
 
-  echo "  <script type='text/javascript' language='JavaScript'>
-      <!--
+  echo "<script type='text/javascript' language='JavaScript'>
+        <!--
         function update_summa(rivihinta) {
 
           kateinen = Number(document.getElementById('kateismaksu').value.replace(\",\",\".\"));
@@ -61,8 +175,8 @@ if ($tee == 'P' and $maksutapa == 'seka') {
 
           document.getElementById('loppusumma').innerHTML = '<b>' + summa.toFixed(2) + '</b>';
         }
-      -->
-      </script>";
+        -->
+        </script>";
 
   echo "<tr><th>".t("Laskun loppusumma")."</th><td align='right'>$rivihinta</td><td>$valkoodi</td></tr>";
 
@@ -87,170 +201,188 @@ if ($tee == 'maksu') {
   }
 }
 
-if ($tee=='P') {
+if ($tee == 'P') {
+  if(!is_array($otunnus)) {
+    $otunnus = array($otunnus);
+  }
+  foreach($otunnus as $otunnus_s)
+  {
+    // jos kyseessä ei ole nouto tai noutajan nimi on annettu, voidaan merkata tilaus toimitetuksi..
+    if (($nouto != 'yes') or ($noutaja != '')) {
+      $query = "UPDATE tilausrivi
+                SET toimitettu = '$kukarow[kuka]', toimitettuaika = now()
+                WHERE otunnus   = '$otunnus_s'
+                and var         not in ('P','J','O','S')
+                and yhtio       = '$kukarow[yhtio]'
+                and keratty    != ''
+                and toimitettu  = ''
+                and tyyppi      = 'L'";
+      $result = pupe_query($query);
 
-  // jos kyseessä ei ole nouto tai noutajan nimi on annettu, voidaan merkata tilaus toimitetuksi..
-  if (($nouto != 'yes') or ($noutaja != '')) {
-    $query = "UPDATE tilausrivi
-              SET toimitettu = '$kukarow[kuka]', toimitettuaika = now()
-              WHERE otunnus   = '$otunnus'
-              and var         not in ('P','J','O','S')
-              and yhtio       = '$kukarow[yhtio]'
-              and keratty    != ''
-              and toimitettu  = ''
-              and tyyppi      = 'L'";
-    $result = pupe_query($query);
-
-    if (isset($vaihdakateista) and $vaihdakateista == "KYLLA") {
-      $katlisa = ", kassalipas = '$kassalipas', maksuehto = '$maksutapa'";
-    }
-    else {
-      $katlisa = "";
-    }
-
-    $query = "UPDATE lasku
-              set alatila = 'D',
-              noutaja = '$noutaja'
-              $katlisa
-              WHERE tunnus='$otunnus' and yhtio='$kukarow[yhtio]'";
-    $result = pupe_query($query);
-
-    // Jos laskulla on maksupositioita, menee ne alatilaan J
-    // eli odottamaan loppulaskutusta
-    $query = "UPDATE lasku
-              SET alatila = 'J'
-              WHERE tunnus    = '$otunnus'
-              AND jaksotettu != 0
-              AND yhtio       = '$kukarow[yhtio]'";
-    $ures  = pupe_query($query);
-
-    // jos kyseessä on käteismyyntiä, tulostetaaan käteislasku
-    $query  = "SELECT *
-               from lasku, maksuehto
-               where lasku.tunnus   = '$otunnus'
-               and lasku.yhtio      = '$kukarow[yhtio]'
-               and maksuehto.yhtio  = lasku.yhtio
-               and maksuehto.tunnus = lasku.maksuehto";
-    $result = pupe_query($query);
-    $tilrow = mysql_fetch_assoc($result);
-
-    // Etukäteen maksetut tilaukset pitää muuttaa takaisin "maksettu"-tilaan
-    $query = "UPDATE lasku SET
-              alatila      = 'X'
-              WHERE yhtio  = '$kukarow[yhtio]'
-              AND tunnus   = '$otunnus'
-              AND mapvm   != '0000-00-00'
-              AND chn      = '999'";
-    $ures  = pupe_query($query);
-
-    // jos kyseessä on käteiskauppaa ja EI vientiä, laskutetaan ja tulostetaan tilaus..
-    if ($tilrow['kateinen']!='' and $tilrow["vienti"]=='') {
-
-      //tulostetaan käteislasku...
-      $laskutettavat  = $otunnus;
-      $tee       = "TARKISTA";
-      $laskutakaikki   = "KYLLA";
-      $silent       = "KYLLA";
-      $tulosta_lasku_kpl = $laskukpl;
-
-      if ($kukarow["kirjoitin"] != 0 and $valittu_tulostin == "") {
-        $valittu_tulostin = $kukarow["kirjoitin"];
-      }
-      elseif ($valittu_tulostin == "") {
-        $valittu_tulostin = "AUTOMAAGINEN_VALINTA";
-      }
-
-      require "verkkolasku.php";
-    }
-
-    //Tulostetaan uusi lähete jos käyttäjä valitsi drop-downista printterin
-    //Paitsi jos tilauksen tila päivitettiin sellaiseksi, että lähetettä ei kuulu tulostaa
-    $query = "SELECT *
-              FROM lasku
-              WHERE tunnus in ($otunnus)
-              and yhtio    = '$kukarow[yhtio]'";
-    $lasresult = pupe_query($query);
-
-    while ($laskurow = mysql_fetch_assoc($lasresult)) {
-
-      //tulostetaan faili ja valitaan sopivat printterit
-      if ($laskurow["varasto"] == '') {
-        $query = "SELECT *
-                  from varastopaikat
-                  where yhtio = '$kukarow[yhtio]' AND tyyppi != 'P'
-                  order by alkuhyllyalue,alkuhyllynro
-                  limit 1";
+      if (isset($vaihdakateista) and $vaihdakateista == "KYLLA") {
+        $katlisa = ", kassalipas = '$kassalipas', maksuehto = '$maksutapa'";
       }
       else {
-        $query = "SELECT *
-                  from varastopaikat
-                  where yhtio = '$kukarow[yhtio]'
-                  and tunnus  = '$laskurow[varasto]'
-                  order by alkuhyllyalue,alkuhyllynro";
+        $katlisa = "";
       }
-      $prires = pupe_query($query);
 
-      if (mysql_num_rows($prires) > 0) {
+      $query = "UPDATE lasku
+                set alatila = 'D',
+                noutaja = '$noutaja'
+                $katlisa
+                WHERE tunnus='$otunnus_s' and yhtio='$kukarow[yhtio]'";
+      $result = pupe_query($query);
 
-        $prirow = mysql_fetch_assoc($prires);
+      // Jos laskulla on maksupositioita, menee ne alatilaan J
+      // eli odottamaan loppulaskutusta
+      $query = "UPDATE lasku
+                SET alatila = 'J'
+                WHERE tunnus    = '$otunnus_s'
+                AND jaksotettu != 0
+                AND yhtio       = '$kukarow[yhtio]'";
+      $ures  = pupe_query($query);
 
-        // käteinen muuttuja viritetään tilaus-valmis.inc:issä jos maksuehto on käteinen
-        // ja silloin pitää kaikki lähetteet tulostaa aina printteri5:lle (lasku printteri)
-        if ($kateinen == 'X') {
-          $apuprintteri = $prirow['printteri5']; // laskuprintteri
+      // jos kyseessä on käteismyyntiä, tulostetaaan käteislasku
+      $query  = "SELECT * 
+                 from lasku, maksuehto
+                 where lasku.tunnus   = '$otunnus_s'
+                 and lasku.yhtio      = '$kukarow[yhtio]'
+                 and maksuehto.yhtio  = lasku.yhtio
+                 and maksuehto.tunnus = lasku.maksuehto";
+      $result = pupe_query($query);
+      $tilrow = mysql_fetch_assoc($result);
+
+      // Etukäteen maksetut tilaukset pitää muuttaa takaisin "maksettu"-tilaan
+      $query = "UPDATE lasku SET
+                alatila      = 'X'
+                WHERE yhtio  = '$kukarow[yhtio]'
+                AND tunnus   = '$otunnus_s'
+                AND mapvm   != '0000-00-00'
+                AND chn      = '999'";
+      $ures  = pupe_query($query);
+
+      if($myos_laskuta) {
+        $_query = "SELECT * FROM toimitustapa WHERE yhtio='$kukarow[yhtio]' AND selite = '$tilrow[toimitustapa]'";
+        $_tores = pupe_query($_query);
+        $_toita = mysql_fetch_assoc($_tores);
+      }
+
+      // jos kyseessä on käteiskauppaa ja EI vientiä, tai toimitustapa nouto ja on automaattisesti laskuttava, laskutetaan ja tulostetaan tilaus..
+      if (
+        (
+          $myos_laskuta and $_toita['nouto'] != '' and 
+          isset($automaattisesti_laskuttavat_nouto[$tilrow['toimitusehto']]) and 
+          !isset($automaattisesti_laskuttavat_maksutavat[$tilrow['maksuehto']])
+        ) 
+        or ($tilrow['kateinen']!='' and $tilrow["vienti"]=='')
+        ) {
+
+        //tulostetaan käteislasku...
+        $laskutettavat  = $otunnus_s;
+        $tee       = "TARKISTA";
+        $laskutakaikki   = "KYLLA";
+        $silent       = "KYLLA";
+        $tulosta_lasku_kpl = $laskukpl;
+
+        if ($kukarow["kirjoitin"] != 0 and $valittu_tulostin == "") {
+          $valittu_tulostin = $kukarow["kirjoitin"];
+        }
+        elseif ($valittu_tulostin == "") {
+          $valittu_tulostin = "AUTOMAAGINEN_VALINTA";
+        }
+
+        require "verkkolasku.php";
+      }
+
+      //Tulostetaan uusi lähete jos käyttäjä valitsi drop-downista printterin
+      //Paitsi jos tilauksen tila päivitettiin sellaiseksi, että lähetettä ei kuulu tulostaa
+      $query = "SELECT *
+                FROM lasku
+                WHERE tunnus in ($otunnus_s)
+                and yhtio    = '$kukarow[yhtio]'";
+      $lasresult = pupe_query($query);
+
+      while ($laskurow = mysql_fetch_assoc($lasresult)) {
+
+        //tulostetaan faili ja valitaan sopivat printterit
+        if ($laskurow["varasto"] == '') {
+          $query = "SELECT *
+                    from varastopaikat
+                    where yhtio = '$kukarow[yhtio]' AND tyyppi != 'P'
+                    order by alkuhyllyalue,alkuhyllynro
+                    limit 1";
         }
         else {
-          if ($valittu_tulostin == "oletukselle") {
-            $apuprintteri = $prirow['printteri1']; // läheteprintteri
+          $query = "SELECT *
+                    from varastopaikat
+                    where yhtio = '$kukarow[yhtio]'
+                    and tunnus  = '$laskurow[varasto]'
+                    order by alkuhyllyalue,alkuhyllynro";
+        }
+        $prires = pupe_query($query);
+
+        if (mysql_num_rows($prires) > 0) {
+
+          $prirow = mysql_fetch_assoc($prires);
+
+          // käteinen muuttuja viritetään tilaus-valmis.inc:issä jos maksuehto on käteinen
+          // ja silloin pitää kaikki lähetteet tulostaa aina printteri5:lle (lasku printteri)
+          if ($kateinen == 'X') {
+            $apuprintteri = $prirow['printteri5']; // laskuprintteri
           }
           else {
-            $apuprintteri = $valittu_tulostin;
+            if ($valittu_tulostin == "oletukselle") {
+              $apuprintteri = $prirow['printteri1']; // läheteprintteri
+            }
+            else {
+              $apuprintteri = $valittu_tulostin;
+            }
           }
+
+          //haetaan lähetteen tulostuskomento
+          $query   = "SELECT * FROM kirjoittimet where yhtio = '$kukarow[yhtio]' and tunnus = '$apuprintteri'";
+          $kirres  = pupe_query($query);
+          $kirrow  = mysql_fetch_assoc($kirres);
+          $komento = $kirrow['komento'];
+
+          if ($valittu_oslapp_tulostin == "oletukselle") {
+            $apuprintteri = $prirow['printteri3']; // osoitelappuprintteri
+          }
+          else {
+            $apuprintteri = $valittu_oslapp_tulostin;
+          }
+
+          //haetaan osoitelapun tulostuskomento
+          $query  = "SELECT * FROM kirjoittimet where yhtio = '$kukarow[yhtio]' and tunnus = '$apuprintteri'";
+          $kirres = pupe_query($query);
+          $kirrow = mysql_fetch_assoc($kirres);
+          $oslapp = $kirrow['komento'];
         }
 
-        //haetaan lähetteen tulostuskomento
-        $query   = "SELECT * FROM kirjoittimet where yhtio = '$kukarow[yhtio]' and tunnus = '$apuprintteri'";
-        $kirres  = pupe_query($query);
-        $kirrow  = mysql_fetch_assoc($kirres);
-        $komento = $kirrow['komento'];
+        if ($valittu_tulostin != '' and $komento != "" and $lahetekpl > 0) {
+          $params = array(
+            'laskurow'          => $laskurow,
+            'sellahetetyyppi'       => "",
+            'extranet_tilausvahvistus'   => "",
+            'naytetaanko_rivihinta'    => "",
+            'tee'            => $tee,
+            'toim'            => $toim,
+            'komento'           => $komento,
+            'lahetekpl'          => $lahetekpl,
+            'kieli'           => ""
+          );
 
-        if ($valittu_oslapp_tulostin == "oletukselle") {
-          $apuprintteri = $prirow['printteri3']; // osoitelappuprintteri
+          pupesoft_tulosta_lahete($params);
         }
-        else {
-          $apuprintteri = $valittu_oslapp_tulostin;
-        }
-
-        //haetaan osoitelapun tulostuskomento
-        $query  = "SELECT * FROM kirjoittimet where yhtio = '$kukarow[yhtio]' and tunnus = '$apuprintteri'";
-        $kirres = pupe_query($query);
-        $kirrow = mysql_fetch_assoc($kirres);
-        $oslapp = $kirrow['komento'];
       }
 
-      if ($valittu_tulostin != '' and $komento != "" and $lahetekpl > 0) {
-        $params = array(
-          'laskurow'          => $laskurow,
-          'sellahetetyyppi'       => "",
-          'extranet_tilausvahvistus'   => "",
-          'naytetaanko_rivihinta'    => "",
-          'tee'            => $tee,
-          'toim'            => $toim,
-          'komento'           => $komento,
-          'lahetekpl'          => $lahetekpl,
-          'kieli'           => ""
-        );
-
-        pupesoft_tulosta_lahete($params);
-      }
+      echo t("Tilaus $otunnus_s toimitettu")."!<br><br>";
+      $id = 0;
     }
-
-    echo t("Tilaus toimitettu")."!<br><br>";
-    $id = 0;
-  }
-  else {
-    $id = $otunnus;
-    $virhe = "<font class='error'>".t("Noutajan nimi on syötettävä")."!</font><br><br>";
+    else {
+      $id = $otunnus_s;
+      $virhe = "<font class='error'>".t("Noutajan nimi on syötettävä")."!</font><br><br>";
+    }
   }
 }
 
@@ -262,22 +394,84 @@ if ($id == '0') {
   $kentta  = "etsi";
   $boob   = "";
 
+  if($jarjestys and $sorttaus) {
+    $_jarjestys_lisa = "
+      <input type='hidden' name='jarjestys' value='$jarjestys'>
+      <input type='hidden' name='sorttaus' value='$sorttaus'>
+    ";
+  }
+
   // tehdään etsi valinta
-  echo "<form name='find' method='post'>".t("Etsi tilausta").": <input type='text' name='etsi'><input type='submit' class='hae_btn' value='".t("Etsi")."'></form><br><br>";
+  echo "<form name='find' method='post'>".t("Etsi tilausta").": <input type='text' name='etsi'><input type='submit' class='hae_btn' value='".t("Etsi")."'>$_jarjestys_lisa</form><br><br>";
+  
+  $jarjestys_array = array(
+    'asiakas' => t('Asiakkaan nimi'),
+    'maksuehto' => t('Maksuehto'),
+    'tunnus' => t('Tilausnumero'),
+    'lasku.toimaika' => t('Toimitusaika (oletus)')
+  );
+
+  $sorttaus_array = array(
+    'desc' => t('Z-A tai 9-1'),
+    'asc' => t('A-Z tai 1-9')
+  );
+
+  if($etsi) {
+    $_etsi_lisa = "<input type='hidden' name='etsi' value='$etsi'>";
+  }
+
+  echo "<form method='GET'>
+  <select name='jarjestys' onchange='if(this.value != 0) { this.form.submit(); }'>
+  <option value='0'>".t('--Valitse järjestys--')."</option>";
+  foreach($jarjestys_array as $jarjestys_k => $jarjestys_v) {
+    $jar_selected = '';
+    if($jarjestys and $jarjestys == $jarjestys_k) { $jar_selected = "selected"; }
+    echo "<option $jar_selected value='$jarjestys_k'>$jarjestys_v</option>";
+  }
+  echo "</select>
+  <select name='sorttaus' onchange='if(this.value != 0) { this.form.submit(); }'>
+  <option value='0'>".t('--Valitse sorttaus--')."</option>";
+  foreach($sorttaus_array as $sorttaus_k => $sorttaus_v) {
+    $sor_selected = '';
+    if($sorttaus and $sorttaus == $sorttaus_k) { $sor_selected = "selected"; }
+    echo "<option $sor_selected value='$sorttaus_k'>$sorttaus_v</option>";
+  }
+  echo "</select>$_etsi_lisa</form><br><br>";
 
   $haku = '';
+
   if (is_string($etsi))  $haku="and lasku.nimi LIKE '%$etsi%'";
   if (is_numeric($etsi)) $haku="and lasku.tunnus='$etsi'";
 
-  $query = "SELECT distinct otunnus
+  if(!isset($jarjestys) or !$jarjestys or $jarjestys =='0') {
+    $jarjestys = 'lasku.toimaika';
+  } else {
+    $jarjestys = preg_replace("/[^A-Za-z0-9.]/",'',$jarjestys);
+  }
+
+  if(!isset($sorttaus) or !$sorttaus or $sorttaus =='0') {
+    $sorttaus = 'asc';
+  } else {
+    $sorttaus = preg_replace("/[^A-Za-z0-9.]/",'',$sorttaus);
+  }
+
+  if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
+    $ryhmitys_lisa = "GROUP_CONCAT(lasku.tunnus) as tunnukset, ";
+    $ryhmitys = "GROUP BY $jarjestys";
+  }
+
+  $query = "SELECT distinct otunnus, 
+            concat_ws(' ', lasku.nimi, lasku.nimitark) asiakas, 
+            lasku.maksuehto, 
+            lasku.tunnus 
             FROM lasku
             JOIN tilausrivi ON (tilausrivi.yhtio = lasku.yhtio and tilausrivi.otunnus = lasku.tunnus and tilausrivi.toimitettu = '' and tilausrivi.keratty != '')
             JOIN toimitustapa ON (toimitustapa.yhtio = lasku.yhtio and toimitustapa.selite = lasku.toimitustapa and toimitustapa.nouto != '')
             where lasku.$logistiikka_yhtiolisa
             and lasku.tila    = 'L'
             and lasku.alatila in ('C','B')
-            and lasku.vienti  = ''
-            ORDER BY lasku.toimaika";
+            and lasku.vienti  = '' 
+            ORDER BY $jarjestys $sorttaus";
   $tilre = pupe_query($query);
 
   if($varastot_toimpaikat and $kukarow['oletus_varasto'] and $kukarow['oletus_varasto'] != "") {
@@ -285,12 +479,15 @@ if ($id == '0') {
     $varasto_lisa = "and lasku.toimitustapa = '$varasto_toimpaikka' ";
   }
 
+  $gruppaus = array();
+
   while ($tilrow = mysql_fetch_assoc($tilre)) {
     // etsitään sopivia tilauksia
-    $query = "SELECT lasku.yhtio, lasku.yhtio_nimi, lasku.tunnus 'tilaus',
+    $query = "SELECT lasku.yhtio, lasku.yhtio_nimi, lasku.tunnus 'tilaus', lasku.tunnus tunnus, 
               concat_ws(' ', lasku.nimi, lasku.nimitark) asiakas, maksuehto.teksti maksuehto, lasku.toimitustapa,
-              date_format(lasku.luontiaika, '%Y-%m-%d') laadittu, kuka.nimi laatija, lasku.toimaika
-              FROM lasku
+              date_format(lasku.luontiaika, '%Y-%m-%d') laadittu, kuka.nimi laatija, lasku.toimaika, lasku.chn, maksuehto.kateinen, lasku.mapvm, lasku.toimitusehto, 
+              lasku.ytunnus 
+              FROM lasku 
               LEFT JOIN maksuehto ON (maksuehto.yhtio = lasku.yhtio AND maksuehto.tunnus = lasku.maksuehto)
               LEFT JOIN kuka on (kuka.yhtio = lasku.yhtio and kuka.kuka = lasku.laatija)
               WHERE lasku.tunnus = '$tilrow[otunnus]'
@@ -302,7 +499,23 @@ if ($id == '0') {
               ORDER by laadittu desc";
     $result = pupe_query($query);
 
+    $piilotetut_kentat = array(
+      'ytunnus', 'tunnus', 'chn', 'kateinen', 'mapvm', 'toimaika'
+    );
+
     while ($row = mysql_fetch_assoc($result)) {
+
+      if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
+        if(!isset($gruppaus[$row[$jarjestys]])) {
+          $gruppaus[$row[$jarjestys]] = array();
+        }
+        if(count($gruppaus[$row[$jarjestys]]) > 0) {
+          $lisaluokka = 'lisays_z';
+        } else {
+          $lisaluokka = 'lisays_p';
+        }
+        $gruppaus[$row[$jarjestys]][] = $row['tunnus'];
+      }
 
       // piirretään vaan kerran taulukko-otsikot
       if ($boob == '') {
@@ -312,6 +525,10 @@ if ($id == '0') {
         echo "<tr>";
         for ($i=0; $i<mysql_num_fields($result); $i++) {
           $fname = mysql_field_name($result, $i);
+
+          if(in_array($fname, $piilotetut_kentat)) {
+            continue;
+          }
 
           if ($fname == 'yhtio_nimi') {
             if ($logistiikka_yhtio != '') {
@@ -330,10 +547,16 @@ if ($id == '0') {
         echo "</tr>";
       }
 
-      echo "<tr class='aktiivi'>";
+      echo "<tr data='".implode(",", $gruppaus[$row[$jarjestys]])."' class='$lisaluokka lisays aktiivi'>";
 
       for ($i=0; $i<mysql_num_fields($result); $i++) {
         $fname = mysql_field_name($result, $i);
+
+        if(in_array($fname, $piilotetut_kentat)) {
+          continue;
+        }
+
+        if($fname)
 
         if ($fname == 'laadittu' or $fname == 'toimaika') {
           echo "<td>".tv1dateconv($row[$fname])."</td>";
@@ -352,12 +575,177 @@ if ($id == '0') {
       }
 
       echo "<td><a href='tilaus_myynti.php?toim=PIKATILAUS&tilausnumero={$row['tilaus']}&kaytiin_otsikolla=NOJOO!&lopetus={$palvelin2}tilauskasittely/toimita.php////id=0//etsi={$etsi}'>".t("Muokkaa")."</a></td>";
+      
+      $query = "SELECT * FROM toimitustapa WHERE yhtio='$kukarow[yhtio]' AND selite='$row[toimitustapa]'";
+      $tores = pupe_query($query);
+      $toita = mysql_fetch_assoc($tores);
+      
+      echo "<td class='back'><form class='toimita_form' method='post'><input type='hidden' name='id' value='$row[tilaus]'>";
 
-      echo "<td class='back'><form method='post'>
-          <input type='hidden' name='id' value='$row[tilaus]'>
-          <input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>
-          <input type='submit' name='tila' value='".t("Toimita")."'></form></td>";
+      echo "<input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>";
+      echo "<input type='submit' name='tila' value='".t("Toimita")."'><br>";
+      if($toita['nouto'] != '' and 
+        isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']]) and 
+        !isset($automaattisesti_laskuttavat_maksutavat[$row['maksuehto']])
+      ) {
+        echo "<label class='laskutayksi' for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'><br>";
+      }
+      echo "</form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>".t("Ketjuta")."</label</td>";
 
+      if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
+        echo "<td class='back ketjuform'><form method='post'>";
+        foreach($gruppaus[$row[$jarjestys]] as $input_otunnus) {
+          echo "<input type='hidden' class='ketjuform_input' name='otunnus[]' value='$input_otunnus'>";
+        }
+        echo "<input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>
+              <input type='hidden' name='tee' value='P'>";
+  
+        echo "<table class='nt_nm_tb tumma'>";
+  
+        if ($toita['nouto'] != '' and $row['kateinen'] != '' and $row["chn"] != '999' and ($row["mapvm"] == "" or $row["mapvm"] == '0000-00-00')) {
+  
+          echo "<tr><th>".t("Valitse kassalipas")."</th><td>";
+  
+          $query = "SELECT * FROM kassalipas WHERE yhtio='$kukarow[yhtio]'";
+          $kassares = pupe_query($query);
+  
+          $sel = "";
+  
+          echo "<input type='hidden' name='noutaja' value=''>";
+          echo "<input type='hidden' name='rivihinta' value='$summa'>";
+          echo "<input type='hidden' name='valkoodi' value='$row[valkoodi]'>";
+          echo "<input type='hidden' name='maa' value='$row[maa]'>";
+          echo "<input type='hidden' name='vaihdakateista' value='KYLLA'>";
+          echo "<select name='kassalipas'>";
+          echo "<option value=''>".t("Ei kassalipasta")."</option>";
+  
+          while ($kassarow = mysql_fetch_assoc($kassares)) {
+            if ($kukarow["kassamyyja"] == $kassarow["tunnus"]) {
+              $sel = "selected";
+            }
+            elseif ($kassalipas == $kassarow["tunnus"]) {
+              $sel = "selected";
+            }
+  
+            echo "<option value='$kassarow[tunnus]' $sel>$kassarow[nimi]</option>";
+  
+            $sel = "";
+          }
+          echo "</select></td></tr>";
+  
+          $query_maksuehto = "SELECT *
+                              FROM maksuehto
+                              WHERE yhtio   = '$kukarow[yhtio]'
+                              and kateinen != ''
+                              and kaytossa  = ''
+                              and (maksuehto.sallitut_maat = '' or maksuehto.sallitut_maat like '%$row[maa]%')
+                              ORDER BY tunnus";
+          $maksuehtores = pupe_query($query_maksuehto);
+  
+          if (mysql_num_rows($maksuehtores) > 1) {
+            echo "<tr><th>".t("Maksutapa")."</th><td>";
+  
+            echo "<select name='maksutapa'>";
+  
+            while ($maksuehtorow = mysql_fetch_assoc($maksuehtores)) {
+              $sel = "";
+              if ($maksuehtorow["tunnus"] == $row["maksuehto"]) {
+                $sel = "selected";
+              }
+  
+              echo "<option value='$maksuehtorow[tunnus]' $sel>".t_tunnus_avainsanat($maksuehtorow, "teksti", "MAKSUEHTOKV")."</option>";
+            }
+  
+            echo "<option value='seka'>".t("Seka")."</option>";
+            echo "</select></td></tr>";
+  
+          }
+          else {
+            $maksuehtorow = mysql_fetch_assoc($maksuehtores);
+            echo "<input type='hidden' name='maksutapa' value='$maksuehtorow[tunnus]'>";
+          }
+        }
+  
+        if ($row["chn"] == '999' and $row["mapvm"] != "" and $row["mapvm"] != '0000-00-00') {
+          echo "<tr><th>".t("Maksutapa")."</th><td><font class='error'>".t("Tilaus on maksettu jo etukäteen luottokortilla").".</font></td></tr>";
+        }
+  
+        if (($toita['nouto'] !='' and $row['kateinen'] == '' ) or ($row["chn"] == '999' and $row["mapvm"] != "" and $row["mapvm"] != '0000-00-00')) {
+  
+         // jos kyseessä on nouto jota *EI* makseta käteisellä, kysytään noutajan nimeä..
+          echo "<tr class='nt_nm'><th>".t("Syötä noutajan nimi")."</th>";
+          echo "<td><input size='25' required='required' style='margin-left:0;margin-right:0;' type='text' name='noutaja'></td></tr>";
+          echo "<input type='hidden' name='nouto' value='yes'>";
+          echo "<input type='hidden' name='kassalipas' value=''>";
+  
+          //kursorinohjausta
+          $formi  = "rivit";
+          $kentta  = "noutaja";
+        }
+  
+        echo "<tr><th>".t("Lähete")."</th><td>";
+  
+        $query = "SELECT *
+              FROM kirjoittimet
+              WHERE
+              yhtio = '$kukarow[yhtio]'
+              ORDER by kirjoitin";
+        $kirre = pupe_query($query);
+  
+        echo "<select name='valittu_tulostin'>";
+  
+        echo "<option value=''>".t("Ei tulosteta")."</option>";
+        echo "<option value='oletukselle' $sel>".t("Oletustulostimelle")."</option>";
+  
+        $_apuprintteri = "";
+  
+        // Katsotaan onko avainsanoihin määritelty varaston toimipaikan läheteprintteriä
+        if (!empty($row['yhtio_toimipaikka'])) {
+          $avainsana_where = " and avainsana.selite       = '{$row['varasto']}'
+                           and avainsana.selitetark   = '{$row['yhtio_toimipaikka']}'
+                           and avainsana.selitetark_2 = 'printteri1'";
+  
+          $tp_tulostin = t_avainsana("VARTOIMTULOSTIN", '', $avainsana_where, '', '', "selitetark_3");
+  
+          if (!empty($tp_tulostin)) {
+           $_apuprintteri = $tp_tulostin;
+          }
+        }
+  
+        while ($kirrow = mysql_fetch_assoc($kirre)) {
+          $sel = (!empty($_apuprintteri) and $kirrow['tunnus'] == $_apuprintteri) ? "selected" : "";
+          echo "<option value='$kirrow[tunnus]' {$sel}>$kirrow[kirjoitin]</option>";
+        }
+  
+        echo "</select><br> ".t("Kpl").": <input type='text' style='margin-top:5px;' size='3' name='lahetekpl' value='$lahetekpl'></td>";
+        echo "</tr>";
+  
+        if ($row['kateinen'] != '' and $row["vienti"] == '') {
+          echo "<tr>";
+          echo "<th>".t("Lasku")."</th>";
+          echo "<td>";
+          echo t("Kpl").": <input type='text' size='3' name='laskukpl' value='{$yhtiorow['oletus_laskukpl_toimitatilaus']}' />";
+          echo "</td>";
+          echo "</tr>";
+        }
+  
+        echo "</table>";
+        echo "<table><tbody><tr><td class='tumma ketjuta'>";
+  
+        if($jarjestys == 'asiakas') {
+          $_ots = t("asiakkaan");
+        }
+        if($jarjestys == 'maksuehto') {
+          $_ots = t("maksuehdon");
+        }
+        if($jarjestys == 'tunnus') {
+          $_ots = t("tunnuksen");
+        }
+        echo "<input type='submit' name='tila' value='".t("Toimita valitut")."'>";
+        echo "<span class='laskutakaikki'><label style='color: #000000;' for='myos_laskuta_$row[tilaus]'>".t('Myös laskuta')."</label><input id='myos_laskuta_$row[tilaus]' style='margin-right: 15px;' type='checkbox' checked name='myos_laskuta'></span>";
+        echo "</form></td>";
+        echo "</td></tr></tbody></table></td>";
+      }
       echo "</tr>";
     }
   }
@@ -516,7 +904,6 @@ if ($id > 0) {
       <input type='hidden' name='otunnus' value='$id'>
       <input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>
       <input type='hidden' name='tee' value='P'>";
-
   echo "<table>";
 
   if ($toita['nouto'] != '' and $row['kateinen'] != '' and $row["chn"] != '999' and ($row["mapvm"] == "" or $row["mapvm"] == '0000-00-00')) {
@@ -592,7 +979,7 @@ if ($id > 0) {
   if (($toita['nouto'] !='' and $row['kateinen'] == '' ) or ($row["chn"] == '999' and $row["mapvm"] != "" and $row["mapvm"] != '0000-00-00')) {
 
     // jos kyseessä on nouto jota *EI* makseta käteisellä, kysytään noutajan nimeä..
-    echo "<tr><th>".t("Syötä noutajan nimi")."</th>";
+    echo "<tr class='nt_nm'><th>".t("Syötä noutajan nimi")."</th>";
     echo "<td><input size='60' type='text' name='noutaja'></td></tr>";
     echo "<input type='hidden' name='nouto' value='yes'>";
     echo "<input type='hidden' name='kassalipas' value=''>";
@@ -602,6 +989,13 @@ if ($id > 0) {
     $kentta  = "noutaja";
   }
 
+  if($toita['nouto'] != '' and isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']])) {
+    if($myos_laskuta) {
+      $m_check = "checked";
+    }
+    echo "<tr><th>".t('Myös laskuta')."</th><td>";
+    echo "<input type='checkbox' $m_check name='myos_laskuta'></td></tr>";
+  }
   echo "<tr><th>".t("Lähete")."</th><td>";
 
   $query = "SELECT *
