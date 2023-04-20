@@ -590,7 +590,7 @@ if ($id == '0') {
       ) {
         echo "<label class='laskutayksi' for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'><br>";
       }
-      echo "</form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>Ketjuta</label</td>";
+      echo "</form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>".t("Ketjuta")."</label</td>";
 
       if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         echo "<td class='back ketjuform'><form method='post'>";
