@@ -23,8 +23,8 @@ else {
   .lisays:not(.lisays_z) .merkka_ketjuta {
     display: none;
   }
-  .lisays > td {
-    border: 1px solid #ddd;
+  .lisays:not(.lisays_z) > td {
+    border-top: 1px solid #bbb;
   }
   .laskutayksi {
     cursor: pointer;
