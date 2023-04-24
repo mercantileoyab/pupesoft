@@ -26,6 +26,9 @@ else {
   .lisays:not(.lisays_z) > td {
     border-top: 1px solid #bbb;
   }
+  .lisays:not(.lisays_z):last-child > td {
+    border-bottom: 1px solid #bbb;
+  }
   .laskutayksi {
     cursor: pointer;
     display: inline-block;
