@@ -23,6 +23,21 @@ else {
   .lisays:not(.lisays_z) .merkka_ketjuta {
     display: none;
   }
+  .lisays > td {
+    border: 1px solid #ddd;
+  }
+  .laskutayksi {
+    cursor: pointer;
+    display: inline-block;
+  }
+  .laskutayksi + input {
+    margin-top: 5px;
+    display: inline-block;
+    position:relative;
+    left: 1px;
+    cursor: pointer;
+    top: 2px;
+  }
 </style>
 <?php
 if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
@@ -81,12 +96,6 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
 <script>
   $(document).ready(function () {
 
-    $(".lisays_p, .lisays_z").each(function() {
-      if($(this).find(".laskutayksi").length) {
-        $(this).find(".laskutakaikki").show();
-      }
-    })
-
     $(".lisays_p, .lisays_z:last-child").each(function () {
       var lisvar = false;
       if ($(this).prev(".lisays_z").length) {
@@ -127,6 +136,19 @@ if($jarjestys and $jarjestys != "tunnus" and $jarjestys != "lasku.toimaika") {
         }
       })
     })
+    $(".lisays_p").each(function() {
+      var lisays_ele = $(this);
+      if(lisays_ele.find(".laskutayksi").length) {
+        lisays_ele.find(".laskutakaikki").show();
+      }
+    });
+    $(".lisays_z").each(function() {
+      var lisays_ele = $(this);
+      if(lisays_ele.find(".laskutayksi").length) {
+        var tosrch = lisays_ele.prevAll(".lisays_p").first();
+        tosrch.find(".laskutakaikki").show();
+      }
+    });
   });
 </script>
 <?php 
@@ -580,7 +602,7 @@ if ($id == '0') {
       $tores = pupe_query($query);
       $toita = mysql_fetch_assoc($tores);
       
-      echo "<td class='back'><form class='toimita_form' method='post'><input type='hidden' name='id' value='$row[tilaus]'>";
+      echo "<td style='background-color: #fafdfe;'><form class='toimita_form' method='post'><input type='hidden' name='id' value='$row[tilaus]'>";
 
       echo "<input type='hidden' name='lasku_yhtio' value='$row[yhtio]'>";
       echo "<input type='submit' name='tila' value='".t("Toimita")."'><br>";
@@ -588,7 +610,7 @@ if ($id == '0') {
         isset($automaattisesti_laskuttavat_nouto[$row['toimitusehto']]) and 
         !isset($automaattisesti_laskuttavat_maksutavat[$row['maksuehto']])
       ) {
-        echo "<label class='laskutayksi' for='myos_laskuta'>".t('Myös laskuta')."</label><input type='checkbox' checked name='myos_laskuta'><br>";
+        echo "<label class='laskutayksi' for='myos_laskuta_$row[tilaus]'>".t('Myös laskuta')."</label><input type='checkbox' id='myos_laskuta_$row[tilaus]' checked name='myos_laskuta'><br>";
       }
       echo "</form><input checked='checked' data='$row[tilaus]' class='merkka_ketjuta' type='checkbox' id='merkka_ketjuta_$row[tilaus]'><label for='merkka_ketjuta_$row[tilaus]'>".t("Ketjuta")."</label</td>";
 
