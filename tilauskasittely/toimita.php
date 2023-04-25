@@ -398,20 +398,14 @@ if ($tee == 'P') {
       $virhe = "<font class='error'>".t("Noutajan nimi on syötettävä")."!</font><br><br>";
     }
   }
+
   if(!empty($laskutettavat_arr)) {
     $laskutettavat = implode(",", $laskutettavat_arr);
     $tee       = "TARKISTA";
     $laskutakaikki   = "KYLLA";
     $silent       = "KYLLA";
     $tulosta_lasku_kpl = $laskukpl;
-
-    if ($kukarow["kirjoitin"] != 0 and $valittu_tulostin == "") {
-      $valittu_tulostin = $kukarow["kirjoitin"];
-    }
-    elseif ($valittu_tulostin == "") {
-      $valittu_tulostin = "AUTOMAAGINEN_VALINTA";
-    }
-
+    $valittu_tulostin = "AUTOMAAGINEN_VALINTA";
     require "verkkolasku.php";
   }
 }
