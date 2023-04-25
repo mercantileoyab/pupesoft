@@ -230,6 +230,8 @@ if ($tee == 'P') {
   if(!is_array($otunnus)) {
     $otunnus = array($otunnus);
   }
+
+  $laskutettavat_arr = array();
   foreach($otunnus as $otunnus_s)
   {
     // jos kyseessä ei ole nouto tai noutajan nimi on annettu, voidaan merkata tilaus toimitetuksi..
@@ -286,6 +288,7 @@ if ($tee == 'P') {
                 AND chn      = '999'";
       $ures  = pupe_query($query);
 
+      $lis_teksti = "";
       if($myos_laskuta) {
         $_query = "SELECT * FROM toimitustapa WHERE yhtio='$kukarow[yhtio]' AND selite = '$tilrow[toimitustapa]'";
         $_tores = pupe_query($_query);
@@ -301,22 +304,8 @@ if ($tee == 'P') {
         ) 
         or ($tilrow['kateinen']!='' and $tilrow["vienti"]=='')
         ) {
-
-        //tulostetaan käteislasku...
-        $laskutettavat  = $otunnus_s;
-        $tee       = "TARKISTA";
-        $laskutakaikki   = "KYLLA";
-        $silent       = "KYLLA";
-        $tulosta_lasku_kpl = $laskukpl;
-
-        if ($kukarow["kirjoitin"] != 0 and $valittu_tulostin == "") {
-          $valittu_tulostin = $kukarow["kirjoitin"];
-        }
-        elseif ($valittu_tulostin == "") {
-          $valittu_tulostin = "AUTOMAAGINEN_VALINTA";
-        }
-
-        require "verkkolasku.php";
+        $laskutettavat_arr[]  = $otunnus_s;
+        $lis_teksti = ' ja laskutettu';
       }
 
       //Tulostetaan uusi lähete jos käyttäjä valitsi drop-downista printterin
@@ -401,13 +390,29 @@ if ($tee == 'P') {
         }
       }
 
-      echo t("Tilaus $otunnus_s toimitettu")."!<br><br>";
+      echo t("Tilaus $otunnus_s toimitettu$lis_teksti")."!<br><br>";
       $id = 0;
     }
     else {
       $id = $otunnus_s;
       $virhe = "<font class='error'>".t("Noutajan nimi on syötettävä")."!</font><br><br>";
     }
+  }
+  if(!empty($laskutettavat_arr)) {
+    $laskutettavat = implode(",", $laskutettavat_arr);
+    $tee       = "TARKISTA";
+    $laskutakaikki   = "KYLLA";
+    $silent       = "KYLLA";
+    $tulosta_lasku_kpl = $laskukpl;
+
+    if ($kukarow["kirjoitin"] != 0 and $valittu_tulostin == "") {
+      $valittu_tulostin = $kukarow["kirjoitin"];
+    }
+    elseif ($valittu_tulostin == "") {
+      $valittu_tulostin = "AUTOMAAGINEN_VALINTA";
+    }
+
+    require "verkkolasku.php";
   }
 }
 
