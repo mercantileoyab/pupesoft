@@ -1033,7 +1033,7 @@ class ImportSaldoHinta
           $loydetyt_tuotteet[] = $rivi;
           $onnistunut_tuote = true;
 
-          if($tuotesaldo > 0 and 1==2) {
+          if($tuotesaldo > 0) {
 
             $toimittajat_idt = implode(",", array_values($this->toimittajat_tiedostot));
 
