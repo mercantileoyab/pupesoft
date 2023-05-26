@@ -787,38 +787,40 @@ if ($tee == 'LISTAA') {
     echo "<form method='post' action='yllapito_tuotekuvat.php' {$onsubmit}>";
     echo "<table>";
 
-    echo "<tr>";
-    echo "<td valign='top' align='left' colspan='10' class='back'>";
-    echo t('Löytyi yhteensä'), " {$tuotekuvia_count} ", t('riviä');
-    echo "</td>";
-    echo "</tr>";
-
-    echo "<tr>";
-    echo "<th>", t('Tunnus'), "</th>";
-    echo "<th>", t('Tuoteno'), "</th>";
-    echo "<th>", t('Nimitys'), "</th>";
-    echo "<th>", t('Osasto'), "</th>";
-    echo "<th>", t('Tuoteryhma'), "</th>";
-    echo "<th>", t('Tuotemerkki'), "</th>";
-    if (count($mul_sta) > 0 or $status != '') {
-      echo "<th>", t('Status'), "</th>";
-    }
-    echo "<th>", t('Liitostunnus'), "</th>";
-    echo "<th>", t('Tiedostonnimi'), "</th>";
-    if (count($mul_siz) > 0) {
-      if (in_array('korkeus', $mul_siz)) {
-        echo "<th>", t('Korkeus'), "</th>";
+    if (isset($workbook) and $mul_exl == 'tallennetaan') {
+    } else {
+      echo "<tr>";
+      echo "<td valign='top' align='left' colspan='10' class='back'>";
+      echo t('Löytyi yhteensä'), " {$tuotekuvia_count} ", t('riviä');
+      echo "</td>";
+      echo "</tr>";
+      echo "<tr>";
+      echo "<th>", t('Tunnus'), "</th>";
+      echo "<th>", t('Tuoteno'), "</th>";
+      echo "<th>", t('Nimitys'), "</th>";
+      echo "<th>", t('Osasto'), "</th>";
+      echo "<th>", t('Tuoteryhma'), "</th>";
+      echo "<th>", t('Tuotemerkki'), "</th>";
+      if (count($mul_sta) > 0 or $status != '') {
+        echo "<th>", t('Status'), "</th>";
       }
-      if (in_array('leveys', $mul_siz)) {
-        echo "<th>", t('Leveys'), "</th>";
+      echo "<th>", t('Liitostunnus'), "</th>";
+      echo "<th>", t('Tiedostonnimi'), "</th>";
+      if (count($mul_siz) > 0) {
+        if (in_array('korkeus', $mul_siz)) {
+          echo "<th>", t('Korkeus'), "</th>";
+        }
+        if (in_array('leveys', $mul_siz)) {
+          echo "<th>", t('Leveys'), "</th>";
+        }
       }
+      echo "<th>", t('Käyttötarkoitus'), "</th>";
+      echo "<th>", t('Selite'), "</th>";
+      if ($mul_exl != 'tallennetaan') {
+        echo "<th>", t('Ruksaa'), "<br />".t('kaikki')." <input type='checkbox' name='mul_del' onclick='toggleAll(this);'></th>";
+      }
+      echo "</tr>";
     }
-    echo "<th>", t('Käyttötarkoitus'), "</th>";
-    echo "<th>", t('Selite'), "</th>";
-    if ($mul_exl != 'tallennetaan') {
-      echo "<th>", t('Ruksaa'), "<br />".t('kaikki')." <input type='checkbox' name='mul_del' onclick='toggleAll(this);'></th>";
-    }
-    echo "</tr>";
 
     if ($limit != '') {
       if ($limit > $tuotekuvia_count) {
@@ -834,7 +836,6 @@ if ($tee == 'LISTAA') {
     // Exceliä käytetään sisäänlue datassa joten on laitettava sarakkeet sen mukaisesti (kaikkea ei siis saada laittaa mukaan vaikka mieli tekisi)
     if (isset($workbook) and $mul_exl == 'tallennetaan') {
       $excelsarake = 0;
-
       $worksheet->writeString($excelrivi, $excelsarake, t("Tuoteno"),       $format_bold);
       $excelsarake++;
       $worksheet->writeString($excelrivi, $excelsarake, t("Liitostunnus"),     $format_bold);
@@ -852,75 +853,70 @@ if ($tee == 'LISTAA') {
     }
     while ($row = mysql_fetch_array($result)) {
 
-      echo "<tr class='aktiivi'>";
-      echo "<td valign='top'>", $row['tunnus'], "</td>";
-      echo "<td valign='top'>", $row['tuoteno'], "</td>";
-
       if (isset($workbook) and $mul_exl == 'tallennetaan') {
         $worksheet->writeString($excelrivi, $excelsarake, $row['tuoteno'],     $format_bold);
         $excelsarake++;
-      }
-
-      // tehdään pop-up divi jos keikalla on kommentti...
-      if ($row['filename'] != '') {
-        if ((strtolower($row['kayttotarkoitus']) == 'tk' and $nayta_tk != 'naytetaan') or (strtolower($row['kayttotarkoitus']) == 'hr' and $nayta_hr != 'naytetaan') or (strtolower($row['kayttotarkoitus']) == 'th' and $nayta_th != 'naytetaan') or (strtolower($row['kayttotarkoitus']) == 'mu')) {
-          echo "<td valign='top'>", $row['nimitys'], "</td>";
-        }
-        else {
-          echo "<div id='div_", $row['tunnus'], "_", $row['kayttotarkoitus'], "' class='popup' style='width: ", $row['leveys'], "px; height: ", $row['korkeus'], "px;'>";
-          echo "<img src='view.php?id=", $row['id'], "' height='", $row['korkeus'], "' width='", $row['leveys'], "'>";
-          echo "</div>";
-          echo "<td valign='top' class='tooltip' id='", $row['tunnus'], "_", $row['kayttotarkoitus'], "'>", $row['nimitys'], "</td>";
-        }
-      }
-      else {
-        echo "<td valign='top'>", $row['nimitys'], "</td>";
-      }
-
-      echo "<td valign='top'>", $row['osasto'], "</td>";
-      echo "<td valign='top'>", $row['try'], "</td>";
-      echo "<td valign='top'>", $row['tuotemerkki'], "</td>";
-      if (count($mul_sta) > 0 or $status != '') {
-        echo "<td valign='top'>", $row['status'], "</td>";
-      }
-      echo "<td valign='top'>", $row['ltunnus'], "</td>";
-      echo "<td valign='top'>", $row['filename'], "</td>";
-
-      if (isset($workbook) and $mul_exl == 'tallennetaan') {
         $worksheet->writeString($excelrivi, $excelsarake, $row['ltunnus'],     $format_bold);
         $excelsarake++;
         $worksheet->writeString($excelrivi, $excelsarake, $row['liitos'],     $format_bold);
         $excelsarake++;
         $worksheet->writeString($excelrivi, $excelsarake, $row['filename'],     $format_bold);
         $excelsarake++;
-      }
-
-      if (count($mul_siz) > 0) {
-        if (in_array('korkeus', $mul_siz)) {
-          echo "<td valign='top' align='right'>", $row['korkeus'], " px</td>";
-        }
-
-        if (in_array('leveys', $mul_siz)) {
-          echo "<td valign='top' align='right'>", $row['leveys'], " px</td>";
-        }
-      }
-
-      echo "<td valign='top' align='right'>", $row['kayttotarkoitus'], "</td>";
-      echo "<td valign='top'>", $row['selite'], "</td>";
-
-      if ($mul_exl != 'tallennetaan') {
-        echo "<td valign='top'><input type='checkbox' name='mul_del[]' value='", $row['tunnus'], "_", $row['ltunnus'], "_", $row['ltiedtunnus'], "_", $row['kayttotarkoitus'], "_", $row['filetype'], "'></td>";
-      }
-
-      if (isset($workbook) and $mul_exl == 'tallennetaan') {
         $worksheet->writeString($excelrivi, $excelsarake, $row['kayttotarkoitus'],     $format_bold);
         $excelsarake++;
         $worksheet->writeString($excelrivi, $excelsarake, $row['selite'],     $format_bold);
         $excelsarake = 0;
         $excelrivi++;
-      }
+      } else {
 
-      echo "</tr>";
+        echo "<tr class='aktiivi'>";
+        echo "<td valign='top'>", $row['tunnus'], "</td>";
+        echo "<td valign='top'>", $row['tuoteno'], "</td>";
+  
+        // tehdään pop-up divi jos keikalla on kommentti...
+        if ($row['filename'] != '') {
+          if ((strtolower($row['kayttotarkoitus']) == 'tk' and $nayta_tk != 'naytetaan') or (strtolower($row['kayttotarkoitus']) == 'hr' and $nayta_hr != 'naytetaan') or (strtolower($row['kayttotarkoitus']) == 'th' and $nayta_th != 'naytetaan') or (strtolower($row['kayttotarkoitus']) == 'mu')) {
+            echo "<td valign='top'>", $row['nimitys'], "</td>";
+          }
+          else {
+            echo "<div id='div_", $row['tunnus'], "_", $row['kayttotarkoitus'], "' class='popup' style='width: ", $row['leveys'], "px; height: ", $row['korkeus'], "px;'>";
+            echo "<img src='view.php?id=", $row['id'], "' height='", $row['korkeus'], "' width='", $row['leveys'], "'>";
+            echo "</div>";
+            echo "<td valign='top' class='tooltip' id='", $row['tunnus'], "_", $row['kayttotarkoitus'], "'>", $row['nimitys'], "</td>";
+          }
+        }
+        else {
+          echo "<td valign='top'>", $row['nimitys'], "</td>";
+        }
+  
+        echo "<td valign='top'>", $row['osasto'], "</td>";
+        echo "<td valign='top'>", $row['try'], "</td>";
+        echo "<td valign='top'>", $row['tuotemerkki'], "</td>";
+        if (count($mul_sta) > 0 or $status != '') {
+          echo "<td valign='top'>", $row['status'], "</td>";
+        }
+        echo "<td valign='top'>", $row['ltunnus'], "</td>";
+        echo "<td valign='top'>", $row['filename'], "</td>";
+  
+        if (count($mul_siz) > 0) {
+          if (in_array('korkeus', $mul_siz)) {
+            echo "<td valign='top' align='right'>", $row['korkeus'], " px</td>";
+          }
+  
+          if (in_array('leveys', $mul_siz)) {
+            echo "<td valign='top' align='right'>", $row['leveys'], " px</td>";
+          }
+        }
+  
+        echo "<td valign='top' align='right'>", $row['kayttotarkoitus'], "</td>";
+        echo "<td valign='top'>", $row['selite'], "</td>";
+  
+        if ($mul_exl != 'tallennetaan') {
+          echo "<td valign='top'><input type='checkbox' name='mul_del[]' value='", $row['tunnus'], "_", $row['ltunnus'], "_", $row['ltiedtunnus'], "_", $row['kayttotarkoitus'], "_", $row['filetype'], "'></td>";
+        }
+  
+        echo "</tr>";
+      }
 
       $laskuri++;
 
