@@ -2829,6 +2829,10 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
     if ($rivityyppi != 'O' and strtoupper($trow["tuoteno"]) == strtoupper($alkupera_trow["tuoteno"])) {
       $hinta  = $alkupera_hinta;
 
+      if($tapa == "VAIHDA" and $toimittajan_tunnus and $rivityyppi == 'L' and $trow['suoratoimitus'] != '' and $paikka) {
+        $hinta = 0;
+      }
+      
       for ($alepostfix = 1; $alepostfix <= $yhtiorow['myynnin_alekentat']; $alepostfix++) {
         ${'ale'.$alepostfix} = ${'alkupera_ale'.$alepostfix};
       }
