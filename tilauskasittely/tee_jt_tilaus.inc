@@ -1172,10 +1172,26 @@ if (!function_exists("tee_jt_tilaus")) {
                           WHERE yhtio = '$kukarow[yhtio]'
                           and tunnus  = '$tunnus_nyt'
                           and kpl     = 0";
+
                 $tresult = pupe_query($query);
 
                 if ($debug==1) echo t("Poistetaan loput rivilt‰").": $tunnus_nyt<br>";
               }
+
+              $del_tark_query = "SELECT tunnus FROM tilausrivi 
+                                  WHERE tilausrivi.yhtio = '$kukarow[yhtio]' 
+                                  AND tilausrivi.otunnus = '$alkupotunnus' 
+                                  AND tyyppi != 'D' 
+                                ";
+
+              $del_tark_res = pupe_query($del_tark_query);
+
+              // poistetaan tilaus, jos tilauksella ei ole riveja
+              if (mysql_num_rows($del_tark_res) < 1) {
+                if ($debug==1) echo t("Poistetaan 0 lasku").": $alkupotunnus<br>";
+                poista_lasku($alkupotunnus);
+              }
+
             }
             // J‰tet‰‰n loput
             else {
