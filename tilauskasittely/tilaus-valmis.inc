@@ -1141,8 +1141,8 @@ else {
         $laskurow["rahtivapaa"]  = 'o';
       }
     }
-
-    if($torow["nouto"] == 'o') {
+    
+    if($torow["nouto"] == 'o' and $yhtiorow['noutotilausten_tulostus'] != "") {
       $_tulosta_myos = array(
         "yhtio" => $laskurow['yhtio'],
         "tunnus" => $laskurow['tunnus']
@@ -2319,7 +2319,7 @@ if ($luottorajavirhe_ylivito_valmis) {
   $result = pupe_query($query);
   if(isset($_tulosta_myos) and $_tulosta_myos) {
     $karajaus = 1;
-    $tuvarasto = "KAIKKI";
+    $tuvarasto = $yhtiorow['noutotilausten_tulostus'];
     $tutyyppi = "KAIKKI";
     $tutoimtapa = "KAIKKI";
     $tee2 = 'TULOSTA';
