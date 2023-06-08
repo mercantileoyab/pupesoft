@@ -1,9 +1,9 @@
 <?php
-
-ob_start();
-
-require "../inc/parametrit.inc";
-require 'validation/Validation.php';
+if(!isset($automaattinen_tulostus) or !$automaattinen_tulostus) {
+  ob_start();
+  require "../inc/parametrit.inc";
+  require 'validation/Validation.php';
+}
 require 'valmistuslinjat.inc';
 
 $onkologmaster = (LOGMASTER_RAJAPINTA and in_array($yhtiorow['ulkoinen_jarjestelma'], array('', 'K')));
@@ -743,7 +743,7 @@ if ($tee2 == '') {
   $formi  = "find";
   $kentta  = "etsi";
 
-  echo "<table>";
+  echo "<table $automaattinen_tulostus>";
   echo "<form name='find' method='POST' action='lahetteen_tulostusjono.php'>";
   echo "<input type='hidden' name='toim' value='$toim'>";
   echo "<input type='hidden' id='jarj' name='jarj' value='$jarj'>";
@@ -1056,7 +1056,7 @@ if ($tee2 == '') {
   }
   else {
     echo "<br>";
-    echo "<table>";
+    echo "<table $automaattinen_tulostus>";
     echo "<tr>";
     if ($logistiikka_yhtio != '') {
       echo "<th valign='top'><a href='#' onclick=\"getElementById('jarj').value='yhtio'; document.forms['find'].submit();\">".t("Yhtiö")."</a></th>";
@@ -1428,7 +1428,7 @@ if ($tee2 == '') {
     echo "<br>";
 
     if ($oikeurow['paivitys'] == 1) {
-      echo "<table>";
+      echo "<table $automaattinen_tulostus>";
       echo "<form method='post'>";
 
       if ($toim == 'SIIRTOLISTA') {
@@ -1504,5 +1504,6 @@ if ($tee2 == '') {
     }
   }
 }
-
-require "inc/footer.inc";
+if(!isset($automaattinen_tulostus) or !$automaattinen_tulostus) {
+  require "inc/footer.inc";
+}
