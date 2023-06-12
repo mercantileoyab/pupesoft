@@ -2115,6 +2115,9 @@ if ($tunnus > 0 or $uusi != 0 or $errori != '') {
       case "printteri10":
         $otsikko = t("Lämpösiirto");
         break;
+      case "printteri11":
+        $otsikko = t("Automaattinen noutotilausten tulostus");
+        break;
       case "isa_varasto":
         $otsikko = t("Isävarasto");
         break;
