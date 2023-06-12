@@ -239,8 +239,13 @@ if ($fieldname == "noutotilausten_tulostus") {
 
   while ($varow = mysql_fetch_assoc($vares)) {
     $sel = $trow[$i] == $varow['tunnus'] ? "selected" : "";
-    $ulos .= "<option value = '{$varow['tunnus']}' {$sel}>{$varow['nimitys']}</option>";
+    $ulos .= "<option value = '{$varow['tunnus']}' {$sel}>".t("Kaikki, paitsi ")."\"{$varow['nimitys']}\"</option>";
   }
+
+  if($trow[$i] == 'K') {
+    $sel = 'selected';
+  }
+  $ulos .= "<option value = 'K' {$sel}>".t("Kaikki varastot")."</option>";
 
   $ulos .= "</select></td>";
 
