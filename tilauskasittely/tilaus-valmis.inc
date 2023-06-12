@@ -1141,12 +1141,20 @@ else {
         $laskurow["rahtivapaa"]  = 'o';
       }
     }
-    
-    if($torow["nouto"] == 'o' and $yhtiorow['noutotilausten_tulostus'] != "") {
-      $_tulosta_myos = array(
-        "yhtio" => $laskurow['yhtio'],
-        "tunnus" => $laskurow['tunnus']
-      );
+
+    if($yhtiorow['noutotilausten_tulostus'] != "" and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
+      $query = "SELECT *
+                FROM toimitustapa
+                WHERE yhtio = '$kukarow[yhtio]'
+                AND selite  = '$laskurow[toimitustapa]'";
+      $result = pupe_query($query);
+      $torow = mysql_fetch_assoc($result);
+      if($torow["nouto"] == 'o') {
+        $_tulosta_myos = array(
+          "yhtio" => $laskurow['yhtio'],
+          "tunnus" => $laskurow['tunnus']
+        );
+      }
     }
 
     // Jos on kassamyyntiä ja se on käteistä niin tulostetaan lasku heti ilman lähetettä
