@@ -225,6 +225,33 @@ if ($fieldname == "siirtolistan_tulostustapa") {
   $jatko = 0;
 }
 
+if ($fieldname == "noutotilausten_tulostus") {
+
+  $ulos = "<td><select name='{$nimi}' ".js_alasvetoMaxWidth($nimi, 400).">";
+
+  $ulos .= "<option value = '0'>".t("Ei valittu")."</option>";
+
+  $query  = "SELECT *
+             FROM varastopaikat
+             WHERE yhtio = '{$kukarow['yhtio']}' AND tyyppi != 'P'
+             ORDER BY tyyppi, nimitys";
+  $vares = pupe_query($query);
+
+  while ($varow = mysql_fetch_assoc($vares)) {
+    $sel = $trow[$i] == $varow['tunnus'] ? "selected" : "";
+    $ulos .= "<option value = '{$varow['tunnus']}' {$sel}>".t("Kaikki, paitsi ")."\"{$varow['nimitys']}\"</option>";
+  }
+
+  if($trow[$i] == 'K') {
+    $sel = 'selected';
+  }
+  $ulos .= "<option value = 'K' {$sel}>".t("Kaikki varastot")."</option>";
+
+  $ulos .= "</select></td>";
+
+  $jatko = 0;
+}
+
 if ($fieldname == "pankkitiedostot") {
 
   $ulos = "<td><select name='$nimi' ".js_alasvetoMaxWidth($nimi, 400).">";

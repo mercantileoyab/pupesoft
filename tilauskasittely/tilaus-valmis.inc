@@ -1142,6 +1142,30 @@ else {
       }
     }
 
+    if($yhtiorow['noutotilausten_tulostus'] != "" and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
+      $query = "SELECT *
+                FROM toimitustapa
+                WHERE yhtio = '$kukarow[yhtio]'
+                AND selite  = '$laskurow[toimitustapa]'";
+      $result = pupe_query($query);
+      $torow = mysql_fetch_assoc($result);
+
+      $query = "SELECT printteri11 
+                FROM varastopaikat
+                WHERE yhtio = '{$kukarow['yhtio']}'
+                AND tunnus  = '{$laskurow['varasto']}'";
+      $_printteri11 = pupe_query($query);
+      $_printteri11 = mysql_fetch_assoc($_printteri11);
+
+      if($torow["nouto"] == 'o') {
+        $_tulosta_myos = array(
+          "yhtio" => $laskurow['yhtio'],
+          "tunnus" => $laskurow['tunnus'],
+          "tulostin" => $_printteri11['printteri11']
+        );
+      }
+    }
+
     // Jos on kassamyynti‰ ja se on k‰teist‰ niin tulostetaan lasku heti ilman l‰hetett‰
     if (($kateinen == 'X' and $kateisohitus == "" and ($kukarow["kassamyyja"] != '' or $kertakassa != "") and $laskurow["vienti"] == '') or $korkolasku == 'kylla') {
 
@@ -2310,6 +2334,21 @@ if ($luottorajavirhe_ylivito_valmis) {
   // tilaus ei en‰‰ kesken...
   $query  = "UPDATE kuka set kesken=0 where yhtio='$kukarow[yhtio]' and kuka='$kukarow[kuka]'";
   $result = pupe_query($query);
+  if(isset($_tulosta_myos) and $_tulosta_myos) {
+    $karajaus = 1;
+    $tuvarasto = $yhtiorow['noutotilausten_tulostus'];
+    $tutyyppi = "KAIKKI";
+    $tutoimtapa = "KAIKKI";
+    $tee2 = 'TULOSTA';
+    $automaattinen_tulostus = ' style="display:none" ';
+    $lasku_yhtio = $_tulosta_myos['yhtio'];
+    $tulostukseen = array($_tulosta_myos['tunnus']);
+    if($_tulosta_myos['tulostin'] and $_tulosta_myos['tulostin'] != "") {
+      $valittu_tulostin = $_tulosta_myos['tulostin'];
+    }
+    require_once "tilauskasittely/lahetteen_tulostusjono.php";
+    unset($_tulosta_myos);
+  }
 }
 
 if (!isset($silent) or $silent == "") {
