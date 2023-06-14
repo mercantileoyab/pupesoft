@@ -1142,18 +1142,20 @@ else {
       }
     }
 
-    if($yhtiorow['noutotilausten_tulostus'] != "" and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
+    $_tulosta_myos = false;
+
+    if($yhtiorow['noutotilausten_tulostus'] != "" and is_numeric($laskurow['varasto']) and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
       $_torow_q = "SELECT * 
-                FROM toimitustapa
-                WHERE yhtio = '$kukarow[yhtio]'
-                AND selite  = '$laskurow[toimitustapa]'";
+                     FROM toimitustapa 
+                   WHERE yhtio = '$kukarow[yhtio]'
+                   AND selite  = '$laskurow[toimitustapa]'";
       $_torow_r = pupe_query($_torow_q);
       $_torow = mysql_fetch_assoc($_torow_r);
 
       if($_torow["nouto"] == 'o') {
         $query = "SELECT printteri11 
-                  FROM varastopaikat
-                  WHERE yhtio = '{$kukarow['yhtio']}'
+                    FROM varastopaikat 
+                  WHERE yhtio = '{$kukarow['yhtio']}' 
                   AND tunnus  = '{$laskurow['varasto']}'";
         $_printteri11 = pupe_query($query);
         $_printteri11 = mysql_fetch_assoc($_printteri11);
@@ -2333,7 +2335,7 @@ if ($luottorajavirhe_ylivito_valmis) {
   // tilaus ei en‰‰ kesken...
   $query  = "UPDATE kuka set kesken=0 where yhtio='$kukarow[yhtio]' and kuka='$kukarow[kuka]'";
   $result = pupe_query($query);
-  if(isset($_tulosta_myos) and $_tulosta_myos) {
+  if($_tulosta_myos) {
     $karajaus = 1;
     $tuvarasto = $yhtiorow['noutotilausten_tulostus'];
     $tutyyppi = "KAIKKI";
@@ -2346,7 +2348,6 @@ if ($luottorajavirhe_ylivito_valmis) {
       $valittu_tulostin = $_tulosta_myos['tulostin'];
     }
     require_once "tilauskasittely/lahetteen_tulostusjono.php";
-    unset($_tulosta_myos);
   }
 }
 
