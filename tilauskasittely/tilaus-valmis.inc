@@ -1143,21 +1143,20 @@ else {
     }
 
     if($yhtiorow['noutotilausten_tulostus'] != "" and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
-      $query = "SELECT *
+      $_torow_q = "SELECT * 
                 FROM toimitustapa
                 WHERE yhtio = '$kukarow[yhtio]'
                 AND selite  = '$laskurow[toimitustapa]'";
-      $result = pupe_query($query);
-      $torow = mysql_fetch_assoc($result);
+      $_torow_r = pupe_query($_torow_q);
+      $_torow = mysql_fetch_assoc($_torow_r);
 
-      $query = "SELECT printteri11 
-                FROM varastopaikat
-                WHERE yhtio = '{$kukarow['yhtio']}'
-                AND tunnus  = '{$laskurow['varasto']}'";
-      $_printteri11 = pupe_query($query);
-      $_printteri11 = mysql_fetch_assoc($_printteri11);
-
-      if($torow["nouto"] == 'o') {
+      if($_torow["nouto"] == 'o') {
+        $query = "SELECT printteri11 
+                  FROM varastopaikat
+                  WHERE yhtio = '{$kukarow['yhtio']}'
+                  AND tunnus  = '{$laskurow['varasto']}'";
+        $_printteri11 = pupe_query($query);
+        $_printteri11 = mysql_fetch_assoc($_printteri11);
         $_tulosta_myos = array(
           "yhtio" => $laskurow['yhtio'],
           "tunnus" => $laskurow['tunnus'],
