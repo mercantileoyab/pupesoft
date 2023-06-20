@@ -2335,19 +2335,31 @@ if ($luottorajavirhe_ylivito_valmis) {
   // tilaus ei en‰‰ kesken...
   $query  = "UPDATE kuka set kesken=0 where yhtio='$kukarow[yhtio]' and kuka='$kukarow[kuka]'";
   $result = pupe_query($query);
+
   if($_tulosta_myos) {
-    $karajaus = 1;
-    $tuvarasto = $yhtiorow['noutotilausten_tulostus'];
-    $tutyyppi = "KAIKKI";
-    $tutoimtapa = "KAIKKI";
-    $tee2 = 'TULOSTA';
-    $automaattinen_tulostus = ' style="display:none" ';
-    $lasku_yhtio = $_tulosta_myos['yhtio'];
-    $tulostukseen = array($_tulosta_myos['tunnus']);
-    if($_tulosta_myos['tulostin'] and $_tulosta_myos['tulostin'] != "") {
-      $valittu_tulostin = $_tulosta_myos['tulostin'];
+
+    $_lask_q = "SELECT tila,alatila 
+                  FROM lasku 
+                WHERE yhtio = '$kukarow[yhtio]'
+                AND tunnus  = '$_tulosta_myos[tunnus]'";
+    $_lask_r = pupe_query($_lask_q);
+    $_lask = mysql_fetch_assoc($_lask_r);
+
+    if($_lask['tila'] == "N" and $_lask['alatila'] == "A" and 1==2) {
+      $karajaus = 1;
+      $tuvarasto = $yhtiorow['noutotilausten_tulostus'];
+      $tutyyppi = "KAIKKI";
+      $tutoimtapa = "KAIKKI";
+      $tee2 = 'TULOSTA';
+      $automaattinen_tulostus = ' style="display:none" ';
+      $lasku_yhtio = $_tulosta_myos['yhtio'];
+      $tulostukseen = array($_tulosta_myos['tunnus']);
+      if($_tulosta_myos['tulostin'] and $_tulosta_myos['tulostin'] != "") {
+        $valittu_tulostin = $_tulosta_myos['tulostin'];
+      }
+      require_once "tilauskasittely/lahetteen_tulostusjono.php";
     }
-    require_once "tilauskasittely/lahetteen_tulostusjono.php";
+
   }
 }
 
