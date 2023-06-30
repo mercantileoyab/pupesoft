@@ -1142,22 +1142,23 @@ else {
       }
     }
 
-    if($yhtiorow['noutotilausten_tulostus'] != "" and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
-      $query = "SELECT *
-                FROM toimitustapa
-                WHERE yhtio = '$kukarow[yhtio]'
-                AND selite  = '$laskurow[toimitustapa]'";
-      $result = pupe_query($query);
-      $torow = mysql_fetch_assoc($result);
+    $_tulosta_myos = false;
 
-      $query = "SELECT printteri11 
-                FROM varastopaikat
-                WHERE yhtio = '{$kukarow['yhtio']}'
-                AND tunnus  = '{$laskurow['varasto']}'";
-      $_printteri11 = pupe_query($query);
-      $_printteri11 = mysql_fetch_assoc($_printteri11);
+    if($yhtiorow['noutotilausten_tulostus'] != "" and is_numeric($laskurow['varasto']) and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
+      $_torow_q = "SELECT * 
+                     FROM toimitustapa 
+                   WHERE yhtio = '$kukarow[yhtio]'
+                   AND selite  = '$laskurow[toimitustapa]'";
+      $_torow_r = pupe_query($_torow_q);
+      $_torow = mysql_fetch_assoc($_torow_r);
 
-      if($torow["nouto"] == 'o') {
+      if($_torow["nouto"] == 'o') {
+        $query = "SELECT printteri11 
+                    FROM varastopaikat 
+                  WHERE yhtio = '{$kukarow['yhtio']}' 
+                  AND tunnus  = '{$laskurow['varasto']}'";
+        $_printteri11 = pupe_query($query);
+        $_printteri11 = mysql_fetch_assoc($_printteri11);
         $_tulosta_myos = array(
           "yhtio" => $laskurow['yhtio'],
           "tunnus" => $laskurow['tunnus'],
@@ -2334,20 +2335,20 @@ if ($luottorajavirhe_ylivito_valmis) {
   // tilaus ei en‰‰ kesken...
   $query  = "UPDATE kuka set kesken=0 where yhtio='$kukarow[yhtio]' and kuka='$kukarow[kuka]'";
   $result = pupe_query($query);
-  if(isset($_tulosta_myos) and $_tulosta_myos) {
-    $karajaus = 1;
-    $tuvarasto = $yhtiorow['noutotilausten_tulostus'];
-    $tutyyppi = "KAIKKI";
-    $tutoimtapa = "KAIKKI";
-    $tee2 = 'TULOSTA';
-    $automaattinen_tulostus = ' style="display:none" ';
-    $lasku_yhtio = $_tulosta_myos['yhtio'];
-    $tulostukseen = array($_tulosta_myos['tunnus']);
-    if($_tulosta_myos['tulostin'] and $_tulosta_myos['tulostin'] != "") {
-      $valittu_tulostin = $_tulosta_myos['tulostin'];
+
+  if($_tulosta_myos) {
+
+    $_lask_q = "SELECT tila,alatila 
+                  FROM lasku 
+                WHERE yhtio = '$kukarow[yhtio]'
+                AND tunnus  = '$_tulosta_myos[tunnus]'";
+    $_lask_r = pupe_query($_lask_q);
+    $_lask = mysql_fetch_assoc($_lask_r);
+
+    if($_lask['tila'] == "N" and $_lask['alatila'] == "A") {
+      tulosta_keraysera($kukarow, $_tulosta_myos['tunnus']);
     }
-    require_once "tilauskasittely/lahetteen_tulostusjono.php";
-    unset($_tulosta_myos);
+
   }
 }
 
