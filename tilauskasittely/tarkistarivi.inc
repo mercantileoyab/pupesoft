@@ -540,7 +540,7 @@ if (
               WHERE tuotteen_toimittajat.yhtio = '$kukarow[yhtio]'
               and tuotteen_toimittajat.tuoteno = '$row[tuoteno]'
               $where_yksi_suoratoimittaja
-              ORDER BY tuotteen_toimittajat.ostohinta ASC";
+              ORDER BY tuotteen_toimittajat.ostohinta*tuotteen_toimittajat.myyntihinta_kerroin ASC";
     $toimpaikres  = pupe_query($query);
 
     if (mysql_num_rows($toimpaikres) > 0) {
