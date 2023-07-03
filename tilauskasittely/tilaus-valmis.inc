@@ -2346,7 +2346,7 @@ if ($luottorajavirhe_ylivito_valmis) {
     $_lask = mysql_fetch_assoc($_lask_r);
 
     if($_lask['tila'] == "N" and $_lask['alatila'] == "A") {
-      tulosta_keraysera($kukarow, $_tulosta_myos['tunnus']);
+      tulosta_keraysera($kukarow, $_tulosta_myos['tunnus'], $_tulosta_myos['tulostin']);
     }
 
   }
