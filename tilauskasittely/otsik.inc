@@ -3999,12 +3999,25 @@ if (isset($jatka)) {
 
     // ja toimitustapa ei ole nouto eikä kyseessä ole verkkokauppatilaus laitetaan toimitustavaksi nouto... hakee järjestyksessä ekan
     if ($meapu2row["nouto"] == "" and $tilaustyyppi != "W") {
-      $apuqu = "SELECT *
-                FROM toimitustapa
-                WHERE yhtio  = '$kukarow[yhtio]'
-                AND nouto   != ''
-                ORDER BY jarjestys
-                LIMIT 1";
+      if($kukarow['oletus_varasto'] and is_numeric($kukarow['oletus_varasto'])) {
+        $apuqu = "SELECT toimitustapa.selite 
+                  FROM toimitustapa 
+                  JOIN varastopaikat on (varastopaikat.yhtio = toimitustapa.yhtio) 
+                  WHERE toimitustapa.yhtio = 'mergr' 
+                  AND toimitustapa.selite LIKE concat(varastopaikat.nimi,'%') 
+                  AND varastopaikat.tunnus = $kukarow[oletus_varasto] 
+                  AND toimitustapa.nouto = 'o' 
+                  ORDER BY jarjestys 
+                  LIMIT 1";
+      } else {
+        $apuqu = "SELECT *
+                  FROM toimitustapa
+                  WHERE yhtio  = '$kukarow[yhtio]'
+                  AND nouto   != ''
+                  ORDER BY jarjestys
+                  LIMIT 1";
+      }
+
       $meapu = pupe_query($apuqu);
       $apuro = mysql_fetch_assoc($meapu);
 
