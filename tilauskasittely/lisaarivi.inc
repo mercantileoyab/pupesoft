@@ -166,6 +166,8 @@ if(!isset($vahvistettu_kommentti)) {
   $vahvistettu_kommentti = false;
 }
 
+$nyk_rivitunnus = $rivitunnus;
+
 // Haetaan asiakkaan kieli erilaisten systeemikommenttien kääntämistä varten
 $query = "SELECT kieli
           FROM asiakas
@@ -1744,8 +1746,9 @@ if ($rivityyppi != 'O' and trim($var) == "" and $trow["tuoteno"] != "") {
         }
       }
     }
-    
+
     foreach ($myy_tuoteno as $i => $tuoteno) {
+
       //Tässä loopataan vain isä/normaleja tuotteita
       if ($lisaarivi_debug==1) echo "Loopataan $tuoteno, {$myy_tyyppi[$i]}, $toimittamatta<br>";
 
@@ -2345,7 +2348,7 @@ if ($rivityyppi != 'O' and trim($var) == "" and $trow["tuoteno"] != "") {
                   $lisatyt_perheet[$perheid_lisaarivi][] = $lisatty_tun;
                 }
               }
-
+              
               $rivitunnus = 0;
               $tuotenimitys_force = "";
               $omalle_tilaukselle = "";
@@ -2492,7 +2495,7 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
               AND isatuoteno = (SELECT tuoteno FROM tilausrivi WHERE tunnus = $perheid) LIMIT 1";
     $einayres = mysql_fetch_assoc(pupe_query($query));
   }
-
+  
   foreach ($puu_tuoteno as $i => $tuoteno) {
     $kpl = $puu_kpl[$i];
     $var = $puu_var[$i];
@@ -3666,40 +3669,6 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
       $lisatty_toimittajan_tun = mysql_insert_id($GLOBALS["masterlink"]);
     }
 
-    if ($laske_tehdas_saldo) {
-      if ($trow['suoratoimitus'] != "") {
-
-          $nyk_laskun_tilausrivit_query = "SELECT tuoteno, tunnus 
-                                            FROM tilausrivi 
-                                            WHERE yhtio = '{$kukarow['yhtio']}' 
-                                            AND otunnus = '$kukarow[kesken]'";
-          $nyk_laskun_tilausrivit = pupe_query($nyk_laskun_tilausrivit_query);
-          if (mysql_num_rows($nyk_laskun_tilausrivit) > 0) {
-            while ($nyk_laskun_tilausrivi = mysql_fetch_assoc($nyk_laskun_tilausrivit)) {
-              if ($nyk_laskun_tilausrivi['tuoteno'] == $trow['tuoteno']) {
-                if ($nyk_paikka and $nyk_laskun_tilausrivi['tunnus'] == $rivitunnus) {
-                  $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
-                                              SET tehdas_saldo = tehdas_saldo+{$kpl} 
-                                              WHERE yhtio = '{$kukarow['yhtio']}' 
-                                              AND liitostunnus = {$nyk_paikka} 
-                                              AND tuoteno = '{$nyk_laskun_tilausrivi['tuoteno']}'";
-                  pupe_query($tehtaan_saldo_paivita);
-                }
-                if ($toimittajan_tunnus and $nyk_laskun_tilausrivi['tunnus'] == $rivitunnus) {
-                  $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
-                                              SET tehdas_saldo = tehdas_saldo-{$kpl} 
-                                              WHERE yhtio = '{$kukarow['yhtio']}' 
-                                              AND liitostunnus = {$toimittajan_tunnus}
-                                              AND tuoteno = '{$trow['tuoteno']}'";
-                  pupe_query($tehtaan_saldo_paivita);
-                }
-              }
-            }
-          }
-      
-      }
-    }
-
     if ($var == "H") {
       $lisatyt_rivit1[] = $lisatty_tun;
     }
@@ -3830,6 +3799,45 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
   }
 }
 
+if ($laske_tehdas_saldo and $paikka and $rivityyppi = 'L') {
+
+  if ($trow['suoratoimitus'] != "") {
+
+      $nyk_laskun_tilausrivit_query = "SELECT tuoteno, tunnus 
+                                        FROM tilausrivi 
+                                        WHERE yhtio = '{$kukarow['yhtio']}' 
+                                        AND otunnus = '$kukarow[kesken]'";
+
+      $nyk_laskun_tilausrivit = pupe_query($nyk_laskun_tilausrivit_query);
+      if (mysql_num_rows($nyk_laskun_tilausrivit) > 0) {
+
+        while ($nyk_laskun_tilausrivi = mysql_fetch_assoc($nyk_laskun_tilausrivit)) {
+
+          if ($nyk_laskun_tilausrivi['tuoteno'] == $trow['tuoteno']) {
+
+            if ($nyk_paikka and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
+              $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+                                          SET tehdas_saldo = tehdas_saldo+{$kpl} 
+                                          WHERE yhtio = '{$kukarow['yhtio']}' 
+                                          AND liitostunnus = {$nyk_paikka} 
+                                          AND tuoteno = '{$nyk_laskun_tilausrivi['tuoteno']}'";
+              pupe_query($tehtaan_saldo_paivita);
+            }
+
+            if ($toimittajan_tunnus and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
+              
+              $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+                                          SET tehdas_saldo = tehdas_saldo-{$kpl} 
+                                          WHERE yhtio = '{$kukarow['yhtio']}' 
+                                          AND liitostunnus = {$toimittajan_tunnus}
+                                          AND tuoteno = '{$trow['tuoteno']}'";
+              pupe_query($tehtaan_saldo_paivita);
+            }
+          }
+        }
+      }
+  }
+}
 $_yhteen_varastoon  = ($yhtiorow['pakollinen_varasto'] == 'K');
 $_sopivatilaustoimi = (in_array($toim, array('RIVISYOTTO', 'PIKATILAUS', 'REKLAMAATIO', 'TARJOUS')));
 

@@ -873,22 +873,12 @@ if (
 
           if (!in_array($yhtiorow["tee_osto_myyntitilaukselta"], array('U', 'B')) and in_array($krow["suoratoimitus"], array('', 'X')) and $tmp_varastoon == 1 and 
           ($sel1 or $krow['tehdas_saldo'] > 0)) {
-            if($title = $krow['nimitark']) {} else {
-              $title = $krow['nimi'];
-            }
-            $title = $title." | ".t("Tehtaan saldo").": ".$krow['tehdas_saldo']." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '');
-            $paikat .= "<option value='¡¡¡$krow[liitostunnus]' title='$title' $sel1>$title</option>";
-            $paikatlask++;
+            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_varastoon');
           }
 
           if (in_array($yhtiorow["tee_osto_myyntitilaukselta"], array('U', 'Y', 'W', 'J', 'B', 'C')) and in_array($krow["suoratoimitus"], array('', 'U')) and $tmp_asiakkaalle == 1 and 
           ($sel1 or $krow['tehdas_saldo'] > 0)) {
-            if($title = $krow['nimitark']) {} else {
-              $title = $krow['nimi'];
-            }
-            $title = $title." | ".t("Tehtaan saldo").": ".$krow['tehdas_saldo']." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '');
-            $paikat .= "<option value='!!!$krow[liitostunnus]' title='$title' $sel2>$title</option>";
-            $paikatlask++;
+            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_asiakkaalle');
           }
         }
       }
