@@ -34180,3 +34180,25 @@ if (!function_exists("laske_korko")) {
     return $korkorivit;
   }
 }
+
+if (!function_exists("tulosta_suoratoimitus_paikka")) {
+  function tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, $mihin) {
+echo "</select><pre>";
+print_r($krow);
+echo "</pre>";
+    if($mihin == 'tmp_varastoon') {
+      $liitostunnus = '¡¡¡'.$krow["liitostunnus"];
+    }
+    if($mihin == 'tmp_asiakkaalle') {
+      $liitostunnus = '!!!'.$krow["liitostunnus"];
+    }
+
+    if($title = $krow['nimitark']) {} else {
+      $title = $krow['nimi'];
+    }
+    $title = $title." | ".t("Tehtaan saldo").": ".$krow['tehdas_saldo']." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '');
+    $paikat .= "<option value='$liitostunnus' title='$title' $sel1>$title</option>";
+    $paikatlask++;
+    return array($paikat, $paikatlask, $title);
+  }
+}
