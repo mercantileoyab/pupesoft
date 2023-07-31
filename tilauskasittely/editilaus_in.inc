@@ -2063,6 +2063,13 @@ while ($tietue = fgets($fd)) {
     }
     break;
 
+  case 'OSTOTILRIV.OTR_TOIMITTAJANRO' : 
+    // suoratoimitus toimittaja
+    $type     = explode("ööö", $tieto);
+    $toimittaja = trim($type[0]);
+    $toimittajan_varasto  = trim($type[1]);
+    break;
+
   case 'OLINSA_PI' :
     // tämän rivin asiakkaan oma tuotenumero
     $type     = explode("@", $tieto);
@@ -2421,6 +2428,10 @@ while ($tietue = fgets($fd)) {
           }
           else {
             $hyvityssaannon_palautuskielto = "";
+          }
+
+          if($toimittaja) {
+            $paikka = "¡¡¡".$toimittaja;
           }
 
           require "lisaarivi.inc";

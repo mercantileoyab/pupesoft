@@ -20683,7 +20683,7 @@ if (!function_exists("tee_keraysera")) {
       file_put_contents($tee_keraysera_debugdir."/".$filenimi, $kukarow['debugstring']);
 
       // Tyhjennet‰‰n t‰m‰ t‰ss‰ ja lis‰t‰‰n tallenna_ker‰yser‰ss‰ viel‰ v‰h‰n lis‰‰ jos on tarvis
-      $kukarow['debugstring'] = "";
+      //$kukarow['debugstring'] = "";
 
       // Setataan filenimi, niin voidaan nimet‰ se uudestaan tallenna_kerayser‰.inciss‰
       $kukarow['debugfile'] = $filenimi;
