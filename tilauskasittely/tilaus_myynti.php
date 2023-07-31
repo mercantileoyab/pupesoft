@@ -8128,8 +8128,11 @@ if ($tee == '') {
               echo "<img src='{$palvelin2}pics/flag_icons/gif/".strtolower($selpaikkamaa).".gif'>";
             }
 
+            if($nyk_tehtaan_varasto = explode('"',$row['sopimuksen_lisatieto1']) and $nyk_tehtaan_varasto = $nyk_tehtaan_varasto[1] and is_numeric($nyk_tehtaan_varasto)) {}
+
             echo "<form method='post' name='paikat' action='{$palvelin2}{$tilauskaslisa}tilaus_myynti.php'>
                     <input type='hidden' name='nyk_paikka' value = '$row[toimittajan_tunnus]'>
+                    <input type='hidden' name='nyk_tehtaan_varasto' value = '$nyk_tehtaan_varasto'>
                     <input type='hidden' name='vahvistettu_kommentti' value = '$row[vahvistettu_kommentti]'>
                     <input type='hidden' name='toim'       value = '$toim'>
                     <input type='hidden' name='lopetus'     value = '$lopetus'>
