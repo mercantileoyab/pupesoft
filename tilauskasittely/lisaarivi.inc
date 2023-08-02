@@ -3848,7 +3848,6 @@ if ($laske_tehdas_saldo and $paikka and $rivityyppi = 'L') {
             
             if ($nyk_paikka and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
               if($nyk_tehtaan_varasto) {
-                echo "dsadasdas";
                 $query = "SELECT tehdas_saldo_varastot 
                           FROM tuotteen_toimittajat 
                           WHERE tuotteen_toimittajat.yhtio = 'mergr' 
@@ -3876,7 +3875,6 @@ if ($laske_tehdas_saldo and $paikka and $rivityyppi = 'L') {
 
             if ($toimittajan_tunnus and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
               if($tehtaan_varasto) {
-                echo "321321321";
                 $query = "SELECT tehdas_saldo_varastot 
                           FROM tuotteen_toimittajat 
                           WHERE tuotteen_toimittajat.yhtio = 'mergr' 

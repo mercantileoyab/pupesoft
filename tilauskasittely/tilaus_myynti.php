@@ -1388,12 +1388,38 @@ if ($tee == 'POISTA' and $muokkauslukko == "" and $kukarow["mitatoi_tilauksia"] 
         $tilausrivin_toimittajan_tunnus = pupe_query($query_hae_tilausrivi);
         if (mysql_num_rows($tilausrivin_toimittajan_tunnus) > 0) {
           $tilausrivin_toimittajan_tunnus = mysql_fetch_array($tilausrivin_toimittajan_tunnus);
-          $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+
+          //mysql_fetch_assoc
+          $tehtaan_varasto = explode('"',$tilausrivin_toimittajan_tunnus['sopimuksen_lisatieto1']);
+          if($tehtaan_varasto = $tehtaan_varasto[1] and is_numeric($tehtaan_varasto)) {} else {
+            $tehtaan_varasto = false;
+          }
+
+          if($tehtaan_varasto) {
+            $query = "SELECT tehdas_saldo_varastot 
+                      FROM tuotteen_toimittajat 
+                      WHERE tuotteen_toimittajat.yhtio = 'mergr' 
+                      AND tuotteen_toimittajat.liitostunnus = {$tilausrivin_toimittajan_tunnus['toimittajan_tunnus']} 
+                      AND tuoteno = '{$poistettava_rivi['tuoteno']}'";
+            $tehtaan_varasto_nyk = pupe_query($query);
+            $tehtaan_varasto_nyk = mysql_fetch_assoc($tehtaan_varasto_nyk);
+            $tehtaan_varasto_nyk = json_decode($tehtaan_varasto_nyk['tehdas_saldo_varastot'], TRUE);
+  
+            $tehtaan_varasto_nyk[$tehtaan_varasto] = $tehtaan_varasto_nyk[$tehtaan_varasto]+$poistettava_rivi['tilkpl'];
+            $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+                                      SET tehdas_saldo_varastot = '".json_encode($tehtaan_varasto_nyk)."' 
+                                      WHERE yhtio = '{$kukarow['yhtio']}' 
+                                      AND liitostunnus = {$tilausrivin_toimittajan_tunnus['toimittajan_tunnus']} 
+                                      AND tuoteno = '{$poistettava_rivi['tuoteno']}'";
+          } else {
+            $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
                                       SET tehdas_saldo = tehdas_saldo+{$poistettava_rivi['tilkpl']} 
                                       WHERE yhtio = '{$kukarow['yhtio']}' 
                                       AND liitostunnus = {$tilausrivin_toimittajan_tunnus['toimittajan_tunnus']}
                                       AND myyntihinta_kerroin > 0 
                                       AND tuoteno = '{$poistettava_rivi['tuoteno']}'";
+          }
+
           pupe_query($tehtaan_saldo_paivita);
         }
       }

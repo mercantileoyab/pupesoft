@@ -20683,7 +20683,7 @@ if (!function_exists("tee_keraysera")) {
       file_put_contents($tee_keraysera_debugdir."/".$filenimi, $kukarow['debugstring']);
 
       // Tyhjennet‰‰n t‰m‰ t‰ss‰ ja lis‰t‰‰n tallenna_ker‰yser‰ss‰ viel‰ v‰h‰n lis‰‰ jos on tarvis
-      //$kukarow['debugstring'] = "";
+      $kukarow['debugstring'] = "";
 
       // Setataan filenimi, niin voidaan nimet‰ se uudestaan tallenna_kerayser‰.inciss‰
       $kukarow['debugfile'] = $filenimi;
@@ -34202,11 +34202,15 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
     if($tehtaan_varastot) {
       $paikat .= "<optgroup label='".$title." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '')."'>";
       foreach($tehtaan_varastot as $tehtaan_varasto_numero => $tehtaan_varasto_saldo) {
+
         $title = t("Varasto")." ".$tehtaan_varasto_numero." | ".t("Tehtaan saldo").": ".$tehtaan_varasto_saldo;
         if($sel1 and $nyk_tehtaan_varasto == $tehtaan_varasto_numero) {
           $sel2 = "selected";
         } else {
           $sel2 = false;
+        }
+        if($tehtaan_varasto_saldo <= 0 and !$sel2) {
+          continue;
         }
         $paikat .= "<option data='$nyk_tehtaan_varasto' value='$liitostunnus|||$tehtaan_varasto_numero' title='$title' $sel2>$title</option>";
       }
