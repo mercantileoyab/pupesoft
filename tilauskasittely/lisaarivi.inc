@@ -721,6 +721,7 @@ if (substr($paikka, 0, 3) == "¡¡S") {
 
       $query = "UPDATE tilausrivin_lisatiedot
                 SET toimittajan_tunnus = '{$toimittajan_tunnus}',
+                {$varastotunnus_lisa}
                 kohde_hyllyalue      = '{$kohdevarasto_tuotepaikka['hyllyalue']}',
                 kohde_hyllynro       = '{$kohdevarasto_tuotepaikka['hyllynro']}',
                 kohde_hyllyvali      = '{$kohdevarasto_tuotepaikka['hyllyvali']}',
@@ -795,6 +796,7 @@ elseif ($var == "S" and substr($paikka, 0, 3) != "¡¡S" and substr($paikka, 0, 3)
 
       $query = "UPDATE tilausrivin_lisatiedot
                 SET toimittajan_tunnus = '{$toimittajan_tunnus}',
+                {$varastotunnus_lisa}
                 kohde_hyllyalue      = '0',
                 kohde_hyllynro       = '0',
                 kohde_hyllyvali      = '0',
@@ -811,6 +813,11 @@ if (substr($paikka, 0, 3) == "¡¡¡") {
   $var          = "T";
   $toimittajan_tunnus  = substr($paikka, 3);
   $paikka         = "#!¡!#";
+  if (strpos($toimittajan_tunnus, '|||') !== false) {
+    $toimittajan_tunnus = explode("|||", $toimittajan_tunnus);
+    $varasto_tunnus = $toimittajan_tunnus[1];
+    $toimittajan_tunnus = $toimittajan_tunnus[0];
+  }
 }
 elseif ($var == "T" and substr($paikka, 0, 3) != "¡¡¡" and substr($paikka, 0, 3) != "!!!") {
   $var         = "";
@@ -820,6 +827,11 @@ elseif ($var == "T" and substr($paikka, 0, 3) != "¡¡¡" and substr($paikka, 0, 3)
 if (substr($paikka, 0, 3) == "!!!") {
   $var          = "U";
   $toimittajan_tunnus  = substr($paikka, 3);
+  if (strpos($toimittajan_tunnus, '|||') !== false) {
+    $toimittajan_tunnus = explode("|||", $toimittajan_tunnus);
+    $varasto_tunnus = $toimittajan_tunnus[1];
+    $toimittajan_tunnus = $toimittajan_tunnus[0];
+  }
   $paikka         = "";
 }
 elseif ($var == "U" and substr($paikka, 0, 3) != "!!!") {
@@ -839,6 +851,10 @@ elseif ($var == "R" and substr($paikka, 0, 3) != "¡¡V" and substr($paikka, 0, 3)
 
 $perhelisa = "";
 $tuoteperhe_tyyppi = "P";
+
+if($varasto_tunnus) {
+  $varastotunnus_lisa = "sopimuksen_lisatieto1 = '".t("Toimittajan varasto").": \"$varasto_tunnus\"', ";
+}
 
 //Haetaan myös tuoteperheet tai reseptit, tässä parametrit niille.
 if ($laskurow['tila'] == 'V' and $var != "W") {
@@ -2151,6 +2167,7 @@ if ($rivityyppi != 'O' and trim($var) == "" and $trow["tuoteno"] != "") {
                           SET
                           positio                = if (positio = '' or '$valmistuslinja' != '', '{$positio}', positio),
                           toimittajan_tunnus     = '$toimittajan_tunnus',
+                          {$varastotunnus_lisa}
                           rekisterinumero        = '{$rekisterinumero}',
                           muutospvm              = now(),
                           muuttaja               = '$kukarow[kuka]',
@@ -2175,6 +2192,7 @@ if ($rivityyppi != 'O' and trim($var) == "" and $trow["tuoteno"] != "") {
                           SET yhtio = '{$kukarow['yhtio']}',
                           positio                = '{$positio}',
                           toimittajan_tunnus     = '{$toimittajan_tunnus}',
+                          $varastotunnus_lisa
                           ei_nayteta             = '{$myy_lapsi_ein[$indeksi]}',
                           tilausrivitunnus       = '{$lisatty_tun}',
                           erikoistoimitus_myynti = '{$myy_erikoistoimitus[$indeksi]}',
@@ -3620,6 +3638,7 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
                 SET
                 positio              = if (positio = '' or '$valmistuslinja' != '', '{$positio}', positio),
                 toimittajan_tunnus   = '$toimittajan_tunnus',
+                {$varastotunnus_lisa}
                 {$kohde_varasto_update}
                 rekisterinumero      = '{$rekisterinumero}',
                 muutospvm            = now(),
@@ -3647,6 +3666,7 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
                 SET yhtio      = '$kukarow[yhtio]',
                 positio            = '{$positio}',
                 toimittajan_tunnus = '$toimittajan_tunnus',
+                {$varastotunnus_lisa}
                 {$kohde_varasto_update}
                 tilausrivitunnus   = '$lisatty_tun',
                 jarjestys          = '$jarjestys',
@@ -3813,24 +3833,69 @@ if ($laske_tehdas_saldo and $paikka and $rivityyppi = 'L') {
 
         while ($nyk_laskun_tilausrivi = mysql_fetch_assoc($nyk_laskun_tilausrivit)) {
 
-          if ($nyk_laskun_tilausrivi['tuoteno'] == $trow['tuoteno']) {
+          $query = "SELECT sopimuksen_lisatieto1 
+                    FROM tilausrivin_lisatiedot
+                    WHERE yhtio          = '$kukarow[yhtio]'
+                    and tilausrivitunnus = '$nyk_rivitunnus'";
+          $tehtaan_varasto = pupe_query($query);
+          $tehtaan_varasto = mysql_fetch_assoc($tehtaan_varasto);
+          $tehtaan_varasto = explode('"',$tehtaan_varasto['sopimuksen_lisatieto1']);
+          if($tehtaan_varasto = $tehtaan_varasto[1] and is_numeric($tehtaan_varasto)) {} else {
+            $tehtaan_varasto = false;
+          }
 
+          if ($nyk_laskun_tilausrivi['tuoteno'] == $trow['tuoteno']) {
+            
             if ($nyk_paikka and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
-              $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+              if($suoratoimitus_varastovalinta and $nyk_tehtaan_varasto) {
+                $query = "SELECT tehdas_saldo_varastot 
+                          FROM tuotteen_toimittajat 
+                          WHERE tuotteen_toimittajat.yhtio = 'mergr' 
+                          AND tuotteen_toimittajat.liitostunnus = {$nyk_paikka} 
+                          AND tuoteno = '{$nyk_laskun_tilausrivi['tuoteno']}'";
+                $tehtaan_varasto_nyk = pupe_query($query);
+                $tehtaan_varasto_nyk = mysql_fetch_assoc($tehtaan_varasto_nyk);
+                $tehtaan_varasto_nyk = json_decode($tehtaan_varasto_nyk['tehdas_saldo_varastot'], TRUE);
+                $tehtaan_varasto_nyk[$nyk_tehtaan_varasto] = $tehtaan_varasto_nyk[$nyk_tehtaan_varasto]+$kpl;
+                $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+                                          SET tehdas_saldo_varastot = '".json_encode($tehtaan_varasto_nyk)."' 
+                                          WHERE yhtio = '{$kukarow['yhtio']}' 
+                                          AND liitostunnus = {$nyk_paikka} 
+                                          AND tuoteno = '{$nyk_laskun_tilausrivi['tuoteno']}'";
+              } else {
+                $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
                                           SET tehdas_saldo = tehdas_saldo+{$kpl} 
                                           WHERE yhtio = '{$kukarow['yhtio']}' 
                                           AND liitostunnus = {$nyk_paikka} 
                                           AND tuoteno = '{$nyk_laskun_tilausrivi['tuoteno']}'";
+              }
               pupe_query($tehtaan_saldo_paivita);
+              
             }
 
             if ($toimittajan_tunnus and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
-              
-              $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+              if($suoratoimitus_varastovalinta and $tehtaan_varasto) {
+                $query = "SELECT tehdas_saldo_varastot 
+                          FROM tuotteen_toimittajat 
+                          WHERE tuotteen_toimittajat.yhtio = 'mergr' 
+                          AND tuotteen_toimittajat.liitostunnus = {$toimittajan_tunnus} 
+                          AND tuoteno = '{$nyk_laskun_tilausrivi['tuoteno']}'";
+                $tehtaan_varasto_nyk = pupe_query($query);
+                $tehtaan_varasto_nyk = mysql_fetch_assoc($tehtaan_varasto_nyk);
+                $tehtaan_varasto_nyk = json_decode($tehtaan_varasto_nyk['tehdas_saldo_varastot'], TRUE);
+                $tehtaan_varasto_nyk[$tehtaan_varasto] = $tehtaan_varasto_nyk[$tehtaan_varasto]-$kpl;
+                $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+                                          SET tehdas_saldo_varastot = '".json_encode($tehtaan_varasto_nyk)."' 
+                                          WHERE yhtio = '{$kukarow['yhtio']}' 
+                                          AND liitostunnus = {$toimittajan_tunnus} 
+                                          AND tuoteno = '{$nyk_laskun_tilausrivi['tuoteno']}'";
+              } else {
+                $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
                                           SET tehdas_saldo = tehdas_saldo-{$kpl} 
                                           WHERE yhtio = '{$kukarow['yhtio']}' 
                                           AND liitostunnus = {$toimittajan_tunnus}
                                           AND tuoteno = '{$trow['tuoteno']}'";
+              }
               pupe_query($tehtaan_saldo_paivita);
             }
           }

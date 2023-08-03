@@ -534,7 +534,17 @@ if (
   }
 
   if (($kukarow["extranet"] == "" or $yhtiorow['tuoteperhe_suoratoimitus'] == 'E') and ($toim == "TARJOUS" or ($yhtiorow["tee_osto_myyntitilaukselta"] != '' and ($toim == 'RIVISYOTTO' or $toim == 'PIKATILAUS'))) and $row["var"] != 'V') {
-    $query = "SELECT tyyppi_tieto, liitostunnus, toimi.nimi, toimi.nimitark, toimi.suoratoimitus, tuotteen_toimittajat.tehdas_saldo, toimi.tehdas_saldo_tarkistus, tuotteen_toimittajat.ostohinta, tuotteen_toimittajat.myyntihinta_kerroin
+    $query = "SELECT 
+                tyyppi_tieto, 
+                liitostunnus, 
+                toimi.nimi, 
+                toimi.nimitark, 
+                toimi.suoratoimitus, 
+                tuotteen_toimittajat.tehdas_saldo, 
+                toimi.tehdas_saldo_tarkistus, 
+                tuotteen_toimittajat.ostohinta, 
+                tuotteen_toimittajat.myyntihinta_kerroin, 
+                tuotteen_toimittajat.tehdas_saldo_varastot
               FROM tuotteen_toimittajat use index (yhtio_tuoteno)
               JOIN toimi ON (toimi.yhtio = tuotteen_toimittajat.yhtio and toimi.tunnus = tuotteen_toimittajat.liitostunnus)
               WHERE tuotteen_toimittajat.yhtio = '$kukarow[yhtio]'
@@ -873,12 +883,12 @@ if (
 
           if (!in_array($yhtiorow["tee_osto_myyntitilaukselta"], array('U', 'B')) and in_array($krow["suoratoimitus"], array('', 'X')) and $tmp_varastoon == 1 and 
           ($sel1 or $krow['tehdas_saldo'] > 0)) {
-            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_varastoon');
+            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_varastoon',$row['sopimuksen_lisatieto1'], $suoratoimitus_varastovalinta);
           }
 
           if (in_array($yhtiorow["tee_osto_myyntitilaukselta"], array('U', 'Y', 'W', 'J', 'B', 'C')) and in_array($krow["suoratoimitus"], array('', 'U')) and $tmp_asiakkaalle == 1 and 
           ($sel1 or $krow['tehdas_saldo'] > 0)) {
-            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_asiakkaalle');
+            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_asiakkaalle', $row['sopimuksen_lisatieto1'], $suoratoimitus_varastovalinta);
           }
         }
       }

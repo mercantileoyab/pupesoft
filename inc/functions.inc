@@ -18180,7 +18180,7 @@ if (!function_exists("release_tee_keraysera")) {
     global $kukarow, $yhtiorow;
 
     // Vapautetaan muutkin käsittelyyn otetut tilaukset
-    $query = "UPDATE lasku
+    $query = "UPDATE lasku 
               SET alatila = 'A'
               WHERE yhtio = '{$kukarow['yhtio']}'
               AND tila    = 'N'
@@ -18198,6 +18198,86 @@ if (!function_exists("release_tee_keraysera")) {
 
     // Vapautetaan flocki
     flock($GLOBALS["flock_fp"], LOCK_UN);
+  }
+}
+
+if (!function_exists("tulosta_keraysera")) {
+  function tulosta_keraysera($kukarow, $tilausnumero, $valittu_tulostin) {
+    $query = "SELECT keraysvyohyke, oletus_varasto
+              FROM kuka
+              WHERE yhtio         = '{$kukarow['yhtio']}'
+              AND kuka            = '{$kukarow['kuka']}'
+              AND extranet        = ''
+              AND keraysvyohyke  != ''
+              AND oletus_varasto != ''";
+    $result = pupe_query($query);
+
+    if (mysql_num_rows($result) == 0) {
+      $response = "N,,,,,,,,,,,,,1,Käyttäjätiedot virheelliset\r\n";
+    }
+    else {
+
+      $row = mysql_fetch_assoc($result);
+
+      $erat = tee_keraysera($row['keraysvyohyke'], $row['oletus_varasto'], $tilausnumero);
+
+      // Ei saatu lukkoa järkevässä ajassa
+      if ($erat === FALSE) {
+        $response = "N,,,,,,,,,,,,,1,Keräyserien luonnissa ruuhkaa. Yritä pian uudelleen.\r\n";
+      }
+
+      if (isset($erat['tilaukset']) and count($erat['tilaukset']) > 0) {
+        // Tallennetaan missä tää erä on tehty
+        $ohjelma_moduli = "AUTOERA";
+
+        require 'inc/tallenna_keraysera.inc';
+
+        // Nämä tilaukset tallennettin keräyserään
+        if (isset($lisatyt_tilaukset) and count($lisatyt_tilaukset) > 0) {
+
+          $otunnukset = implode(",", $lisatyt_tilaukset);
+          $lisatyt_tilaukset_keys = array_keys($lisatyt_tilaukset);
+          $kerayslistatunnus = array_shift($lisatyt_tilaukset_keys);
+                    // tilaus on jo tilassa N A, p?ivitet??n nyt tilaus "ker?yslista tulostettu" eli L A
+          $query = "UPDATE lasku SET
+                    tila        = 'L',
+                    alatila     = 'A',
+                    lahetepvm   = now(),
+                    hyvak3      = '{$kukarow['kuka']}',
+                    h3time      = now(),
+                    kerayslista = '{$kerayslistatunnus}'
+                    WHERE yhtio = '{$kukarow['yhtio']}'
+                    AND tunnus  in ({$otunnukset})
+                    AND tila    = 'N'
+                    AND alatila = 'KA'";
+          pupe_query($query);
+
+          if ($yhtiorow['kerayserat'] != '' and $yhtiorow['siirtolistan_tulostustapa'] == 'U') {
+            // siirtolista on jo tilassa G J, p?ivitet??n nyt tilaus "siirtolista tulostettu" eli G A
+            $query = "UPDATE lasku SET
+                      alatila     = 'A',
+                      lahetepvm   = now(),
+                      hyvak3      = '{$kukarow['kuka']}',
+                      h3time      = now(),
+                      kerayslista = '{$kerayslistatunnus}'
+                      WHERE yhtio = '{$kukarow['yhtio']}'
+                      AND tunnus  in ({$otunnukset})
+                      AND tila    = 'G'
+                      AND alatila = 'KJ'";
+            pupe_query($query);
+          }
+        }
+      }
+      release_tee_keraysera();
+      if (isset($lisatyt_tilaukset) and count($lisatyt_tilaukset) > 0) {
+  
+        $reittietikettitulostin = $valittu_tulostin;
+
+        // Tulostetaan kollilappu
+        require 'inc/tulosta_reittietiketti.inc';
+      }
+    }
+
   }
 }
 
@@ -18305,7 +18385,7 @@ if (!function_exists('hae_tuotteet_ja_pisin_mitta')) {
 }
 
 if (!function_exists("tee_keraysera")) {
-  function tee_keraysera($keraysvyohyke, $varasto) {
+  function tee_keraysera($keraysvyohyke, $varasto, $tilausnumero = false) {
     global $kukarow, $yhtiorow, $tee_keraysera_debugdir;
 
     $lock_params = array(
@@ -18368,6 +18448,10 @@ if (!function_exists("tee_keraysera")) {
       $tilat = "AND ((lasku.tila = 'N' AND lasku.alatila = 'A') OR (lasku.tila = 'G' AND lasku.alatila = 'J')) ";
     }
 
+    if($tilausnumero) {
+      $tilat .= "AND lasku.tunnus = $tilausnumero";
+    }
+
     // Kun käyttäjän takana on keräysvyöhykkeiden monivalinta, joudutaan tilauksen order by ja group by tekemään niin, että pienimmän prioriteetin ja kellonajan mukaan järjestetään
     // tilaukset tulemaan keräysvyöhykkeittäin. Jos prio ja aika on sama, otetaan randomisti jonkun keräysvyöhykkeen tilauksia (kumpi nyt sattuu tulemaan ensiksi),
     // muuten prio ja aika määrää minkä keräysvyöhykkeen tilaukset tulevat ensiksi.
@@ -18418,7 +18502,7 @@ if (!function_exists("tee_keraysera")) {
                AND lasku.vakisin_kerays                       = ''
                AND lasku.varasto                              = '{$varasto}'
                AND kuka.tunnus is null
-               AND kerayserat.tunnus is null
+               AND kerayserat.tunnus is null 
                GROUP BY 1,2,3,4,5,6,7)
 
                UNION
@@ -34098,7 +34182,7 @@ if (!function_exists("laske_korko")) {
 }
 
 if (!function_exists("tulosta_suoratoimitus_paikka")) {
-  function tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, $mihin) {
+  function tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, $mihin, $sopimuksen_lisatieto1, $suoratoimitus_varastovalinta) {
 
     if($mihin == 'tmp_varastoon') {
       $liitostunnus = '¡¡¡'.$krow["liitostunnus"];
@@ -34110,8 +34194,30 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
     if($title = $krow['nimitark']) {} else {
       $title = $krow['nimi'];
     }
-    $title = $title." | ".t("Tehtaan saldo").": ".$krow['tehdas_saldo']." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '');
-    $paikat .= "<option value='$liitostunnus' title='$title' $sel1>$title</option>";
+    
+    if($suoratoimitus_varastovalinta and $krow["tehdas_saldo_varastot"] and $tehtaan_varastot = json_decode($krow["tehdas_saldo_varastot"], true)) {
+
+      if($nyk_tehtaan_varasto = explode('"',$sopimuksen_lisatieto1) and $nyk_tehtaan_varasto = $nyk_tehtaan_varasto[1] and is_numeric($nyk_tehtaan_varasto)) {}
+
+      $paikat .= "<optgroup label='".$title." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '')."'>";
+      foreach($tehtaan_varastot as $tehtaan_varasto_numero => $tehtaan_varasto_saldo) {
+
+        $title = t("Varasto")." ".$tehtaan_varasto_numero." | ".t("Tehtaan saldo").": ".$tehtaan_varasto_saldo;
+        if($sel1 and $nyk_tehtaan_varasto == $tehtaan_varasto_numero) {
+          $sel2 = "selected";
+        } else {
+          $sel2 = false;
+        }
+        if($tehtaan_varasto_saldo <= 0 and !$sel2) {
+          continue;
+        }
+        $paikat .= "<option data='$nyk_tehtaan_varasto' value='$liitostunnus|||$tehtaan_varasto_numero' title='$title' $sel2>$title</option>";
+      }
+      $paikat .= "</optgroup>";
+    } else {
+      $title = $title." | ".t("Tehtaan saldo").": ".$krow['tehdas_saldo']." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '');
+      $paikat .= "<option value='$liitostunnus' title='$title' $sel1>$title</option>";
+    }
     $paikatlask++;
     return array($paikat, $paikatlask, $title);
   }

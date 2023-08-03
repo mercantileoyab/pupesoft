@@ -1144,26 +1144,41 @@ else {
 
     $_tulosta_myos = false;
 
-    if($yhtiorow['noutotilausten_tulostus'] != "" and is_numeric($laskurow['varasto']) and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
-      $_torow_q = "SELECT * 
-                     FROM toimitustapa 
-                   WHERE yhtio = '$kukarow[yhtio]'
-                   AND selite  = '$laskurow[toimitustapa]'";
-      $_torow_r = pupe_query($_torow_q);
-      $_torow = mysql_fetch_assoc($_torow_r);
+    if($yhtiorow['noutotilausten_tulostus'] and $yhtiorow['noutotilausten_tulostus'] != "" and is_numeric($laskurow['varasto']) and $laskurow['varasto'] != $yhtiorow['noutotilausten_tulostus']) {
 
-      if($_torow["nouto"] == 'o') {
-        $query = "SELECT printteri11 
-                    FROM varastopaikat 
-                  WHERE yhtio = '{$kukarow['yhtio']}' 
-                  AND tunnus  = '{$laskurow['varasto']}'";
-        $_printteri11 = pupe_query($query);
-        $_printteri11 = mysql_fetch_assoc($_printteri11);
-        $_tulosta_myos = array(
-          "yhtio" => $laskurow['yhtio'],
-          "tunnus" => $laskurow['tunnus'],
-          "tulostin" => $_printteri11['printteri11']
-        );
+      $apuqu = "SELECT toimitustapa.selite 
+                FROM toimitustapa 
+                JOIN varastopaikat on (varastopaikat.yhtio = toimitustapa.yhtio) 
+                WHERE toimitustapa.yhtio = 'mergr' 
+                AND toimitustapa.selite LIKE concat(varastopaikat.nimi,'%') 
+                AND varastopaikat.tunnus = $yhtiorow[noutotilausten_tulostus] 
+                AND toimitustapa.nouto = 'o' 
+                ORDER BY jarjestys 
+                LIMIT 1";
+      $apuqu = pupe_query($apuqu);
+      $apuqu = mysql_fetch_assoc($apuqu);
+
+      if($laskurow['toimitustapa'] != $apuqu['selite']) {
+        $_torow_q = "SELECT * 
+                      FROM toimitustapa 
+                    WHERE yhtio = '$kukarow[yhtio]'
+                    AND selite  = '$laskurow[toimitustapa]'";
+        $_torow_r = pupe_query($_torow_q);
+        $_torow = mysql_fetch_assoc($_torow_r);
+
+        if($_torow["nouto"] == 'o') {
+          $query = "SELECT printteri11 
+                      FROM varastopaikat 
+                    WHERE yhtio = '{$kukarow['yhtio']}' 
+                    AND tunnus  = '{$laskurow['varasto']}'";
+          $_printteri11 = pupe_query($query);
+          $_printteri11 = mysql_fetch_assoc($_printteri11);
+          $_tulosta_myos = array(
+            "yhtio" => $laskurow['yhtio'],
+            "tunnus" => $laskurow['tunnus'],
+            "tulostin" => $_printteri11['printteri11']
+          );
+        }
       }
     }
 
@@ -2345,19 +2360,8 @@ if ($luottorajavirhe_ylivito_valmis) {
     $_lask_r = pupe_query($_lask_q);
     $_lask = mysql_fetch_assoc($_lask_r);
 
-    if($_lask['tila'] == "N" and $_lask['alatila'] == "A" and 1==2) {
-      $karajaus = 1;
-      $tuvarasto = $yhtiorow['noutotilausten_tulostus'];
-      $tutyyppi = "KAIKKI";
-      $tutoimtapa = "KAIKKI";
-      $tee2 = 'TULOSTA';
-      $automaattinen_tulostus = ' style="display:none" ';
-      $lasku_yhtio = $_tulosta_myos['yhtio'];
-      $tulostukseen = array($_tulosta_myos['tunnus']);
-      if($_tulosta_myos['tulostin'] and $_tulosta_myos['tulostin'] != "") {
-        $valittu_tulostin = $_tulosta_myos['tulostin'];
-      }
-      require_once "tilauskasittely/lahetteen_tulostusjono.php";
+    if($_lask['tila'] == "N" and $_lask['alatila'] == "A") {
+      tulosta_keraysera($kukarow, $_tulosta_myos['tunnus'], $_tulosta_myos['tulostin']);
     }
 
   }
