@@ -34182,7 +34182,7 @@ if (!function_exists("laske_korko")) {
 }
 
 if (!function_exists("tulosta_suoratoimitus_paikka")) {
-  function tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, $mihin, $nyk_tehtaan_varasto) {
+  function tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, $mihin, $sopimuksen_lisatieto1, $suoratoimitus_varastovalinta) {
 
     if($mihin == 'tmp_varastoon') {
       $liitostunnus = '¡¡¡'.$krow["liitostunnus"];
@@ -34194,12 +34194,11 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
     if($title = $krow['nimitark']) {} else {
       $title = $krow['nimi'];
     }
-
-    if($krow["tehdas_saldo_varastot"]) {
-      $tehtaan_varastot = json_decode($krow["tehdas_saldo_varastot"], true);
-    }
     
-    if($tehtaan_varastot) {
+    if($suoratoimitus_varastovalinta and $krow["tehdas_saldo_varastot"] and $tehtaan_varastot = json_decode($krow["tehdas_saldo_varastot"], true)) {
+
+      if($nyk_tehtaan_varasto = explode('"',$sopimuksen_lisatieto1) and $nyk_tehtaan_varasto = $nyk_tehtaan_varasto[1] and is_numeric($nyk_tehtaan_varasto)) {}
+
       $paikat .= "<optgroup label='".$title." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '')."'>";
       foreach($tehtaan_varastot as $tehtaan_varasto_numero => $tehtaan_varasto_saldo) {
 

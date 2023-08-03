@@ -881,16 +881,14 @@ if (
             }
           }
 
-          if($nyk_tehtaan_varasto = explode('"',$row['sopimuksen_lisatieto1']) and $nyk_tehtaan_varasto = $nyk_tehtaan_varasto[1] and is_numeric($nyk_tehtaan_varasto)) {}
-
           if (!in_array($yhtiorow["tee_osto_myyntitilaukselta"], array('U', 'B')) and in_array($krow["suoratoimitus"], array('', 'X')) and $tmp_varastoon == 1 and 
           ($sel1 or $krow['tehdas_saldo'] > 0)) {
-            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_varastoon', $nyk_tehtaan_varasto);
+            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_varastoon',$row['sopimuksen_lisatieto1'], $suoratoimitus_varastovalinta);
           }
 
           if (in_array($yhtiorow["tee_osto_myyntitilaukselta"], array('U', 'Y', 'W', 'J', 'B', 'C')) and in_array($krow["suoratoimitus"], array('', 'U')) and $tmp_asiakkaalle == 1 and 
           ($sel1 or $krow['tehdas_saldo'] > 0)) {
-            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_asiakkaalle', $nyk_tehtaan_varasto);
+            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_asiakkaalle', $row['sopimuksen_lisatieto1'], $suoratoimitus_varastovalinta);
           }
         }
       }

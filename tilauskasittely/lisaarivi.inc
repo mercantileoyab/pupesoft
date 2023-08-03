@@ -3847,7 +3847,7 @@ if ($laske_tehdas_saldo and $paikka and $rivityyppi = 'L') {
           if ($nyk_laskun_tilausrivi['tuoteno'] == $trow['tuoteno']) {
             
             if ($nyk_paikka and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
-              if($nyk_tehtaan_varasto) {
+              if($suoratoimitus_varastovalinta and $nyk_tehtaan_varasto) {
                 $query = "SELECT tehdas_saldo_varastot 
                           FROM tuotteen_toimittajat 
                           WHERE tuotteen_toimittajat.yhtio = 'mergr' 
@@ -3874,7 +3874,7 @@ if ($laske_tehdas_saldo and $paikka and $rivityyppi = 'L') {
             }
 
             if ($toimittajan_tunnus and $nyk_laskun_tilausrivi['tunnus'] == $nyk_rivitunnus) {
-              if($tehtaan_varasto) {
+              if($suoratoimitus_varastovalinta and $tehtaan_varasto) {
                 $query = "SELECT tehdas_saldo_varastot 
                           FROM tuotteen_toimittajat 
                           WHERE tuotteen_toimittajat.yhtio = 'mergr' 

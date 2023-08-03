@@ -1389,19 +1389,18 @@ if ($tee == 'POISTA' and $muokkauslukko == "" and $kukarow["mitatoi_tilauksia"] 
         if (mysql_num_rows($tilausrivin_toimittajan_tunnus) > 0) {
           $tilausrivin_toimittajan_tunnus = mysql_fetch_array($tilausrivin_toimittajan_tunnus);
 
-          //mysql_fetch_assoc
           $tehtaan_varasto = explode('"',$tilausrivin_toimittajan_tunnus['sopimuksen_lisatieto1']);
           if($tehtaan_varasto = $tehtaan_varasto[1] and is_numeric($tehtaan_varasto)) {} else {
             $tehtaan_varasto = false;
           }
 
-          if($tehtaan_varasto) {
-            $query = "SELECT tehdas_saldo_varastot 
+          if($suoratoimitus_varastovalinta and $tehtaan_varasto) {
+            $tehtaan_varasto_q = "SELECT tehdas_saldo_varastot 
                       FROM tuotteen_toimittajat 
                       WHERE tuotteen_toimittajat.yhtio = 'mergr' 
                       AND tuotteen_toimittajat.liitostunnus = {$tilausrivin_toimittajan_tunnus['toimittajan_tunnus']} 
                       AND tuoteno = '{$poistettava_rivi['tuoteno']}'";
-            $tehtaan_varasto_nyk = pupe_query($query);
+            $tehtaan_varasto_nyk = pupe_query($tehtaan_varasto_q);
             $tehtaan_varasto_nyk = mysql_fetch_assoc($tehtaan_varasto_nyk);
             $tehtaan_varasto_nyk = json_decode($tehtaan_varasto_nyk['tehdas_saldo_varastot'], TRUE);
   
@@ -5148,25 +5147,49 @@ if ($tee == '') {
         if($laske_tehdas_saldo) {
           if ($tilausrivi['hyllyalue'] == "" and $tilausrivi['hyllynro'] == "" and $tilausrivi['hyllytaso'] == "") {
             $query_hae_suoratoimitus = "SELECT suoratoimitus 
-                                          FROM tuote 
-                                          WHERE yhtio = '{$kukarow["yhtio"]}'
-                                          AND tuoteno = '{$tilausrivi['tuoteno']}'";
+                                        FROM tuote 
+                                        WHERE yhtio = '{$kukarow["yhtio"]}'
+                                        AND tuoteno = '{$tilausrivi['tuoteno']}'";
             $query_hae_suoratoimitus = pupe_query($query_hae_suoratoimitus);
             $query_hae_suoratoimitus = mysql_fetch_array($query_hae_suoratoimitus);
             if ($query_hae_suoratoimitus['suoratoimitus'] != "") {
               $query_hae_tilausrivi = "SELECT * 
-                                          FROM tilausrivin_lisatiedot 
-                                          WHERE yhtio = '{$kukarow["yhtio"]}' 
-                                          AND tilausrivin_lisatiedot.tilausrivitunnus = {$tilausrivi['tunnus']}";
+                                       FROM tilausrivin_lisatiedot 
+                                       WHERE yhtio = '{$kukarow["yhtio"]}' 
+                                       AND tilausrivin_lisatiedot.tilausrivitunnus = {$tilausrivi['tunnus']}";
               $tilausrivin_toimittajan_tunnus = pupe_query($query_hae_tilausrivi);
               if (mysql_num_rows($tilausrivin_toimittajan_tunnus) > 0) {
                 $tilausrivin_toimittajan_tunnus = mysql_fetch_array($tilausrivin_toimittajan_tunnus);
-                $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+
+                $tehtaan_varasto = explode('"',$tilausrivin_toimittajan_tunnus['sopimuksen_lisatieto1']);
+                if($tehtaan_varasto = $tehtaan_varasto[1] and is_numeric($tehtaan_varasto)) {} else {
+                  $tehtaan_varasto = false;
+                }
+      
+                if($suoratoimitus_varastovalinta and $tehtaan_varasto) {
+                  $tehtaan_varasto_q = "SELECT tehdas_saldo_varastot 
+                                        FROM tuotteen_toimittajat 
+                                        WHERE tuotteen_toimittajat.yhtio = 'mergr' 
+                                        AND tuotteen_toimittajat.liitostunnus = {$tilausrivin_toimittajan_tunnus['toimittajan_tunnus']} 
+                                        AND tuoteno = '{$tilausrivi['tuoteno']}'";
+                  $tehtaan_varasto_nyk = pupe_query($tehtaan_varasto_q);
+                  $tehtaan_varasto_nyk = mysql_fetch_assoc($tehtaan_varasto_nyk);
+                  $tehtaan_varasto_nyk = json_decode($tehtaan_varasto_nyk['tehdas_saldo_varastot'], TRUE);
+        
+                  $tehtaan_varasto_nyk[$tehtaan_varasto] = $tehtaan_varasto_nyk[$tehtaan_varasto]+$tilausrivi['tilkpl'];
+                  $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
+                                            SET tehdas_saldo_varastot = '".json_encode($tehtaan_varasto_nyk)."' 
+                                            WHERE yhtio = '{$kukarow['yhtio']}' 
+                                            AND liitostunnus = {$tilausrivin_toimittajan_tunnus['toimittajan_tunnus']} 
+                                            AND tuoteno = '{$tilausrivi['tuoteno']}'";
+                } else {
+                  $tehtaan_saldo_paivita = "UPDATE tuotteen_toimittajat 
                                             SET tehdas_saldo = tehdas_saldo+{$tilausrivi['tilkpl']} 
                                             WHERE yhtio = '{$kukarow['yhtio']}' 
                                             AND liitostunnus = {$tilausrivin_toimittajan_tunnus['toimittajan_tunnus']}
                                             AND myyntihinta_kerroin > 0 
                                             AND tuoteno = '{$tilausrivi['tuoteno']}'";
+                }
                 pupe_query($tehtaan_saldo_paivita);
               }
             }
