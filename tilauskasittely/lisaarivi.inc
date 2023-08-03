@@ -721,7 +721,6 @@ if (substr($paikka, 0, 3) == "¡¡S") {
 
       $query = "UPDATE tilausrivin_lisatiedot
                 SET toimittajan_tunnus = '{$toimittajan_tunnus}',
-                {$varastotunnus_lisa}
                 kohde_hyllyalue      = '{$kohdevarasto_tuotepaikka['hyllyalue']}',
                 kohde_hyllynro       = '{$kohdevarasto_tuotepaikka['hyllynro']}',
                 kohde_hyllyvali      = '{$kohdevarasto_tuotepaikka['hyllyvali']}',
@@ -796,7 +795,6 @@ elseif ($var == "S" and substr($paikka, 0, 3) != "¡¡S" and substr($paikka, 0, 3)
 
       $query = "UPDATE tilausrivin_lisatiedot
                 SET toimittajan_tunnus = '{$toimittajan_tunnus}',
-                {$varastotunnus_lisa}
                 kohde_hyllyalue      = '0',
                 kohde_hyllynro       = '0',
                 kohde_hyllyvali      = '0',
