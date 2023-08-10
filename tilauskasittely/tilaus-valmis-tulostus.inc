@@ -40,7 +40,7 @@ if ($yhtiorow['kerayserat'] == 'K' and $yhtiorow['siirtolistan_tulostustapa'] ==
   $siirtolistat_kerataan_myos = true;
 }
 
-if (strpos($_SERVER['SCRIPT_NAME'], "tulosta_keraysera.php") === FALSE) {
+if (strpos($_SERVER['SCRIPT_NAME'], "tulosta_keraysera.php") === FALSE and !$_noutoautomaattinen_tul) {
   $query = "LOCK TABLE
             lasku WRITE";
   pupe_query($query);

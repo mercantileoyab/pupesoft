@@ -18236,9 +18236,23 @@ if (!function_exists("tulosta_keraysera")) {
         if (isset($lisatyt_tilaukset) and count($lisatyt_tilaukset) > 0) {
 
           $otunnukset = implode(",", $lisatyt_tilaukset);
+          $tilausnumeroita  = $otunnukset;
           $lisatyt_tilaukset_keys = array_keys($lisatyt_tilaukset);
           $kerayslistatunnus = array_shift($lisatyt_tilaukset_keys);
-                    // tilaus on jo tilassa N A, p?ivitet??n nyt tilaus "ker?yslista tulostettu" eli L A
+          $keraysvyohyke    = $erat['keraysvyohyketiedot']['keraysvyohyke'];
+          $laskuja          = count($erat['tilaukset']);
+          $_noutoautomaattinen_tul = true;
+          
+          require "tilauskasittely/tilaus-valmis-tulostus.inc";
+
+          // Jos tulostus feilasi, niin dellataan keräyserä
+          if ($virheellinen == "X" and $kerayseran_numero > 0) {
+            $query = "DELETE FROM kerayserat
+                      WHERE yhtio = '{$kukarow['yhtio']}'
+                      AND nro     = '{$kerayseran_numero}' ";
+            pupe_query($query);
+          }
+          /*
           $query = "UPDATE lasku SET
                     tila        = 'L',
                     alatila     = 'A',
@@ -18266,6 +18280,8 @@ if (!function_exists("tulosta_keraysera")) {
                       AND alatila = 'KJ'";
             pupe_query($query);
           }
+          */
+
         }
       }
       release_tee_keraysera();
