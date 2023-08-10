@@ -18252,35 +18252,6 @@ if (!function_exists("tulosta_keraysera")) {
                       AND nro     = '{$kerayseran_numero}' ";
             pupe_query($query);
           }
-          /*
-          $query = "UPDATE lasku SET
-                    tila        = 'L',
-                    alatila     = 'A',
-                    lahetepvm   = now(),
-                    hyvak3      = '{$kukarow['kuka']}',
-                    h3time      = now(),
-                    kerayslista = '{$kerayslistatunnus}'
-                    WHERE yhtio = '{$kukarow['yhtio']}'
-                    AND tunnus  in ({$otunnukset})
-                    AND tila    = 'N'
-                    AND alatila = 'KA'";
-          pupe_query($query);
-
-          if ($yhtiorow['kerayserat'] != '' and $yhtiorow['siirtolistan_tulostustapa'] == 'U') {
-            // siirtolista on jo tilassa G J, p?ivitet??n nyt tilaus "siirtolista tulostettu" eli G A
-            $query = "UPDATE lasku SET
-                      alatila     = 'A',
-                      lahetepvm   = now(),
-                      hyvak3      = '{$kukarow['kuka']}',
-                      h3time      = now(),
-                      kerayslista = '{$kerayslistatunnus}'
-                      WHERE yhtio = '{$kukarow['yhtio']}'
-                      AND tunnus  in ({$otunnukset})
-                      AND tila    = 'G'
-                      AND alatila = 'KJ'";
-            pupe_query($query);
-          }
-          */
 
         }
       }
