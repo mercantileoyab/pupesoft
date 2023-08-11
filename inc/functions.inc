@@ -18202,14 +18202,14 @@ if (!function_exists("release_tee_keraysera")) {
 }
 
 if (!function_exists("tulosta_keraysera")) {
-  function tulosta_keraysera($kukarow, $tilausnumero, $valittu_tulostin) {
-    $query = "SELECT keraysvyohyke, oletus_varasto
+  function tulosta_keraysera($kukarow, $tilausnumero, $valittu_tulostin, $varasto) {
+
+    $query = "SELECT keraysvyohyke
               FROM kuka
               WHERE yhtio         = '{$kukarow['yhtio']}'
               AND kuka            = '{$kukarow['kuka']}'
               AND extranet        = ''
-              AND keraysvyohyke  != ''
-              AND oletus_varasto != ''";
+              AND keraysvyohyke  != ''";
     $result = pupe_query($query);
 
     if (mysql_num_rows($result) == 0) {
@@ -18218,8 +18218,7 @@ if (!function_exists("tulosta_keraysera")) {
     else {
 
       $row = mysql_fetch_assoc($result);
-
-      $erat = tee_keraysera($row['keraysvyohyke'], $row['oletus_varasto'], $tilausnumero);
+      $erat = tee_keraysera($row['keraysvyohyke'], $varasto, $tilausnumero);
 
       // Ei saatu lukkoa järkevässä ajassa
       if ($erat === FALSE) {

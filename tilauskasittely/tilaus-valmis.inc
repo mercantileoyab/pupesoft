@@ -1176,7 +1176,8 @@ else {
           $_tulosta_myos = array(
             "yhtio" => $laskurow['yhtio'],
             "tunnus" => $laskurow['tunnus'],
-            "tulostin" => $_printteri11['printteri11']
+            "tulostin" => $_printteri11['printteri11'],
+            "varasto" => $laskurow['varasto']
           );
         }
       }
@@ -2359,9 +2360,9 @@ if ($luottorajavirhe_ylivito_valmis) {
                 AND tunnus  = '$_tulosta_myos[tunnus]'";
     $_lask_r = pupe_query($_lask_q);
     $_lask = mysql_fetch_assoc($_lask_r);
-
+    
     if($_lask['tila'] == "N" and $_lask['alatila'] == "A") {
-      tulosta_keraysera($kukarow, $_tulosta_myos['tunnus'], $_tulosta_myos['tulostin']);
+      tulosta_keraysera($kukarow, $_tulosta_myos['tunnus'], $_tulosta_myos['tulostin'], $_tulosta_myos['varasto']);
     }
 
   }
