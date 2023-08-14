@@ -18218,7 +18218,7 @@ if (!function_exists("tulosta_keraysera")) {
     else {
 
       $row = mysql_fetch_assoc($result);
-      $erat = tee_keraysera($row['keraysvyohyke'], $varasto, $tilausnumero);
+      $erat = tee_keraysera($row['keraysvyohyke'], $varasto, $tilausnumero, $kukarow);
 
       // Ei saatu lukkoa järkevässä ajassa
       if ($erat === FALSE) {
@@ -18371,8 +18371,12 @@ if (!function_exists('hae_tuotteet_ja_pisin_mitta')) {
 }
 
 if (!function_exists("tee_keraysera")) {
-  function tee_keraysera($keraysvyohyke, $varasto, $tilausnumero = false) {
+  function tee_keraysera($keraysvyohyke, $varasto, $tilausnumero = false, $oma_kukarow = false) {
     global $kukarow, $yhtiorow, $tee_keraysera_debugdir;
+
+    if($oma_kukarow) {
+      $kukarow = $oma_kukarow;
+    }
 
     $lock_params = array(
       "locktime" => 0,
