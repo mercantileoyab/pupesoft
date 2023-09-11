@@ -2431,7 +2431,11 @@ while ($tietue = fgets($fd)) {
           }
 
           if($toimittaja) {
-            $paikka = "¡¡¡".$toimittaja;
+            if($toimittajan_varasto) {
+              $paikka = "¡¡¡".$toimittaja."|||".$toimittajan_varasto;
+            } else {
+              $paikka = "¡¡¡".$toimittaja;
+            }
           }
 
           require "lisaarivi.inc";
