@@ -3817,6 +3817,10 @@ if ($toimittamatta > 0 or trim($var) != '' or $rivityyppi == 'O') {
   }
 }
 
+if(!$nyk_rivitunnus) {
+  $nyk_rivitunnus = $lisatty_tun;
+}
+
 if ($laske_tehdas_saldo and $paikka and $rivityyppi = 'L') {
 
   if ($trow['suoratoimitus'] != "") {
