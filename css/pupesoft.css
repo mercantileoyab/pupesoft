@@ -256,3 +256,7 @@ th:first-letter, th a:first-letter {
 th a:hover {
   color: unset;
 }
+
+.paiksel option {
+  font-weight: bold;
+}
