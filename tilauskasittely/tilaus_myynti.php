@@ -11528,3 +11528,16 @@ function tallenna_toimitusosoite($toimitusosoite, $laskurow) {
 
   return $laskurow;
 }
+?>
+<script>
+  $(document).ready(function() {
+    $('.paiksel option:selected').each(function() {
+      var slabel = $(this).parent("optgroup");
+      if(slabel.length) {
+        var slabela = slabel.attr("label");
+        $(this).html(slabela + " | " + $(this).html());
+      }
+    })
+
+  });
+</script>
