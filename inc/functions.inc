@@ -34184,6 +34184,10 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
     if($title = $krow['nimitark']) {} else {
       $title = $krow['nimi'];
     }
+
+    if($suoratoimitus_varastovalinta) {
+      $addclass = "class='extpopt'";
+    }
     
     if($suoratoimitus_varastovalinta and $krow["tehdas_saldo_varastot"] and $tehtaan_varastot = json_decode($krow["tehdas_saldo_varastot"], true)) {
 
@@ -34206,7 +34210,8 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
       $paikat .= "</optgroup>";
     } else {
       $title = $title." | ".t("Tehtaan saldo").": ".$krow['tehdas_saldo']." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '');
-      $paikat .= "<option class='extpopt' value='$liitostunnus' title='$title' $sel1>$title</option>";
+
+      $paikat .= "<option $addclass value='$liitostunnus' title='$title' $sel1>$title</option>";
     }
     $paikatlask++;
     return array($paikat, $paikatlask, $title);
