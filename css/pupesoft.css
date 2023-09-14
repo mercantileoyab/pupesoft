@@ -257,6 +257,6 @@ th a:hover {
   color: unset;
 }
 
-.paiksel option {
+.paiksel option.extpopt {
   font-weight: bold;
 }

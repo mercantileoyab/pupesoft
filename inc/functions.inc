@@ -34206,7 +34206,7 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
       $paikat .= "</optgroup>";
     } else {
       $title = $title." | ".t("Tehtaan saldo").": ".$krow['tehdas_saldo']." | ".number_format(round(round($krow['ostohinta'], 2)*round($krow['myyntihinta_kerroin'],2),2), 2, '.', '');
-      $paikat .= "<option value='$liitostunnus' title='$title' $sel1>$title</option>";
+      $paikat .= "<option class='extpopt' value='$liitostunnus' title='$title' $sel1>$title</option>";
     }
     $paikatlask++;
     return array($paikat, $paikatlask, $title);
