@@ -811,6 +811,7 @@ if (substr($paikka, 0, 3) == "¡¡¡") {
   $var          = "T";
   $toimittajan_tunnus  = substr($paikka, 3);
   $paikka         = "#!¡!#";
+  $varasto_tunnus = false;
   if (strpos($toimittajan_tunnus, '|||') !== false) {
     $toimittajan_tunnus = explode("|||", $toimittajan_tunnus);
     $varasto_tunnus = $toimittajan_tunnus[1];
@@ -825,6 +826,7 @@ elseif ($var == "T" and substr($paikka, 0, 3) != "¡¡¡" and substr($paikka, 0, 3)
 if (substr($paikka, 0, 3) == "!!!") {
   $var          = "U";
   $toimittajan_tunnus  = substr($paikka, 3);
+  $varasto_tunnus = false;
   if (strpos($toimittajan_tunnus, '|||') !== false) {
     $toimittajan_tunnus = explode("|||", $toimittajan_tunnus);
     $varasto_tunnus = $toimittajan_tunnus[1];
@@ -849,7 +851,7 @@ elseif ($var == "R" and substr($paikka, 0, 3) != "¡¡V" and substr($paikka, 0, 3)
 
 $perhelisa = "";
 $tuoteperhe_tyyppi = "P";
-
+$varastotunnus_lisa = "";
 if($varasto_tunnus) {
   $varastotunnus_lisa = "sopimuksen_lisatieto1 = '".t("Toimittajan varasto").": \"$varasto_tunnus\"', ";
 }

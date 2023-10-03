@@ -597,6 +597,10 @@ while ($tietue = fgets($fd)) {
   case 'OSTOTILRIV.OTR_RIVINRO' :
     //Rivinumero
     $rivinumero=$tieto;
+    $suoratoimitus_toimittaja = false;
+    $toimittaja_num = false;
+    $toimittajan_varasto = false;
+
     break;
 
   case 'OFTXDELTX' :
@@ -2064,10 +2068,14 @@ while ($tietue = fgets($fd)) {
     break;
 
   case 'OSTOTILRIV.OTR_TOIMITTAJANRO' : 
-    // suoratoimitus toimittaja
-    $type     = explode("ööö", $tieto);
-    $toimittaja = trim($type[0]);
-    $toimittajan_varasto  = trim($type[1]);
+    
+    if($tieto != "") {
+      // suoratoimitus toimittaja
+      $suoratoimitus_toimittaja = true;
+      $type     = explode("ööö", $tieto);
+      $toimittaja_num = trim($type[0]);
+      $toimittajan_varasto  = trim($type[1]);
+    }
     break;
 
   case 'OLINSA_PI' :
@@ -2429,13 +2437,18 @@ while ($tietue = fgets($fd)) {
           else {
             $hyvityssaannon_palautuskielto = "";
           }
-
-          if($toimittaja) {
+          
+          if($suoratoimitus_toimittaja) {
             if($toimittajan_varasto) {
-              $paikka = "¡¡¡".$toimittaja."|||".$toimittajan_varasto;
+              $paikka = "¡¡¡".$toimittaja_num."|||".$toimittajan_varasto;
             } else {
-              $paikka = "¡¡¡".$toimittaja;
+              $paikka = "¡¡¡".$toimittaja_num;
             }
+            $toimittaja = $toimittaja_num;
+          } else {
+            $paikka = "";
+            $toimittaja = false;
+            $toimittajan_tunnus = false;
           }
 
           require "lisaarivi.inc";
