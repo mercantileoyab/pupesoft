@@ -719,6 +719,21 @@ if ($tee == 'P') {
             $maara[$apui] = str_replace(",", ".", $maara[$apui]);
             $maara[$apui] = (float) $maara[$apui];
 
+
+
+            if($tilrivirow['hyllyalue'] == "" and $tilrivirow['hyllyalue'] == "" and $tilrivirow['hyllyalue'] == "" and $tilrivirow['hyllyalue'] == "") {
+              $query_sur = "SELECT *
+                            FROM tilausrivin_lisatiedot 
+                         WHERE yhtio    = '$kukarow[yhtio]'
+                         AND tilausrivitunnus = '$tilrivirow[tunnus]'
+                         ";
+              $query_sur = pupe_query($query_sur);
+              $query_sur = mysql_fetch_assoc($query_sur);
+              if($query_sur['toimittajan_tunnus'] and $query_sur['toimittajan_tunnus'] != "" and $query_sur['toimittajan_tunnus'] > 0) {
+                $poikkeamat[$tilrivirow["otunnus"]][$i]["suoratoimitus"] = "1";
+              }
+            }
+
             // Kerätään tietoa poikkeama-maileja varten
             $poikkeamat[$tilrivirow["otunnus"]][$i]["tuoteno"] = $tilrivirow["tuoteno"];
             $poikkeamat[$tilrivirow["otunnus"]][$i]["nimitys"] = $tilrivirow["nimitys"];
@@ -1496,6 +1511,9 @@ if ($tee == 'P') {
   if ($muuttuiko == 'kylsemuuttu') {
     foreach ($poikkeamat as $poikkeamatilaus => $poikkeamatilausrivit) {
 
+      if(isset($poikkeamatilausrivit[0]['suoratoimitus'])) {
+        continue;
+      }
       $qry = "SELECT tila
               FROM lasku
               WHERE yhtio = '$kukarow[yhtio]'
