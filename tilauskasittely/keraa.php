@@ -719,19 +719,10 @@ if ($tee == 'P') {
             $maara[$apui] = str_replace(",", ".", $maara[$apui]);
             $maara[$apui] = (float) $maara[$apui];
 
+            list(, , $_kpl_nyt) = saldo_myytavissa($tilrivirow["tuoteno"], "KAIKKI", '', '', '', '', '', '', '', date("Y-m-d", strtotime(date("Y-m-d", strtotime(date("Y-m-d"))) . " +1 year")), '', FALSE);
 
-
-            if($tilrivirow['hyllyalue'] == "" and $tilrivirow['hyllyalue'] == "" and $tilrivirow['hyllyalue'] == "" and $tilrivirow['hyllyalue'] == "") {
-              $query_sur = "SELECT *
-                            FROM tilausrivin_lisatiedot 
-                         WHERE yhtio    = '$kukarow[yhtio]'
-                         AND tilausrivitunnus = '$tilrivirow[tunnus]'
-                         ";
-              $query_sur = pupe_query($query_sur);
-              $query_sur = mysql_fetch_assoc($query_sur);
-              if($query_sur['toimittajan_tunnus'] and $query_sur['toimittajan_tunnus'] != "" and $query_sur['toimittajan_tunnus'] > 0) {
-                $poikkeamat[$tilrivirow["otunnus"]][$i]["suoratoimitus"] = "1";
-              }
+            if($_kpl_nyt and $_kpl_nyt != "" and $_kpl_nyt >= $tilrivirow["tilkpl"]) {
+              $poikkeamat[$tilrivirow["otunnus"]][$i]["ohita"] = "1";
             }
 
             // Kerätään tietoa poikkeama-maileja varten
@@ -1511,9 +1502,10 @@ if ($tee == 'P') {
   if ($muuttuiko == 'kylsemuuttu') {
     foreach ($poikkeamat as $poikkeamatilaus => $poikkeamatilausrivit) {
 
-      if(isset($poikkeamatilausrivit[0]['suoratoimitus'])) {
+      if(isset($poikkeamatilausrivit[0]['ohita'])) {
         continue;
       }
+      
       $qry = "SELECT tila
               FROM lasku
               WHERE yhtio = '$kukarow[yhtio]'
