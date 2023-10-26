@@ -474,6 +474,34 @@ if ((int) $chk_row["ok"] == (int) $chk_row["kaikki"] and (int) $chk_row["ok"] !=
 
   $kerayseran_numero = !isset($kerayseran_numero) ? 0 : $kerayseran_numero;
 
+  if(!$pieni or !isset($pieni['height']) or $pieni['height'] != 10) {
+    
+    $norm["height"] = 10;
+    $norm["font"] = "Times-Roman";
+
+    $pieni["height"] = 8;
+    $pieni["font"] = "Times-Roman";
+
+    $boldi["height"] = 10;
+    $boldi["font"] = "Times-Bold";
+
+    $pieni_boldi["height"] = 8;
+    $pieni_boldi["font"] = "Times-Bold";
+          
+    $keraaja_font["height"] = 12;
+    $keraaja_font["font"] = "Helvetica";
+
+    $iso["height"] = 14;
+    $iso["font"] = "Helvetica-Bold";
+
+    $iso_boldi["height"] = 24;
+    $iso_boldi["font"] = "Helvetica-Bold";
+
+    $rectparam["width"] = 0.3;
+    $rivinkorkeus = 17;
+    
+  }
+  
   if ($yhtiorow["lahetteen_tulostustapa"] != "X") {
     $params_kerayslista = array(
       'asrow'             => $asrow,
