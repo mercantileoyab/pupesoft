@@ -721,8 +721,26 @@ if ($tee == 'P') {
 
             list(, , $_kpl_nyt) = saldo_myytavissa($tilrivirow["tuoteno"], "KAIKKI", '', '', '', '', '', '', '', date("Y-m-d", strtotime(date("Y-m-d", strtotime(date("Y-m-d"))) . " +1 year")), '', FALSE);
 
-            if($_kpl_nyt and $_kpl_nyt != "" and $_kpl_nyt >= $tilrivirow["tilkpl"]) {
-              $poikkeamat[$tilrivirow["otunnus"]][$i]["ohita"] = "1";
+            if($_kpl_nyt and $_kpl_nyt != "") {
+
+              // Etsi ostotilaukset jos saldo < 0
+              if($_kpl_nyt < $tilrivirow["tilkpl"]) {
+                $query_etsi_o = "SELECT tilausrivi.tilkpl, tilausrivi.toimaika from lasku 
+                                  join tilausrivi on (tilausrivi.yhtio = lasku.yhtio and tilausrivi.otunnus = lasku.tunnus) 
+                                  where 
+                                  lasku.yhtio = '$kukarow[yhtio]' and 
+                                  lasku.tila = 'o' and 
+                                  lasku.comments like '%$tilrivirow[otunnus]%'";
+                $result_etsi_o = pupe_query($query_etsi_o);
+                $loydetty_o = mysql_fetch_assoc($result_etsi_o);
+
+                if($loydetty_o['tilkpl'] and $loydetty_o['tilkpl'] > 0 and $loydetty_o['toimaika'] >= $tilrivirow['toimaika']) {
+                  $_kpl_nyt = $_kpl_nyt + $loydetty_o['tilkpl'];
+                }
+              }
+              if($_kpl_nyt >= $tilrivirow["tilkpl"]) {
+                $poikkeamat[$tilrivirow["otunnus"]][$i]["ohita"] = "1";
+              }
             }
 
             // Ker‰t‰‰n tietoa poikkeama-maileja varten
