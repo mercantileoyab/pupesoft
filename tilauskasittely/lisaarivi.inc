@@ -854,6 +854,8 @@ $tuoteperhe_tyyppi = "P";
 $varastotunnus_lisa = "";
 if($varasto_tunnus) {
   $varastotunnus_lisa = "sopimuksen_lisatieto1 = '".t("Toimittajan varasto").": \"$varasto_tunnus\"', ";
+} else {
+  $varastotunnus_lisa = "sopimuksen_lisatieto1 = '', ";
 }
 
 //Haetaan myös tuoteperheet tai reseptit, tässä parametrit niille.
