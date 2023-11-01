@@ -995,7 +995,7 @@ class ImportSaldoHinta
         if(isset($rivit_prices_l['tuotemerkki'])) {
           $tuotemerkki = $rivit_prices_l['tuotemerkki'];
           $tuotemerkki_lisa = "AND tuotteen_toimittajat.tuotemerkki = '".utf8_decode($tuotemerkki)."'";
-          $kasitelty_tuotteet[$tuotekoodi_tarkista1][$tuotemerkki] = 1;
+          $kasitelty_tuotteet[$tuotekoodi_tarkista1][utf8_decode($tuotemerkki)] = 1;
         } else {
           $kasitelty_tuotteet[$tuotekoodi_tarkista1][0] = 1;
         }
