@@ -138,6 +138,21 @@ if (!isset($row)) {
 
   $row = mysql_fetch_assoc(pupe_query($query));
 }
+
+if (!$row and isset($ostotilaus) and $ostotilaus) {
+  $til_p_q = "SELECT
+              tilausrivi.hyllyalue AS tuotepaikat_hyllyalue,
+              tilausrivi.hyllynro AS tuotepaikat_hyllynro,
+              tilausrivi.hyllyvali AS tuotepaikat_hyllyvali,
+              tilausrivi.hyllytaso AS tuotepaikat_hyllytaso
+              FROM tilausrivi
+              WHERE tilausrivi.tunnus='{$tilausrivi}'
+              AND tilausrivi.yhtio='{$kukarow['yhtio']}'";
+  $til_p_r = implode("-", mysql_fetch_assoc(pupe_query($til_p_q)));
+} else {
+  $til_p_r = false;
+}
+
 // Jos parametrina hylly, eli ollaan muutettu tuotteen keräyspaikkaa
 if (isset($hylly) and ($hylly != "")) {
   error_log(" HYLLY = " . $hylly . "<br>");
@@ -187,6 +202,10 @@ if (isset($submit_button) and trim($submit_button) != '') {
   // Virheet
   $errors = array();
 
+  if($til_p_r) {
+    $errors[] = t("Ostotilauksen")." ".$ostotilaus." ".t("paikka")." ".$til_p_r." ".t("puuttuu tai se oli poistettu!");
+  }
+  
   switch ($submit_button) {
 
   case 'new':
