@@ -152,20 +152,23 @@ if ($kollityht > 0) {
     if ($rakir_row['jv'] != "") {
       $parcelOrder["lahetystapa"] = "NP,NN,CD";
     }
-    elseif (!empty($dpd_telli_siirto)) {
-      if (!empty($toitarow['lajittelupiste'])) {
-        $parcelOrder["lahetystapa"] = "NP,{$toitarow['lajittelupiste']}";
-      }
-      else {
-        $parcelOrder["lahetystapa"] = "NP";
-      }
+    elseif (!empty($dpd_telli_siirto) and !empty($toitarow['lajittelupiste'])) {
+      $parcelOrder["lahetystapa"] = "NP,{$toitarow['lajittelupiste']}";
+    }
+    elseif (!empty($dpd_telli_siirto) and (!$as_avainsana_row['avainsana'] or $as_avainsana_row['avainsana'] == '')) {
+      $parcelOrder["lahetystapa"] = "NP";
     }
     else {
+      
+      if(!isset($pakottaa_dpd_avainsanat)) {
+        $pakottaa_dpd_avainsanat = false;
+      }
+
       if (strtolower($toitarow['lajittelupiste']) == 'sameday') {
         //$parcelOrder["lahetystapa"] = "NP,SD"; Toistaiseksi tuo SD pois DPD:n pyynnöstä "sameday" tapauksessa.
         $parcelOrder["lahetystapa"] = "NP";
       }
-      elseif (strtolower($toitarow['lajittelupiste']) == 'regular' and $as_avainsana_row['avainsana'] != '') {
+      elseif (($pakottaa_dpd_avainsanat or strtolower($toitarow['lajittelupiste']) == 'regular') and $as_avainsana_row['avainsana'] != '') {
         $parcelOrder["lahetystapa"] = "NP,{$as_avainsana_row['avainsana']}";
       }
       else {
