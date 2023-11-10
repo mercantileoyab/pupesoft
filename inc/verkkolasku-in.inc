@@ -2187,12 +2187,14 @@ if (!function_exists("verkkolasku_in")) {
         }
       }
 
-      // päästiin onnillisesti loppuun
-      $meili = "Verkkolasku $verkapunimi yritykselle $yhtiorow[nimi]\nTiedosto: $file\nLähettäjä: $laskuttajan_nimi\nLaskunro: $laskun_numero\nPäivä: $laskun_tapvm\nSumma: $laskun_summa_eur\nViite: $laskun_pankkiviite\nEnsimmäinen hyväksyjä: $hyvaksyja_nyt\n$laskuvirhe\n";
+      if (!$fitek_xml_cron_tiedot) {
+        // päästiin onnillisesti loppuun
+        $meili = "Verkkolasku $verkapunimi yritykselle $yhtiorow[nimi]\nTiedosto: $file\nLähettäjä: $laskuttajan_nimi\nLaskunro: $laskun_numero\nPäivä: $laskun_tapvm\nSumma: $laskun_summa_eur\nViite: $laskun_pankkiviite\nEnsimmäinen hyväksyjä: $hyvaksyja_nyt\n$laskuvirhe\n";
 
-      $tulos = mail($yhtiorow['talhal_email'], mb_encode_mimeheader("$yhtiorow[nimi] vastaanotti laskun $verkapunimi:lta", "ISO-8859-1", "Q"), $meili, "From: ".mb_encode_mimeheader($yhtiorow["nimi"], "ISO-8859-1", "Q")." <$yhtiorow[postittaja_email]>\n", "-f $yhtiorow[postittaja_email]");
+        $tulos = mail($yhtiorow['talhal_email'], mb_encode_mimeheader("$yhtiorow[nimi] vastaanotti laskun $verkapunimi:lta", "ISO-8859-1", "Q"), $meili, "From: ".mb_encode_mimeheader($yhtiorow["nimi"], "ISO-8859-1", "Q")." <$yhtiorow[postittaja_email]>\n", "-f $yhtiorow[postittaja_email]");
 
-      if ($tulos === FALSE) echo t("Sähköpostin lähetys epäonnistui").": $yhtiorow[talhal_email]<br>\n";
+        if ($tulos === FALSE) echo t("Sähköpostin lähetys epäonnistui").": $yhtiorow[talhal_email]<br>\n";
+      }
       return 0;
     }
     else {
