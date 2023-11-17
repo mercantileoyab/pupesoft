@@ -2468,6 +2468,8 @@ if ($select_varasto > 0) {
 
       if($_esivalitse_tanaan) {
         $sel = $parent_row_select_date == $pvm ? " selected" : (date("d.m.Y") == $pvm ? " selected" : "");
+      } else {
+        $sel = "";
       }
 
       echo "<option value='{$pvm}'{$sel}>{$pvm}</option>";
