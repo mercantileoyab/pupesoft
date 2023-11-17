@@ -2456,11 +2456,19 @@ if ($select_varasto > 0) {
 
     sort($dates);
 
+    if(!isset($laht_hall_ei_oletus_pvm_valinta) or !$laht_hall_ei_oletus_pvm_valinta or !isset($laht_hall_ei_oletus_pvm_valinta[$select_varasto])) {
+      $_esivalitse_tanaan = true;
+    } else {
+      $_esivalitse_tanaan = false;
+    }
+
     foreach ($dates as $pvm) {
 
       $pvm = tv1dateconv($pvm);
 
-      $sel = $parent_row_select_date == $pvm ? " selected" : (date("d.m.Y") == $pvm ? " selected" : "");
+      if($_esivalitse_tanaan) {
+        $sel = $parent_row_select_date == $pvm ? " selected" : (date("d.m.Y") == $pvm ? " selected" : "");
+      }
 
       echo "<option value='{$pvm}'{$sel}>{$pvm}</option>";
     }
