@@ -311,7 +311,9 @@ if ($yhtiorow['suuntalavat'] != "") {
 
 echo "</div>";
 echo "</form>";
-
+if(isset($_GET['error'])) {
+  $errors[] = htmlspecialchars($_GET['error'], ENT_QUOTES);
+}
 echo "<div class='error'>";
 foreach ($errors as $virhe) {
   echo $virhe."<br>";

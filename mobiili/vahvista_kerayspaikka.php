@@ -151,6 +151,18 @@ if (!$row and isset($ostotilaus) and $ostotilaus) {
   $til_p_r = implode("-", mysql_fetch_assoc(pupe_query($til_p_q)));
 } else {
   $til_p_r = false;
+  $_pois_paik_virhe = false;
+}
+
+if($til_p_r) {
+  $_pois_paik_virhe = t("Ostotilauksen")." ".$ostotilaus." ".t("paikka")." ".$til_p_r." ".t("puuttuu tai se oli poistettu!");
+  if (!isset($submit_button) or trim($submit_button) == '') {
+    if(strpos($_SERVER['HTTP_REFERER'], "&error") === FALSE) {
+      header('Location: ' . $_SERVER['HTTP_REFERER'].'&error='.$_pois_paik_virhe);
+    } else {
+      header('Location: ' . $_SERVER['HTTP_REFERER']);
+    }
+  }
 }
 
 // Jos parametrina hylly, eli ollaan muutettu tuotteen keräyspaikkaa
@@ -201,10 +213,7 @@ if (isset($submit_button) and trim($submit_button) != '') {
 
   // Virheet
   $errors = array();
-
-  if($til_p_r) {
-    $errors[] = t("Ostotilauksen")." ".$ostotilaus." ".t("paikka")." ".$til_p_r." ".t("puuttuu tai se oli poistettu!");
-  }
+  if($_pois_paik_virhe) { $errors[] = $_pois_paik_virhe; }
   
   switch ($submit_button) {
 
