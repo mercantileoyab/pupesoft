@@ -315,6 +315,7 @@ elseif ($luottorajavirhe != '' or $ylivito > 0) {
   $errortext = "";
 
   if ($luottorajavirhe != "") {
+
     $errortext = t("Asiakkaan luottoraja on ylitetty") . ". ";
 
     // Laitetaan viestit 
@@ -349,15 +350,15 @@ elseif ($luottorajavirhe != '' or $ylivito > 0) {
       pupesoft_sahkoposti($_myyjan_params);
     }
 
-    // kerayspoikkeus_email
-    $_myyjan_eposti = $yhtiorow['kerayspoikkeus_email'];
-    $_myyjan_params = array(
-      "to"      => $_myyjan_eposti,
-      "subject" => t("HYLLYTYS").": ".$errortext,
-      "ctype"   => "text",
-      "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
-    );
-    pupesoft_sahkoposti($_myyjan_params);
+    if($_kerayspoikkeus_email) {
+      $_myyjan_params = array(
+        "to"      => $_kerayspoikkeus_email,
+        "subject" => t("HYLLYTYS").": ".$errortext,
+        "ctype"   => "text",
+        "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
+      );
+      pupesoft_sahkoposti($_myyjan_params);
+    }
 
   }
 

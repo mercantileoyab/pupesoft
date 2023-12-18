@@ -1722,7 +1722,7 @@ elseif ($toiminto == "kalkyyli" and $tee == "varastoon" and $kauttalaskutus == '
 
     //  Laitetaan tavarat liikkeelle jos sallitaan!
     if (($jtoikeudetrow["paivitys"] == 1 and in_array($yhtiorow["automaattinen_jt_toimitus"], array('T', 'S', 'V'))) or in_array($yhtiorow["automaattinen_jt_toimitus"], array('J', 'A', 'U'))) {
-      jt_toimita("", "", "", "", "", "dummy", "TOIMITA", '', '', $jt_huomioi_pvm);
+      jt_toimita("", "", "", "", "", "dummy", "TOIMITA", '', '', $jt_huomioi_pvm, '', $varastosta);
     }
   }
 }

@@ -57,6 +57,22 @@ if (!isset($mista_tullaan)) $mista_tullaan = "";
 if (!isset($jt_tyyppi)) $jt_tyyppi = "";
 if (!isset($alkuperainen_varasto)) $alkuperainen_varasto = "";
 
+if(strpos($_SERVER['SCRIPT_NAME'], "mobiili/vahvista_kerayspaikka.php") !== FALSE) {
+  if($varastosta and !$_varasto_poikkeus) {
+    $_varasto_poikkeus = $varastosta;
+  }
+  foreach($_varasto_poikkeus as $_hae_var_k => $_hae_var) {
+    $_hae_var_q = "SELECT kerayspoikkeus_email 
+                    FROM varastopaikat
+                    WHERE yhtio = '{$kukarow['yhtio']}'
+                    AND tunnus  = {$_hae_var}";
+    $_hae_var_r = pupe_query($_hae_var_q);
+    $_hae_var_r = mysql_fetch_assoc($_hae_var_r);
+    $_kerayspoikkeus_email = $_hae_var_r['kerayspoikkeus_email'];
+    break;
+  }
+}
+
 // ennakoissa ei setata jt_huomioi_pvm automaattisesti
 // jälkkäreissä setataan jos ei tulla jtselauksen kautta
 if ($yhtiorow["saldo_kasittely"] == 'U' and $toim != 'ENNAKKO' and strpos($_SERVER['SCRIPT_NAME'], "jtselaus.php") === FALSE) {
