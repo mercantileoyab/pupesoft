@@ -266,7 +266,7 @@ echo "</tr>";
 
 echo "<tr>
         <th>", t("Keräyspaikka"), "</th>
-        <td>{$row['kerayspaikka']}</td>
+        <td>{$row['kerayspaikka']}<input type='hidden' name='kerayspaikka' value='".str_replace(" ", "|||", $row['kerayspaikka'])."'/></td>
         <td>({$row['varattu']} {$row['yksikko']})</td>
     </tr>";
 
@@ -311,13 +311,16 @@ if ($yhtiorow['suuntalavat'] != "") {
 
 echo "</div>";
 echo "</form>";
+
 if(isset($_GET['error'])) {
   $errors[] = htmlspecialchars($_GET['error'], ENT_QUOTES);
 }
+
 echo "<div class='error'>";
 foreach ($errors as $virhe) {
   echo $virhe."<br>";
 }
+
 echo "</div>";
 
 echo "<script type='text/javascript'>
