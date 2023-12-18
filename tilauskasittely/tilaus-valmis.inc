@@ -316,6 +316,49 @@ elseif ($luottorajavirhe != '' or $ylivito > 0) {
 
   if ($luottorajavirhe != "") {
     $errortext = t("Asiakkaan luottoraja on ylitetty") . ". ";
+
+    // Laitetaan viestit 
+
+    // Asiakkaan myyjalle
+    if($tilausvalmis_asiakas_row['myyjanro'] and $tilausvalmis_asiakas_row['myyjanro'] != "") {
+      $_query_myyja = "SELECT eposti FROM kuka WHERE yhtio = '{$kukarow['yhtio']}' AND myyja = {$tilausvalmis_asiakas_row['myyjanro']}";
+      $_res_myyja = pupe_query($_query_myyja);
+      $_myyjan_eposti = mysql_fetch_assoc($_res_myyja);
+      $_myyjan_eposti = $_myyjan_eposti['eposti'];
+      $_myyjan_params = array(
+        "to"      => $_myyjan_eposti,
+        "subject" => t("HYLLYTYS").": ".$errortext,
+        "ctype"   => "text",
+        "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
+      );
+      pupesoft_sahkoposti($_myyjan_params);
+    }
+
+    // Laskun myyjalle
+    if($laskurow['myyja'] and $laskurow['myyja'] != "") {
+      $_query_myyja = "SELECT eposti FROM kuka WHERE yhtio = '{$kukarow['yhtio']}' AND tunnus = {$laskurow['myyja']}";
+      $_res_myyja = pupe_query($_query_myyja);
+      $_myyjan_eposti = mysql_fetch_assoc($_res_myyja);
+      $_myyjan_eposti = $_myyjan_eposti['eposti'];
+      $_myyjan_params = array(
+        "to"      => $_myyjan_eposti,
+        "subject" => t("HYLLYTYS").": ".$errortext,
+        "ctype"   => "text",
+        "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
+      );
+      pupesoft_sahkoposti($_myyjan_params);
+    }
+
+    // kerayspoikkeus_email
+    $_myyjan_eposti = $yhtiorow['kerayspoikkeus_email'];
+    $_myyjan_params = array(
+      "to"      => $_myyjan_eposti,
+      "subject" => t("HYLLYTYS").": ".$errortext,
+      "ctype"   => "text",
+      "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
+    );
+    pupesoft_sahkoposti($_myyjan_params);
+
   }
 
   if ($ylivito > 0) {
