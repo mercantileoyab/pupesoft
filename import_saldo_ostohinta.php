@@ -106,6 +106,7 @@ class ImportSaldoHinta
     $this->toimittajat_tiedostot = array(
       "kavoparts.csv" => "1474",
       "60046_ce.csv" => "1432",
+      "25208_01.csv" => "1624",
       "meatdoria.csv" => "1525",
       "STANY.csv" => "1048",
       "ItemsInStock.txt" => "101",
@@ -134,6 +135,13 @@ class ImportSaldoHinta
     */
     $this->tuotekoodi_otsikot = array(
       1474 => array("Product code" =>
+        array(
+          "tuotekoodi" => "Item No",
+          "hinta" => "Mercantile Price",
+          "saldo" => "Inventory QTY"
+        )
+      ),
+      1624 => array("Product code" =>
         array(
           "tuotekoodi" => "Item No",
           "hinta" => "Mercantile Price",
@@ -263,12 +271,17 @@ class ImportSaldoHinta
     /*
       Vain yksi tiedosto, ei ole price_tiedostoa.
       Valitaan oikeat kolumnit.
-      Ensimmäinen: price_tiedoston - product_code, sitten hinta ja saldo kolumnit
-      Toinen: stocks_tiedoston - product_code
+      Ensimmäinen: tuotenumero
+      Toinen: price_tiedoston - product_code, sitten hinta ja saldo kolumnit
+      Kolmas: stocks_tiedoston - product_code
     */
     $this->yksittaiset_tiedostot = array(
       "60046_ce.csv" => array(
         array(0,4,3),
+        array(0)
+      ),
+      "25208_01.csv" => array(
+        array(0,3,2),
         array(0)
       ),
       "30803_ce.csv" => array(
@@ -396,7 +409,7 @@ class ImportSaldoHinta
       if (isset($this->toimittajat_tiedostot[$tiedostonimi])) {
         $toimittaja_id = $this->toimittajat_tiedostot[$tiedostonimi];
       } else {
-        echo $tiedostonimi." toimittaja ei löydy!";
+        echo $tiedostonimi." toimittaja ei löydy!\n";
         continue;
       }
 
@@ -616,7 +629,7 @@ class ImportSaldoHinta
       if (isset($this->toimittajat_tiedostot[$impsaloh_csv_file_name])) {
         $toimittaja_id = $this->toimittajat_tiedostot[$impsaloh_csv_file_name];
       } else {
-        echo $impsaloh_csv_file_name." toimittaja ei löydy!";
+        echo $impsaloh_csv_file_name." toimittaja ei löydy!\n";
         continue;
       }
 
