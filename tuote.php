@@ -3137,7 +3137,7 @@ if ($tee == 'Z') {
       echo "<select id='historia' name='historia'>'";
       echo "<option value='1' $chk[1]> ".t("20 viimeisintä")."</option>";
 
-      $query = "SELECT * FROM tilikaudet WHERE yhtio = '$kukarow[yhtio]' ORDER BY tilikausi_loppu DESC";
+      $query = "SELECT * FROM tilikaudet WHERE yhtio = '$kukarow[yhtio]' ORDER BY tilikausi_loppu DESC LIMIT 5";
       $tkresult = pupe_query($query);
 
       while ($tkrow = mysql_fetch_assoc($tkresult)) {
