@@ -160,7 +160,7 @@ if ($tee == 'laskelma') {
   }
   else {
     $taso = 'ee500';
-    $eetasolisa = "or alv_taso like '%ee510%' or alv_taso like '%ee520%'";
+    $eetasolisa = "or alv_taso like '%ee510%' or alv_taso like '%ee520%' or alv_taso like '%ee540%'";
     $tilat = "and lasku.tila IN ('H','Y','M','P','Q','X')";
     $tilaustyyppi = "";
     $laskun_lisatiedot_lisa = "";
