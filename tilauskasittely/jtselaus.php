@@ -57,7 +57,9 @@ if (!isset($mista_tullaan)) $mista_tullaan = "";
 if (!isset($jt_tyyppi)) $jt_tyyppi = "";
 if (!isset($alkuperainen_varasto)) $alkuperainen_varasto = "";
 
+
 if(strpos($_SERVER['SCRIPT_NAME'], "mobiili/vahvista_kerayspaikka.php") !== FALSE) {
+  $_kerayspoikkeus_email_lahde = false;
   if($varastosta and !$_varasto_poikkeus) {
     $_varasto_poikkeus = $varastosta;
   }
@@ -69,7 +71,10 @@ if(strpos($_SERVER['SCRIPT_NAME'], "mobiili/vahvista_kerayspaikka.php") !== FALS
     $_hae_var_r = pupe_query($_hae_var_q);
     $_hae_var_r = mysql_fetch_assoc($_hae_var_r);
     $_kerayspoikkeus_email = $_hae_var_r['kerayspoikkeus_email'];
-    break;
+    if($_kerayspoikkeus_email) {
+      $_kerayspoikkeus_email_lahde = t("mobiili");
+      break;
+    }
   }
 }
 

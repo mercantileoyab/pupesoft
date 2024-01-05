@@ -318,48 +318,56 @@ elseif ($luottorajavirhe != '' or $ylivito > 0) {
 
     $errortext = t("Asiakkaan luottoraja on ylitetty") . ". ";
 
-    // Laitetaan viestit 
+    // Jos jtselaus.php:sta tullaan, laitetaan viestit 
+    if($_kerayspoikkeus_email_lahde) {
+      
+      // Asiakkaan myyjalle
+      if($tilausvalmis_asiakas_row['myyjanro'] and $tilausvalmis_asiakas_row['myyjanro'] != "") {
+        $_query_myyja = "SELECT eposti FROM kuka WHERE yhtio = '{$kukarow['yhtio']}' AND myyja = {$tilausvalmis_asiakas_row['myyjanro']}";
+        $_res_myyja = pupe_query($_query_myyja);
+        $_myyjan_eposti = mysql_fetch_assoc($_res_myyja);
+        $_myyjan_eposti = $_myyjan_eposti['eposti'];
+        $_myyjan_params = array(
+          "to"      => $_myyjan_eposti,
+          "subject" => t("HYLLYTYS").": ".$errortext,
+          "ctype"   => "text",
+          "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".$_kerayspoikkeus_email_lahde
+        );
+        pupesoft_sahkoposti($_myyjan_params);
+      }
 
-    // Asiakkaan myyjalle
-    if($tilausvalmis_asiakas_row['myyjanro'] and $tilausvalmis_asiakas_row['myyjanro'] != "") {
-      $_query_myyja = "SELECT eposti FROM kuka WHERE yhtio = '{$kukarow['yhtio']}' AND myyja = {$tilausvalmis_asiakas_row['myyjanro']}";
-      $_res_myyja = pupe_query($_query_myyja);
-      $_myyjan_eposti = mysql_fetch_assoc($_res_myyja);
-      $_myyjan_eposti = $_myyjan_eposti['eposti'];
-      $_myyjan_params = array(
-        "to"      => $_myyjan_eposti,
-        "subject" => t("HYLLYTYS").": ".$errortext,
-        "ctype"   => "text",
-        "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
-      );
-      pupesoft_sahkoposti($_myyjan_params);
+      // Laskun myyjalle
+      if($laskurow['myyja'] and $laskurow['myyja'] != "") {
+        $_query_myyja = "SELECT eposti FROM kuka WHERE yhtio = '{$kukarow['yhtio']}' AND tunnus = {$laskurow['myyja']}";
+        $_res_myyja = pupe_query($_query_myyja);
+        $_myyjan_eposti = mysql_fetch_assoc($_res_myyja);
+        $_myyjan_eposti = $_myyjan_eposti['eposti'];
+        $_myyjan_params = array(
+          "to"      => $_myyjan_eposti,
+          "subject" => t("HYLLYTYS").": ".$errortext,
+          "ctype"   => "text",
+          "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".$_kerayspoikkeus_email_lahde
+        );
+        pupesoft_sahkoposti($_myyjan_params);
+      }
+
+      // Varastopaikan kerayspoikkeus_email
+      if($_kerayspoikkeus_email) {
+        
+        if(explode(",", $_kerayspoikkeus_email) and is_array(explode(",", $_kerayspoikkeus_email)) and count(explode(",", $_kerayspoikkeus_email)) > 1) {
+          $_kerayspoikkeus_email = explode(",", $_kerayspoikkeus_email);
+          $_kerayspoikkeus_email = $_kerayspoikkeus_email[0];
+        }
+
+        $_myyjan_params = array(
+          "to"      => $_kerayspoikkeus_email,
+          "subject" => t("HYLLYTYS").": ".$errortext,
+          "ctype"   => "text",
+          "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".$_kerayspoikkeus_email_lahde
+        );
+        pupesoft_sahkoposti($_myyjan_params);
+      }
     }
-
-    // Laskun myyjalle
-    if($laskurow['myyja'] and $laskurow['myyja'] != "") {
-      $_query_myyja = "SELECT eposti FROM kuka WHERE yhtio = '{$kukarow['yhtio']}' AND tunnus = {$laskurow['myyja']}";
-      $_res_myyja = pupe_query($_query_myyja);
-      $_myyjan_eposti = mysql_fetch_assoc($_res_myyja);
-      $_myyjan_eposti = $_myyjan_eposti['eposti'];
-      $_myyjan_params = array(
-        "to"      => $_myyjan_eposti,
-        "subject" => t("HYLLYTYS").": ".$errortext,
-        "ctype"   => "text",
-        "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
-      );
-      pupesoft_sahkoposti($_myyjan_params);
-    }
-
-    if($_kerayspoikkeus_email) {
-      $_myyjan_params = array(
-        "to"      => $_kerayspoikkeus_email,
-        "subject" => t("HYLLYTYS").": ".$errortext,
-        "ctype"   => "text",
-        "body"    => $errortext."\n$_myyjan_eposti\n".t("Tilaus").": $laskurow[tunnus]\n".t("Lähde").": ".t("mobiili")
-      );
-      pupesoft_sahkoposti($_myyjan_params);
-    }
-
   }
 
   if ($ylivito > 0) {
