@@ -57,9 +57,8 @@ if (!isset($mista_tullaan)) $mista_tullaan = "";
 if (!isset($jt_tyyppi)) $jt_tyyppi = "";
 if (!isset($alkuperainen_varasto)) $alkuperainen_varasto = "";
 
-
+$_kerayspoikkeus_email_lahde = false;
 if(strpos($_SERVER['SCRIPT_NAME'], "mobiili/vahvista_kerayspaikka.php") !== FALSE) {
-  $_kerayspoikkeus_email_lahde = false;
   if($varastosta and !$_varasto_poikkeus) {
     $_varasto_poikkeus = $varastosta;
   }
