@@ -17,6 +17,8 @@ require "../inc/parametrit.inc";
 5.    EE500  Total amount of input VAT subject to deduction
 5.1    EE510  Total amount of input VAT subject to deduction from PRODUCT IMPORT (outside EU)
 5.2    EE520  Total amount of input VAT subject to deduction from FIXED ASSET PURCHASES
+5.3    
+5.4   EE540  VAT paid or payable on the acquisition of a car used partly in business and on the acquisition of goods and services for the use of such a car
 6.    EE600  Intra-Community acquisitions of GOODS AND SERVICES received from a taxable person of another Member State
 6.1    EE610  Intra-Community acquisitions of GOODS received from a taxable person of another Member State
 7.    EE700  Other extraordinary purchases taxed with VAT
@@ -151,6 +153,16 @@ if (isset($tee) and $tee == 'kuittaa_alv_ilmoitus') {
   }
 }
 
+$_query = "SELECT * 
+           FROM tili
+           WHERE yhtio = '$kukarow[yhtio]'
+           and alv_taso = 'ee540'";
+$_tilires = pupe_query($_query);
+if (mysql_num_rows($_tilires) > 0) {
+} else {
+  pupe_query("UPDATE tili SET alv_taso = 'ee540' where yhtio = '$kukarow[yhtio]' and tilino >= 52711 and tilino <= 52717");
+}
+
 if (isset($tee) and $tee == 'erittele') {
 
   $alvv       = $vv;
@@ -168,7 +180,6 @@ if (isset($tee) and $tee == 'erittele') {
     $loppupvm    = date("Y-m-d", mktime(0, 0, 0, $alvk+1, 0, $alvv));
     $virhelisa   = "";
   }
-
 
   $kerroin      = " * -1";
   $maalisa      = '';
@@ -216,7 +227,8 @@ if (isset($tee) and $tee == 'erittele') {
   elseif ($ryhma == '5') {
     $taso = 'ee500';
     $eetasolisa = " or alv_taso like '%ee510%'
-            or alv_taso like '%ee520%'";
+                    or alv_taso like '%ee520%'
+                    or alv_taso like '%ee540%'";
     $kerroin = "";
   }
   elseif ($ryhma == '5.1') {
@@ -225,6 +237,10 @@ if (isset($tee) and $tee == 'erittele') {
   }
   elseif ($ryhma == '5.2') {
     $taso = 'ee520';
+    $kerroin = "";
+  }
+  elseif ($ryhma == '5.4') {
+    $taso = 'ee540';
     $kerroin = "";
   }
 
@@ -558,7 +574,8 @@ function laskeveroja($taso, $tulos) {
 
     if ($taso == 'ee500') {
       $eetasolisa = " or alv_taso like '%ee510%'
-              or alv_taso like '%ee520%'";
+                      or alv_taso like '%ee520%'
+                      or alv_taso like '%ee540%'";
     }
 
     if ($taso == 'ee600') {
@@ -665,7 +682,7 @@ function laskeverojaverokannoittain($taso) {
 
 function alvlaskelma($kk, $vv) {
   global $yhtiorow, $kukarow, $startmonth, $endmonth, $etsivirheita, $oletus_verokanta, $maksettava_alv_tili, $palvelin2, $erotus_tili, $alv_laskelman_sallittu_erotus;
-
+  echo "<style>sup { font-size: 8px; }</style>";
   echo "<font class='head'>".t("ALV-laskelma")."</font><hr>";
 
   if (isset($kk) and $kk != '') {
@@ -726,6 +743,11 @@ function alvlaskelma($kk, $vv) {
     //5.2. Total amount of input VAT subject to deduction from FIXED ASSET PURCHASES
     $ee520 = laskeveroja('ee520', 'veronmaara');
 
+    $ee530 = 0;
+
+    //5.4. VAT paid or payable on the acquisition of a car used partly in business and on the acquisition of goods and services for the use of such a car
+    $ee540 = laskeveroja('ee540', 'veronmaara');
+
     //6. Intra-Community acquisitions of GOODS AND SERVICES received from a taxable person of another Member State
     $ee600 = laskeveroja('ee600', 'summa');
 
@@ -765,9 +787,9 @@ function alvlaskelma($kk, $vv) {
 
     // Verollinen myynti
     echo "<tr class='aktiivi'><td><a href = '?tee=erittele&ryhma=1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>1)</a> 22% m‰‰raga maksustatavad toimingud ja tehingud, sh</td><td align='right'>".sprintf('%.2f', $ee100["22.00"])."</td></tr>";
-    echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=1.1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>1.1)</a> 20% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $ee100["20.00"])."</td></tr>";
+    echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=1.1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>1<sup>1</sup>)</a> 20% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $ee100["20.00"])."</td></tr>";
     echo "<tr class='aktiivi'><td><a href = '?tee=erittele&ryhma=2&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>2)</a> 9% m‰‰raga maksustatavad toimingud ja tehingud, sh</td><td align='right'>".sprintf('%.2f', $ee100["9.00"])."</td></tr>";
-    echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=2.1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>2.1)</a> 5% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $ee110["5.00"])."</td></tr>";
+    echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=2.1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>2<sup>1</sup>)</a> 5% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $ee110["5.00"])."</td></tr>";
 
     // V‰‰r‰t alvikannat
     foreach ($ee100 as $eekey => $eeval) {
@@ -784,22 +806,26 @@ function alvlaskelma($kk, $vv) {
     echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=3.2&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>3.2)</a> Kauba eksport, sh</td><td align='right'>".sprintf('%.2f', $ee320)."</td></tr>";
     echo "<tr class='aktiivi'><td>&raquo; &raquo; 3.2.1) K‰ibemaksutagastusega m¸¸k reisijale</td><td align='right'>".sprintf('%.2f', $ee321)."</td></tr>";
 
-    echo "<tr class='aktiivi'><td>4) 22% (1) + 20% (1.1) + 9% (2) + 5% lahtrist (2.1)</td><td align='right'>".sprintf('%.2f', $ee405)."</td></tr>";
-    echo "<tr class='aktiivi'><td>&raquo; 4.1) Impordilt tasumisele kuuluv k‰ibemaks +</td><td align='right'>".sprintf('%.2f', $ee410)."</td></tr>";
+    echo "<tr class='aktiivi'><td>4) 22% lahtrist 1 + 20% lahtrist 1<sup>1</sup> + 9% lahtrist 2 + 5% lahtrist 2<sup>1</sup></td><td align='right'>".sprintf('%.2f', $ee405)."</td></tr>";
+    echo "<tr class='aktiivi'><td>&raquo; 4<sup>1</sup>) Impordilt tasumisele kuuluv k‰ibemaks (+)</td><td align='right'>".sprintf('%.2f', $ee410)."</td></tr>";
 
     echo "<tr class='aktiivi'><td><a href = '?tee=erittele&ryhma=5&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>5)</a> Kokku sisendk‰ibemaksusumma, mis on seadusega lubatud maha arvata, sh -</td><td align='right'>".sprintf('%.2f', $ee500)."</td></tr>";
     echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=5.1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>5.1)</a> Impordilt tasutud vıi tasumisele kuuluv k‰ibemaks</td><td align='right'>".sprintf('%.2f', $ee510)."</td></tr>";
     echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=5.2&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>5.2)</a> Pıhivara soetamiselt tasutud vıi tasumisele kuuluv k‰ibemaks</td><td align='right'>".sprintf('%.2f', $ee520)."</td></tr>";
 
+    echo "<tr class='aktiivi'><td>&raquo; 5.3) Ettevıtluses (100%) kasutatava sıiduauto soetamiselt ja sellise sıiduauto tarbeks kaupade soetamiselt ja teenuste saamiselt tasutud vıi tasumisele kuuluv k‰ibemaks</td><td align='right'>".sprintf('%.2f', $ee530)."</td></tr>";
+    
+    echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=5.4&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>5.4)</a> Osaliselt ettevıtluses kasutatava sıiduauto soetamiselt ja sellise sıiduauto tarbeks kaupade soetamiselt ja teenuste saamiselt tasutud vıi tasumisele kuuluv k‰ibemaks</td><td align='right'>".sprintf('%.2f', $ee540)."</td></tr>";
+
     echo "<tr class='aktiivi'><td>6) Kauba ¸hendusesisene soetamine ja teise liikmesriigi maksukohustuslaselt saadud teenused kokku, sh</td><td align='right'>".sprintf('%.2f', $ee600)."</td></tr>";
     echo "<tr class='aktiivi'><td>&raquo; 6.1) Kauba ¸hendusesisene soetamine</td><td align='right'>".sprintf('%.2f', $ee610)."</td></tr>";
 
     echo "<tr class='aktiivi'><td>7) Muu kauba soetamine ja teenuse saamine, mida maksustatakse k‰ibemaksuga, sh</td><td align='right'>".sprintf('%.2f', $ee700)."</td></tr>";
-    echo "<tr class='aktiivi'><td>&raquo; 7.1) Erikorra alusel maksustatava kinnisasja, metallij‰‰tmete, kullamaterjali ja investeeringukulla soetamine (KMS ß 41)</td><td align='right'>".sprintf('%.2f', $ee710)."</td></tr>";
+    echo "<tr class='aktiivi'><td>&raquo; 7.1) Erikorra alusel maksustatava kinnisasja, metallij‰‰tmete, v‰‰rismetalli ja metalltoodete soetamine (KMS ß 41<sup>1</sup>)</td><td align='right'>".sprintf('%.2f', $ee710)."</td></tr>";
 
     echo "<tr class='aktiivi'><td>8) Maksuvaba k‰ive</td><td align='right'>".sprintf('%.2f', $ee800)."</td></tr>";
 
-    echo "<tr class='aktiivi'><td>9) Erikorra alusel maksustatava kinnisasja, metallij‰‰tmete, kullamaterjali ja investeeringukulla k‰ive</td><td align='right'>".sprintf('%.2f', $ee900)."</td></tr>";
+    echo "<tr class='aktiivi'><td>9) Erikorra alusel maksustatava kinnisasja, metallij‰‰tmete, kullamaterjali ja v‰‰rismetalli k‰ive (KMS ß 41<sup>1</sup>)</td><td align='right'>".sprintf('%.2f', $ee900)."</td></tr>";
 
     echo "<tr class='aktiivi'><td>10) T‰psustused +</td><td align='right'>".sprintf('%.2f', $ee1000)."</td></tr>";
 
