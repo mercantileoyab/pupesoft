@@ -62,7 +62,12 @@ if ($tunnus != '' and $upd != 1) {
       }
 
       if (mysql_num_rows($chkres2) > 0) {
-        $otsikko_lisatiedot .= "<li>".mysql_num_rows($chkres2)." ".t("toimittamattomalla tai kesken olevalla myyntitilauksella")."</li>";
+        $otsikko_lisatiedot .= "<li>".mysql_num_rows($chkres2)." ".t("toimittamattomalla tai kesken olevalla myyntitilauksella").":</li>";
+        $otsikko_lisatiedot .= "<div> | ";
+        while($_tilausnum = mysql_fetch_assoc($chkres2)) {
+          $otsikko_lisatiedot .= $_tilausnum['tunnus']." | ";
+        }
+        $otsikko_lisatiedot .= "</div>";
       }
 
       if (mysql_num_rows($chkres3) > 0) {
