@@ -2459,31 +2459,35 @@ while ($tietue = fgets($fd)) {
                               WHERE yhtio = '{$kukarow['yhtio']}' 
                               AND tunnus = $lisatty_tun";
           $lisatty_tun_res = pupe_query($lisatty_tun_q);
-          $lisatty_tun_row = mysql_fetch_assoc($lisatty_tun_res);
-
-          $lisatty_tuo_q = "SELECT * 
-                              FROM tuote  
-                              WHERE yhtio = '{$kukarow['yhtio']}' 
-                              AND tuoteno = '$tuoteno'";
-          $lisatty_tuo_res = pupe_query($lisatty_tuo_q);
-          $lisatty_tuo_row = mysql_fetch_assoc($lisatty_tuo_res);
-          $lisatty_kotisumma  = $lisatty_tun_row["hinta"] * ($lisatty_tun_row["varattu"] + $lisatty_tun_row["jt"]) * generoi_alekentta_php($lisatty_tun_row, 'M', 'kerto', 'ei_erikoisale');
-          if ($yhtiorow["alv_kasittely"] == '') {
-            if ($lisatty_tun_row["alv"] >= 500) {
-              $lisatty_alvkapu = 0;
+          if (mysql_num_rows($lisatty_tun_res) > 0) {
+            $lisatty_tun_row = mysql_fetch_assoc($lisatty_tun_res);
+            
+            $lisatty_tuo_q = "SELECT * 
+                                FROM tuote  
+                                WHERE yhtio = '{$kukarow['yhtio']}' 
+                                AND tuoteno = '$tuoteno'";
+            $lisatty_tuo_res = pupe_query($lisatty_tuo_q);
+            if (mysql_num_rows($lisatty_tuo_res) > 0) {
+              $lisatty_tuo_row = mysql_fetch_assoc($lisatty_tuo_res);
+              $lisatty_kotisumma  = $lisatty_tun_row["hinta"] * ($lisatty_tun_row["varattu"] + $lisatty_tun_row["jt"]) * generoi_alekentta_php($lisatty_tun_row, 'M', 'kerto', 'ei_erikoisale');
+              if ($yhtiorow["alv_kasittely"] == '') {
+                if ($lisatty_tun_row["alv"] >= 500) {
+                  $lisatty_alvkapu = 0;
+                }
+                else {
+                  $lisatty_alvkapu = $lisatty_tun_row["alv"];
+                }
+                $lisatty_kotisumma_alviton   = $lisatty_kotisumma / (1+$lisatty_alvkapu/100);
+              }
+              else {
+                $lisatty_kotisumma_alviton   = $lisatty_kotisumma;
+              }
+              if($lisatty_kotisumma_alviton and $lisatty_kotisumma_alviton > 0 and laske_tilausrivin_kate($lisatty_tun_row, $lisatty_kotisumma_alviton, $lisatty_tuo_row["kehahin"], $kpl) < 0) {
+                $editilaus_otsikko_ok = "HYVAKSYTTAVAKSI";
+                $editilaus_hyvaksyttava = "x";
+                $editilaus_alatila = 'F';
+              }
             }
-            else {
-              $lisatty_alvkapu = $lisatty_tun_row["alv"];
-            }
-            $lisatty_kotisumma_alviton   = $lisatty_kotisumma / (1+$lisatty_alvkapu/100);
-          }
-          else {
-            $lisatty_kotisumma_alviton   = $lisatty_kotisumma;
-          }
-          if(laske_tilausrivin_kate($lisatty_tun_row, $lisatty_kotisumma_alviton, $lisatty_tuo_row["kehahin"], $kpl) < 0) {
-            $editilaus_otsikko_ok = "HYVAKSYTTAVAKSI";
-            $editilaus_hyvaksyttava = "x";
-            $editilaus_alatila = 'F';
           }
 
           $edi_ulos .= "\n";
