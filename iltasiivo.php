@@ -114,10 +114,10 @@ $laskuri2 = 0;
 
 // poistetaan kaikki JT-otsikot jolla ei ole enää rivejä
 // ja extranet tilaukset joilla ei ole rivejä ja tietenkin myös ennakkootsikot joilla ei ole rivejä.
+$poistettavat_tilaukset = array();
 $query = "SELECT tilausrivi.tunnus, lasku.tunnus laskutunnus, lasku.tila, lasku.tunnusnippu
           FROM lasku
-          LEFT JOIN tilausrivi on (tilausrivi.yhtio = lasku.yhtio
-            AND tilausrivi.otunnus  = lasku.tunnus)
+          LEFT JOIN tilausrivi on (tilausrivi.yhtio = lasku.yhtio AND tilausrivi.otunnus  = lasku.tunnus)
           WHERE lasku.yhtio         = '$kukarow[yhtio]'
           AND lasku.tila            in ('N','E','L', 'G')
           AND lasku.alatila        != 'X'
@@ -125,6 +125,33 @@ $query = "SELECT tilausrivi.tunnus, lasku.tunnus laskutunnus, lasku.tila, lasku.
 $result = pupe_query($query);
 
 while ($row = mysql_fetch_assoc($result)) {
+  $poistettavat_tilaukset[] = $row;
+}
+
+// myös ne, jolla kaikki JT rivit poistettu
+$query = "SELECT tilausrivi.tunnus, lasku.tunnus laskutunnus, lasku.tila, lasku.tunnusnippu
+          FROM lasku
+          LEFT JOIN tilausrivi on (tilausrivi.yhtio = lasku.yhtio AND tilausrivi.otunnus  = lasku.tunnus AND tilausrivi.tyyppi != 'D')
+          WHERE lasku.yhtio         = '$kukarow[yhtio]'
+          AND lasku.tila            = 'N' 
+          AND lasku.alatila         = 'T'
+          AND tilausrivi.tunnus is null";
+$result = pupe_query($query);
+while ($row = mysql_fetch_assoc($result)) {
+  $query_2 = "SELECT tunnus 
+              FROM tilausrivi 
+              WHERE yhtio = '$kukarow[yhtio]' 
+              AND otunnus = $row[laskutunnus] 
+              AND kommentti NOT LIKE '%Toimitettu tilauksella%'";
+  $result_2 = pupe_query($query_2);
+  if(mysql_num_rows($result_2) == 0) {
+    $poistettavat_tilaukset[] = $row;
+  }
+}
+
+unset($row, $query, $result, $query_2, $result_2);
+
+foreach($poistettavat_tilaukset as $row) {
   $komm = "({$kukarow['kuka']}@".date('Y-m-d').") ".t("Mitätöi ohjelmassa iltasiivo.php")." (1)<br>";
 
   // Jos kyseessä on tunnusnippupaketti
@@ -158,11 +185,17 @@ while ($row = mysql_fetch_assoc($result)) {
 
 if ($laskuri > 0) {
   $iltasiivo .= is_log("Poistettiin $laskuri rivitöntä tilausta.");
+  echo "Poistettiin $laskuri rivitöntä tilausta.";
 }
 
 if ($laskuri2 > 0) {
   $iltasiivo .= is_log("Merkattiin toimitetuksi $laskuri2 rivitöntä tilausta.");
+  echo "Merkattiin toimitetuksi $laskuri2 rivitöntä tilausta.";
 }
+
+unset($row, $query, $result);
+
+die();
 
 $laskuri = 0;
 
