@@ -185,17 +185,13 @@ foreach($poistettavat_tilaukset as $row) {
 
 if ($laskuri > 0) {
   $iltasiivo .= is_log("Poistettiin $laskuri rivitöntä tilausta.");
-  echo "Poistettiin $laskuri rivitöntä tilausta.";
 }
 
 if ($laskuri2 > 0) {
   $iltasiivo .= is_log("Merkattiin toimitetuksi $laskuri2 rivitöntä tilausta.");
-  echo "Merkattiin toimitetuksi $laskuri2 rivitöntä tilausta.";
 }
 
 unset($row, $query, $result);
-
-die();
 
 $laskuri = 0;
 
