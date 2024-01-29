@@ -2269,6 +2269,7 @@ while ($tietue = fgets($fd)) {
         $hyvityssaanto_kpl_array       = "";
         $hyvityssaanto_kommentti_array     = "";
         $hyvityssaanto_palautuskielto_array  = "";
+        $muuta_hyvaksyttavaksi = false;
 
         // Jos käytetään reklamaatioiden hinnoittelusääntöä ja käyttäjä ei ole väkisinhyväksynyt riviä
         if ($yhtiorow["reklamaation_hinnoittelu"] == "K" and $editilaus_tilaustyyppi == 3) {
@@ -2482,10 +2483,10 @@ while ($tietue = fgets($fd)) {
               else {
                 $lisatty_kotisumma_alviton   = $lisatty_kotisumma;
               }
-              if($lisatty_kotisumma_alviton and $lisatty_kotisumma_alviton > 0 and laske_tilausrivin_kate($lisatty_tun_row, $lisatty_kotisumma_alviton, $lisatty_tuo_row["kehahin"], $kpl) < 0) {
+              if($lisatty_kotisumma_alviton and $lisatty_kotisumma_alviton > 0 and $tarkista_kate = laske_tilausrivin_kate($lisatty_tun_row, $lisatty_kotisumma_alviton, $lisatty_tuo_row["kehahin"], $kpl) and $tarkista_kate < 0) {
                 $editilaus_otsikko_ok = "HYVAKSYTTAVAKSI";
                 $editilaus_hyvaksyttava = "x";
-                $editilaus_alatila = 'F';
+                $muuta_hyvaksyttavaksi = $tarkista_kate;
               }
             }
           }
@@ -2495,6 +2496,14 @@ while ($tietue = fgets($fd)) {
           $hyvityssaanto_indeksi++;
         }
 
+        if($muuta_hyvaksyttavaksi) {
+          $query = "UPDATE lasku SET
+                    alatila     = 'F'
+                    WHERE yhtio = '$kukarow[yhtio]'
+                    AND tunnus  = '$laskurow[tunnus]'";
+          $terminaali_tilaus_res = pupe_query($query);
+          $edi_ulos .= "\n".t("Muutettu hyväksyttäväksi, koska yhdessä rivessä kate on negatiivinen")." ($muuta_hyvaksyttavaksi): $laskurow[tunnus].\n\n";
+        } 
       } // end jos tuote on löydetty oikein
       else {
 
