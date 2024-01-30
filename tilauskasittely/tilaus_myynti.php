@@ -8155,8 +8155,8 @@ if ($tee == '') {
           $liitekuvat = '';
         }
 
-        echo "<td $class id='tuotenimitys' align='left'>{$liitekuvat}".t_tuotteen_avainsanat($row, "nimitys")."$extranet_tarkistus_teksti</td>";
-        
+        echo "<td $class id='tuotenimitystaul' align='left'>{$liitekuvat}".t_tuotteen_avainsanat($row, "nimitys")."$extranet_tarkistus_teksti</td>";
+
         if ($kukarow['extranet'] == '' and $toim == "MYYNTITILI" and $laskurow["alatila"] == "V") {
 
           if ($row["kpl"] != 0 and ($row["perheid"] == 0 or $row["perheid"] == $row["tunnus"])) {
