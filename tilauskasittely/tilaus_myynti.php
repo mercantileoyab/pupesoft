@@ -7851,7 +7851,7 @@ if ($tee == '') {
             }
           }
 
-          echo "<tr>";
+          echo "<tr data-osasto='$row[osasto]'>";
 
           if ($kommenttirivi_nakyviin or $row["kommentti"] != "" or ($row["ale_peruste"] != '' and $yhtiorow['naytetaanko_ale_peruste_tilausrivilla'] != '') or (isset($GLOBALS['eta_yhtio']) and $GLOBALS['eta_yhtio'] != '' and $koti_yhtio == $kukarow['yhtio'])) {
             if ($jarjlisa != "") {
@@ -8145,7 +8145,7 @@ if ($tee == '') {
           echo $row['rekisterinumero'];
           echo "</td>";
         }
-
+        
         // Onko liitetiedostoja
         if ($kukarow['extranet'] != '') {
           $liitekuvat = liite_popup("TH", $row['tuote_tunnus']);
@@ -8155,8 +8155,8 @@ if ($tee == '') {
           $liitekuvat = '';
         }
 
-        echo "<td $class align='left'>{$liitekuvat}".t_tuotteen_avainsanat($row, "nimitys")."$extranet_tarkistus_teksti</td>";
-
+        echo "<td $class id='tuotenimitys' align='left'>{$liitekuvat}".t_tuotteen_avainsanat($row, "nimitys")."$extranet_tarkistus_teksti</td>";
+        
         if ($kukarow['extranet'] == '' and $toim == "MYYNTITILI" and $laskurow["alatila"] == "V") {
 
           if ($row["kpl"] != 0 and ($row["perheid"] == 0 or $row["perheid"] == $row["tunnus"])) {
