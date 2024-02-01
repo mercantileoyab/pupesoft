@@ -1350,7 +1350,7 @@ if ($toim != "VALMISTAVARASTOON" and $row['tuoteno'] != '' and ($yhtiorow['vasta
 
             $myytavissa_font = $vmyytavissa < 1 ? "error" : "ok";
 
-            $vastaavat_table .= "<tr class='back aktiivi'>"
+            $vastaavat_table .= "<tr data-osasto='$tvrow[osasto]' class='back aktiivi'>"
               ."<td>";
 
             if ($kukarow['extranet'] == '' and $tuotekyslinkki != "") {
@@ -1373,7 +1373,7 @@ if ($toim != "VALMISTAVARASTOON" and $row['tuoteno'] != '' and ($yhtiorow['vasta
             }
 
             $vastaavat_table .= " $vaihtoehtoinen</td>"
-              ."<td>{$tvrow["nimitys"]}</td>"
+              ."<td id='tuotenimitystaul'>{$tvrow["nimitys"]}</td>"
               ."<td align='right'><font class='{$myytavissa_font}'>".sprintf("%.2f", $vmyytavissa)."</font></td>"
               ."<td align='right'>".sprintf("%.2f", $V_hinta)."</td>";
 
