@@ -2484,7 +2484,6 @@ while ($tietue = fgets($fd)) {
                 $lisatty_kotisumma_alviton   = $lisatty_kotisumma;
               }
               if($lisatty_kotisumma_alviton and $lisatty_kotisumma_alviton > 0 and $tarkista_kate = laske_tilausrivin_kate($lisatty_tun_row, $lisatty_kotisumma_alviton, $lisatty_tuo_row["kehahin"], $kpl) and $tarkista_kate < 0) {
-                $editilaus_otsikko_ok = "HYVAKSYTTAVAKSI";
                 $editilaus_hyvaksyttava = "x";
                 $muuta_hyvaksyttavaksi = $tarkista_kate;
               }
