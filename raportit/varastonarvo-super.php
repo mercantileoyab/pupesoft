@@ -105,6 +105,7 @@ if (!isset($huomioi_varastosiirrot)) $huomioi_varastosiirrot = "";
 if (!isset($saldo_myytavissa))       $saldo_myytavissa = '';
 if (!isset($nayta_ostohinta))        $nayta_ostohinta = '';
 if (!isset($nayta_muut))             $nayta_muut = '';
+if (!isset($nayta_ean))              $nayta_ean = '';
 if (!isset($status))                 $status = '';
 
 // setataan
@@ -359,6 +360,13 @@ if (!$php_cli) {
   echo "<input type='checkbox' name='nayta_muut' {$chk}/>";
   echo "</td></tr>";
 
+  echo "<tr><th>", t("Näytä EAN koodit"), ":</th>";
+  echo "<td>";
+
+  $chk = !empty($nayta_ean) ? 'checked' : '';
+
+  echo "<input type='checkbox' name='nayta_ean' {$chk}/>";
+  echo "</td></tr>";
 
   $chk = !empty($huomioi_varastosiirrot) ? "checked" : "";
 
@@ -605,6 +613,10 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
   else {
     $tuote_lisa2 = "";
   }
+
+  if ($nayta_ean) {
+    $tuote_lisa2 .= "tuote.eankoodi, ";
+  }
   
   if (!$php_cli) {
     force_echo("Haetaan käsiteltävien tuotteiden varastopaikat historiasta.");
@@ -840,6 +852,7 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
       fwrite($fh, pupesoft_csvstring(t("Toim.tuoteno"))."\t");
     }
     fwrite($fh, pupesoft_csvstring(t("Yksikko"))."\t");
+
   }
 
   if ($variaatiosummaus != "") {
@@ -898,6 +911,7 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
     
     $worksheet->writeString($excelrivi, $excelsarake, t("Varastonarvo"), $format_bold);
     $excelsarake++;
+
   }
   else {
     fwrite($fh, pupesoft_csvstring(t("Kehahin"))."\t");
@@ -911,6 +925,7 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
     }
     
     fwrite($fh, pupesoft_csvstring(t("Varastonarvo"))."\t");
+
   }
 
   if (isset($varatturajaus) and $varatturajaus == "O") {
@@ -968,6 +983,11 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
       $worksheet->writeString($excelrivi, $excelsarake, t("Epäkurantti 100%"),   $format_bold);
       $excelsarake++;
       $worksheet->writeString($excelrivi, $excelsarake, t("Viimeinen hankintapäivä"),   $format_bold);
+      $excelsarake++;
+      if ($nayta_ean) {
+        $worksheet->writeString($excelrivi, $excelsarake, t("Ean koodi"), $format_bold);
+        $excelsarake++;
+      }
     }
     else {
       fwrite($fh, pupesoft_csvstring(t("Epäkurantti 25%"))."\t");
@@ -975,6 +995,9 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
       fwrite($fh, pupesoft_csvstring(t("Epäkurantti 75%"))."\t");
       fwrite($fh, pupesoft_csvstring(t("Epäkurantti 100%"))."\t");
       fwrite($fh, pupesoft_csvstring(t("Viimeinen hankintapäivä"))."\t");
+      if ($nayta_ean) {
+        fwrite($fh, pupesoft_csvstring(t("Ean koodi"))."\t");
+      }
     }
   }
 
@@ -1522,6 +1545,7 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
           fwrite($fh, pupesoft_csvstring($ttrow["toim_tuoteno"])."\t");
         }
         fwrite($fh, pupesoft_csvstring($row["yksikko"])."\t");
+
       }
 
       if ($variaatiosummaus != "") {
@@ -1611,6 +1635,7 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
         }
         
         fwrite($fh, pupesoft_csvstring(sprintf("%.06f", $muutoshinta))."\t");
+
       }
 
       if (isset($varatturajaus) and $varatturajaus == "O") {
@@ -1757,9 +1782,16 @@ if (isset($supertee) and $supertee == "RAPORTOI") {
         if ($tallennusmuoto_check) {
           $worksheet->writeString($excelrivi, $excelsarake, tv1dateconv($row["vihapvm"]));
           $excelsarake++;
+          if ($nayta_ean) {
+            $worksheet->writeString($excelrivi, $excelsarake, $row["eankoodi"]);
+            $excelsarake++;
+          }
         }
         else {
           fwrite($fh, pupesoft_csvstring(tv1dateconv($row["vihapvm"]))."\t");
+          if ($nayta_ean) {
+            fwrite($fh, pupesoft_csvstring($row["eankoodi"])."\t");
+          }
         }
       }
 
