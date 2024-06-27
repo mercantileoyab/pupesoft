@@ -531,6 +531,7 @@ if ($tee == 'tulosta') {
             lasku.maa, lasku.nimi, lasku.nimitark, lasku.osoite, lasku.ovttunnus, lasku.postino, lasku.postitp, lasku.toimitusehto,
             rahtikirjat.merahti, rahtikirjat.rahtisopimus, if(maksuehto.jv is null,'',maksuehto.jv) jv, lasku.alv, lasku.vienti, rahtisopimukset.muumaksaja,
             asiakas.toimitusvahvistus, asiakas.kieli,
+            asiakas.chn as asiakas_chn,
             IF(lasku.toim_email != '', lasku.toim_email,
             IF(asiakas.keraysvahvistus_email != '', asiakas.keraysvahvistus_email, asiakas.email)) AS asiakas_email,
             IF(lasku.toim_puh != '', lasku.toim_puh,
@@ -969,7 +970,7 @@ if ($tee == 'tulosta') {
           $valittu_tulostin = $rakirsyotto_laskutulostin;
           $chnlisa = ", chn = '667' ";
         }
-        elseif ($rakir_row['chn'] != '999' and $rakir_row['toimitusehto'] == '21- Arvega') {
+        elseif ($rakir_row['chn'] != '999' and $rakir_row['asiakas_chn'] == '666' and $rakir_row['toimitusehto'] == '21- Arvega') {
           $valittu_tulostin = '';
           $chnlisa = ", chn = '666' ";
         }
