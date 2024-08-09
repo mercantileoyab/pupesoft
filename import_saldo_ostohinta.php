@@ -113,7 +113,8 @@ class ImportSaldoHinta
       "motoprofil.csv" => "943",
       "gordon_database.csv" => "1407",
       "30803_ce.csv" => "1598",
-      "orum.csv" => "200"
+      "orum.csv" => "200",
+      "ON_STOCK_19587.csv" => "909"
     );
 
     $this->eur_partners = array(
@@ -124,7 +125,8 @@ class ImportSaldoHinta
       1474=>"1",
       1525=>"1",
       1598=>"1",
-      200=>"1"
+      200=>"1",
+      909=>"1"
     );
 
     $this->toimittajen_rajoitus = $toimittajen_rajoitus;
@@ -134,6 +136,13 @@ class ImportSaldoHinta
       $tuotekoodi_otsikot rakenne on: stocks prices tiedoston otsikko => stocks tiedoston otsikko / prices hinta
     */
     $this->tuotekoodi_otsikot = array(
+      909 => array("Product code" =>
+        array(
+          "tuotekoodi" => "ARTNR",
+          "hinta" => "PRICE",
+          "saldo" => "ON_STOCK"
+        )
+      ),
       1474 => array("Product code" =>
         array(
           "tuotekoodi" => "Item No",
@@ -303,6 +312,10 @@ class ImportSaldoHinta
       "gordon_database.csv" => array(
         array(1,5,7,8),
         array(1)
+      ),
+      "ON_STOCK_19587.csv" => array(
+        array(0,2,1),
+        array(0)
       )
     );
 
@@ -1039,10 +1052,12 @@ class ImportSaldoHinta
                 ";
         
         pupe_query($query);
+
         $onnistunut_tuote = false;
         
         // onnistui
         if ($lisatty_id = mysql_insert_id()) {
+
           $loydetyt_tuotteet[] = $rivi;
           $onnistunut_tuote = true;
 
