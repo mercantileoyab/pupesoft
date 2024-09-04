@@ -160,8 +160,8 @@ class ImportSaldoHinta
       1525 => array("Product code" =>
         array(
           "tuotekoodi" => "code",
-          "hinta" => "Mercantile price",
-          "saldo" => "level"
+          "hinta" => "price",
+          "saldo" => "inventory"
         )
       ),
       1432 => array("Product code" =>
@@ -258,7 +258,7 @@ class ImportSaldoHinta
           'columns' => array(2,4),
           'titles' => array('Product code','Mercantile price')
         )
-      ),
+      )
     );
 
     /*
@@ -316,6 +316,10 @@ class ImportSaldoHinta
       "ON_STOCK_19587.csv" => array(
         array(0,2,1),
         array(0)
+      ),
+      "meatdoria.csv" => array(
+        array(0,2,1),
+        array(0)
       )
     );
 
@@ -324,9 +328,11 @@ class ImportSaldoHinta
       Se voi olla esim. luokka A, tai jotain muuta.
     */
     $this->saldo_levels = array(
-      "0" => 0,
-      "1" => 2,
-      "2" => 5
+      1525 => array(
+        "0" => 0,
+        "1" => 2,
+        "2" => 5
+      )
     );
   }
 
@@ -964,9 +970,10 @@ class ImportSaldoHinta
           $tuotesaldo = $rivit_prices_l['saldo'];
         } elseif (isset($saldo_kolumni)) {
           $tuotesaldo = $rivi[$saldo_kolumni];
-          if ($saldo_kolumin_nimi == "level") {
-            $tuotesaldo = $this->saldo_levels[$tuotesaldo];
-          }
+        }
+
+        if (isset($this->saldo_levels[$toimittaja_id])) {
+          $tuotesaldo = $this->saldo_levels[$toimittaja_id][$tuotesaldo];
         }
 
         if ($varasto) {
@@ -1050,14 +1057,13 @@ class ImportSaldoHinta
                   $tuotemerkki_lisa 
                   AND(last_insert_id(tuotteen_toimittajat.tunnus))
                 ";
-        
+
         pupe_query($query);
 
         $onnistunut_tuote = false;
         
         // onnistui
         if ($lisatty_id = mysql_insert_id()) {
-
           $loydetyt_tuotteet[] = $rivi;
           $onnistunut_tuote = true;
 
