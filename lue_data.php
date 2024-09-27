@@ -1487,7 +1487,8 @@ if ($kasitellaan_tiedosto) {
         } 
         elseif ($table_mysql == "tuotteen_avainsanat") {
           if (in_array("SELITE", $taulunotsikot[$taulu])) {
-            if (preg_match('/\.\d{3,}/', $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])])) {
+            if (preg_match('/\.\d{3,}/', $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])]) 
+            and !in_array($taulunrivit[$taulu][$eriviindex][array_search("LAJI", $taulunotsikot[$taulu])], array("tdkuva","tdlinkki"))) {
               $_t_avainsanat_selite = floatval(number_format($taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])], 2));
             } else {
               $_t_avainsanat_selite = $taulunrivit[$taulu][$eriviindex][array_search("SELITE", $taulunotsikot[$taulu])];
@@ -1933,7 +1934,7 @@ if ($kasitellaan_tiedosto) {
 
             if ($table_mysql == 'tuotteen_avainsanat') {
               if ($otsikko == 'SELITE') {
-                if (preg_match('/\.\d{3,}/', $taulunrivit[$taulu][$eriviindex][$r])) {
+                if (preg_match('/\.\d{3,}/', $taulunrivit[$taulu][$eriviindex][$r]) and !in_array($taulunrivit[$taulu][$eriviindex][array_search("LAJI", $taulunotsikot[$taulu])], array("tdkuva","tdlinkki"))) {
                   $taulunrivit[$taulu][$eriviindex][$r] = floatval(number_format($taulunrivit[$taulu][$eriviindex][$r], 2));
                 }
               }
