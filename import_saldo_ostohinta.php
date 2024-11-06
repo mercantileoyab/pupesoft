@@ -9,7 +9,7 @@ if (php_sapi_name() != 'cli') {
   die("Tätä scriptiä voi ajaa vain komentoriviltä!");
 }
 
-if (!isset($argv[1]) || !$argv[1]) {
+if (!isset($argv[1]) or !$argv[1]) {
   echo "Anna yhtio";
   exit;
 }
@@ -114,7 +114,8 @@ class ImportSaldoHinta
       "gordon_database.csv" => "1407",
       "30803_ce.csv" => "1598",
       "orum.csv" => "200",
-      "ON_STOCK_19587.csv" => "909"
+      "ON_STOCK_19587.csv" => "909",
+      "Eoltas_Mercantile.csv" => "1652"
     );
 
     $this->eur_partners = array(
@@ -126,7 +127,8 @@ class ImportSaldoHinta
       1525=>"1",
       1598=>"1",
       200=>"1",
-      909=>"1"
+      909=>"1",
+      1652=>"1"
     );
 
     $this->toimittajen_rajoitus = $toimittajen_rajoitus;
@@ -214,6 +216,13 @@ class ImportSaldoHinta
           "hinta" => "Price no VAT",
           "warehouse1" => "Kaunas (HUB)",
           "warehouse2" => "Poland (CN)",
+        )
+      ),
+      1652 => array("Product code" =>
+        array(
+          "tuotekoodi" => "eoltas_code",
+          "hinta" => "price",
+          "saldo" => "stock"
         )
       )
     );
@@ -320,6 +329,10 @@ class ImportSaldoHinta
       "meatdoria.csv" => array(
         array(0,2,1),
         array(0)
+      ),
+      "Eoltas_Mercantile.csv" => array(
+        array(3,0,6),
+        array(3)
       )
     );
 
