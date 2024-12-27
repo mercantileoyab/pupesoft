@@ -1,5 +1,4 @@
 <?php
-
 // tarvitaan $kukarow['kesken'] jossa on laskutettava tilaus
 // ja $laskpp $laskkk $laskvv jos halutaan määritellä poikkeava laskutuspvm
 $tulos_ulos_laskutus = "";
@@ -1048,17 +1047,7 @@ else {
   $arvosumma_valuutassa  = round((float) $arvosumma_valuutassa, 2);
   $katesumma        = round((float) $katesumma, 2);
 
-  // jos maksetaan käteisellä pyöristetään lähimpään viiteen senttiin
-  if ($xrow["kateinen"] == 'p' and $yhtiorow['maa'] != 'EE') {
-    // kotivaluutassa
-    if (trim(strtoupper($orow["valkoodi"])) == trim(strtoupper($yhtiorow["valkoodi"]))) {
-      $pyorerotus = round((float) $loppusumma, 2) - round((float) round((float) $loppusumma / 0.05) * 0.05, 2);
-    }
-    // valuutassa
-    if (trim(strtoupper($orow["valkoodi"])) != trim(strtoupper($yhtiorow["valkoodi"]))) {
-      $pyorerotus_valuutassa = round((float) $loppusumma_valuutassa, 2) - round((float) round((float) $loppusumma_valuutassa / 0.05) * 0.05, 2);
-    }
-  }
+  $pyorerotus = round((float) $loppusumma, 2) - round((float) round((float) $loppusumma / 0.05) * 0.05, 2);
 
   // Etsitään asiakas
   $query = "SELECT laskunsummapyoristys
@@ -1067,6 +1056,23 @@ else {
             and yhtio    = '$kukarow[yhtio]'";
   $asres = pupe_query($query);
   $asrow = mysql_fetch_assoc($asres);
+
+  // jos maksetaan käteisellä pyöristetään lähimpään viiteen senttiin
+  if (
+  $xrow["kateinen"] == 'p' and 
+  ($yhtiorow['maa'] != 'EE' or 
+    (($yhtiorow["laskunsummapyoristys"] == 'p' and $asrow["laskunsummapyoristys"] != 'o') or $asrow["laskunsummapyoristys"] == 'p'))
+  ) {
+    // kotivaluutassa
+    if (trim(strtoupper($orow["valkoodi"])) == trim(strtoupper($yhtiorow["valkoodi"]))) {
+      $pyorerotus = round((float) $loppusumma, 2) - round((float) round((float) $loppusumma / 0.05) * 0.05, 2);
+    }
+
+    // valuutassa
+    if (trim(strtoupper($orow["valkoodi"])) != trim(strtoupper($yhtiorow["valkoodi"]))) {
+      $pyorerotus_valuutassa = round((float) $loppusumma_valuutassa, 2) - round((float) round((float) $loppusumma_valuutassa / 0.05) * 0.05, 2);
+    }
+  }
 
   // käsin syötetty summa johon lasku pyöristetään kotivaluutassa
   if ($orow["hinta"] <> 0) {
@@ -1081,11 +1087,15 @@ else {
   }
 
   // jos halutaan pyöristää laskun loppusumma lähimpään tasalukuun
-  if ($yhtiorow["laskunsummapyoristys"] != '' or $asrow["laskunsummapyoristys"] != '') {
+  if (
+  ($yhtiorow["laskunsummapyoristys"] == 'o' and $asrow["laskunsummapyoristys"] != 'p') or 
+  $asrow["laskunsummapyoristys"] == 'o'
+  ) {
     // kotivaluutassa
     if (trim(strtoupper($orow["valkoodi"])) == trim(strtoupper($yhtiorow["valkoodi"]))) {
       $pyorerotus = $loppusumma - round((float) $loppusumma, 0);
     }
+
     // valuutassa
     if (trim(strtoupper($orow["valkoodi"])) != trim(strtoupper($yhtiorow["valkoodi"]))) {
       $pyorerotus_valuutassa = $loppusumma_valuutassa - round((float) $loppusumma_valuutassa, 0);

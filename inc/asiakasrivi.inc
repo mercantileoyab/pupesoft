@@ -667,6 +667,7 @@ if ($fieldname == "laskunsummapyoristys") {
 
   $ulos .= "<option value='' $sel1>".t("Laskun loppusummaa ei pyöristetä")."</option>";
   $ulos .= "<option value='o' $sel2>".t("Laskun loppusumma pyöristetään lahimpään kokonaislukuun")."</option>";
+  $ulos .= "<option value='p' $sel2>".t("Vain käteislaskun loppusumma pyöristetään lahimpään 0,05")."</option>";
   $ulos .= "</select></td>";
 
   $jatko = 0;

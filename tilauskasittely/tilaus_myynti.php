@@ -9881,8 +9881,22 @@ if ($tee == '') {
         }
 
         // Jos laskun loppusumma pyöristetään lähimpään tasalukuun
-        if ($yhtiorow["laskunsummapyoristys"] == 'o' or $asiakasrow["laskunsummapyoristys"] == 'o') {
+        if (
+          ($yhtiorow["laskunsummapyoristys"] == 'o' and $asiakasrow["laskunsummapyoristys"] != 'p') 
+          or 
+          $asiakasrow["laskunsummapyoristys"] == 'o'
+        ) {
           $summa = sprintf("%.2f", round($summa , 0));
+        }
+
+        // Jos laskun loppusumma pyöristetään 5 sentiin
+        if (
+          $maksuehtorow['kateinen'] == 'p' and (
+          ($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
+          or 
+          $asiakasrow["laskunsummapyoristys"] == 'p')
+        ) {
+          $summa = number_format(round($summa*20, 0)/20,2, '.', '');
         }
 
         if ($toim != 'SIIRTOLISTA') {

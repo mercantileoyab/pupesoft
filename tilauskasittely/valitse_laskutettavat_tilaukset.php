@@ -169,9 +169,30 @@ if ($tee == 'TOIMITA' and isset($maksutapa) and $maksutapa == 'seka') {
     $summa = sprintf("%.2f", $laskurow["hinta"]);
   }
 
-  //Jos laskun loppusumma pyöristetään lähimpään tasalukuun
-  if ($yhtiorow["laskunsummapyoristys"] == 'o' or $asrow["laskunsummapyoristys"] == 'o') {
+  // Jos laskun loppusumma pyöristetään lähimpään tasalukuun
+  if (
+    ($yhtiorow["laskunsummapyoristys"] == 'o' and $asrow["laskunsummapyoristys"] != 'p') 
+    or 
+    $asrow["laskunsummapyoristys"] == 'o'
+  ) {
     $summa = sprintf("%.2f", round($summa , 0));
+  }
+
+  // Jos laskun loppusumma pyöristetään 5 sentiin
+  if (
+    ($yhtiorow["laskunsummapyoristys"] == 'p' and $asrow["laskunsummapyoristys"] != 'o')
+    or 
+    $asrow["laskunsummapyoristys"] == 'p'
+  ) {
+    $_query_maksuehto = "SELECT *
+                         FROM maksuehto 
+                         WHERE yhtio='$kukarow[yhtio]' 
+                         AND tunnus ='$laskurow[maksuehto]' 
+                         AND kateinen = 'p'";
+    $_maksuehtores = pupe_query($_query_maksuehto);
+    if(mysql_num_rows($_maksuehtores) == 1) {
+      $summa = number_format(round($summa*20, 0)/20,2, '.', '');
+    }
   }
 
   $loppusumma = $summa;

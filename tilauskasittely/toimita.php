@@ -916,8 +916,20 @@ if ($id > 0) {
   }
 
   // Jos laskun loppusumma pyöristetään lähimpään tasalukuun
-  if ($yhtiorow["laskunsummapyoristys"] == 'o' or $asrow["laskunsummapyoristys"] == 'o') {
-    $summa = sprintf("%.2f", round($summa, 0));
+  if (
+    ($yhtiorow["laskunsummapyoristys"] == 'o' and $asrow["laskunsummapyoristys"] != 'p') 
+    or 
+    $asrow["laskunsummapyoristys"] == 'o'
+  ) {
+    $summa = sprintf("%.2f", round($summa , 0));
+  }
+  // Jos laskun loppusumma pyöristetään 5 sentiin
+  if ($row['kateinen'] == 'p' and 
+    ($yhtiorow["laskunsummapyoristys"] == 'p' and $asrow["laskunsummapyoristys"] != 'o')
+    or 
+    $asrow["laskunsummapyoristys"] == 'p'
+  ) {
+    $summa = number_format(round($summa*20, 0)/20,2, '.', '');
   }
 
   $query = "SELECT * FROM toimitustapa WHERE yhtio='$kukarow[yhtio]' AND selite='$row[toimitustapa]'";
