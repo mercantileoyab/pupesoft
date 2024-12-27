@@ -2372,14 +2372,6 @@ if ($tee == 'Z') {
     //3
     echo "<tr>";
     echo "<th>".t("Toimtuoteno")."</th>";
-    echo "<th>".t("Myyntihinta");
-
-    if ($tuoterow["myyntihinta_maara"] != 0) {
-      echo " $tuoterow[myyntihinta_maara] $tuoterow[yksikko]";
-    }
-
-    echo "</th>";
-    echo "<th>".t("Netto/Ovh")."</th>";
     echo "<th>".t("Ostohinta")." / ";
 
     for ($alepostfix = 1; $alepostfix <= $yhtiorow['oston_alekentat']; $alepostfix++) {
@@ -2388,6 +2380,13 @@ if ($tee == 'Z') {
       echo t("Ale{$alepostfix}");
     }
 
+    if ($tuoterow["myyntihinta_maara"] != 0) {
+      echo " $tuoterow[myyntihinta_maara] $tuoterow[yksikko]";
+    }
+
+    echo "</th>";
+    echo "<th>".t("Netto/Ovh")."</th>";
+    echo "<th>".t("Myyntihinta");
     echo "<th>".t("Kehahinta")."</th>";
     echo "<th>".t("Vihahinta")." ".tv1dateconv($tuoterow["vihapvm"])."</th>";
     echo "</tr>";
@@ -2398,9 +2397,7 @@ if ($tee == 'Z') {
       echo "{$tt_rivi["toim_tuoteno"]}<br>";
     }
     echo "</td>";
-    echo "<td valign='top' align='right' style='font-weight:bold;'>".hintapyoristys($tuoterow["myyntihinta"])." $yhtiorow[valkoodi]$valuuttalisa</td>";
-    echo "<td valign='top' align='right'>".hintapyoristys($tuoterow["nettohinta"])."/".hintapyoristys($tuoterow["myymalahinta"])."</td>";
-    echo "<td valign='top' align='right'>";
+    echo "<td valign='top'>";
 
     foreach ($ttrow as $tt_rivi) {
 
@@ -2433,6 +2430,8 @@ if ($tee == 'Z') {
       echo "<br />";
     }
     echo "</td>";
+    echo "<td valign='top' align='right'>".hintapyoristys($tuoterow["nettohinta"])."/".hintapyoristys($tuoterow["myymalahinta"])."</td>";
+    echo "<td valign='top' align='right' style='font-weight:bold;'>".hintapyoristys($tuoterow["myyntihinta"])." $yhtiorow[valkoodi]$valuuttalisa</td>";
     echo "<td valign='top' align='right' style='font-weight:bold;'>{$tuoterow['kehahin']}";
 
     if ($tuoterow["myyntihinta_maara"] != 0) {
