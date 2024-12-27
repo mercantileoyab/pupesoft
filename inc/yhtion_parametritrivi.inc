@@ -1434,13 +1434,16 @@ if ($fieldname == "laskunsummapyoristys") {
   if ($trow[$i] == "") {
     $sel1 = "selected";
   }
-  else {
+  else if ($trow[$i] == "o") {
     $sel2 = "selected";
+  }
+  else if ($trow[$i] == "p") {
+    $sel3 = "selected";
   }
 
   $ulos .= "<option value='' $sel1>".t("Laskun loppusummaa ei pyöristetä")."</option>";
   $ulos .= "<option value='o' $sel2>".t("Laskun loppusumma pyöristetään lahimpään kokonaislukuun")."</option>";
-  $ulos .= "<option value='p' $sel2>".t("Vain käteislaskun loppusumma pyöristetään lahimpään 0,05")."</option>";
+  $ulos .= "<option value='p' $sel3>".t("Vain käteislaskun loppusumma pyöristetään lahimpään 0,05")."</option>";
   $ulos .= "</select></td>";
 
   $jatko = 0;

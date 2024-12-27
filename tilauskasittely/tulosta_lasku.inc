@@ -2090,9 +2090,21 @@ if (!function_exists('loppu')) {
           $thispage, $norm);
 
         if ($toim == 'PROFORMA') {
-          if ($yhtiorow["laskunsummapyoristys"] != '' or $asiakasrow["laskunsummapyoristys"] != ''
+          if (
+            ($yhtiorow["laskunsummapyoristys"] == 'o' and $asiakasrow["laskunsummapyoristys"] != 'p') 
+            or 
+            $asiakasrow["laskunsummapyoristys"] == 'o'
           ) {
             $summa = round($summa, 0);
+          }
+          
+          if (
+            $maksuehtorow['kateinen'] == 'p' and (
+            ($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
+            or 
+            $asiakasrow["laskunsummapyoristys"] == 'p')
+          ) {
+            $summa = number_format(round($summa*20, 0)/20,2, '.', '');
           }
 
           $pdf_lasku->draw_text(490, 92 + $vientikala + $barcode_korkeus, sprintf('%.2f', $summa),

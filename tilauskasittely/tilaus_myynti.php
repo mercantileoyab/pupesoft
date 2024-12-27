@@ -9879,6 +9879,7 @@ if ($tee == '') {
         if ($laskurow["hinta"] <> 0 and abs($laskurow["hinta"]-$summa) <= 0.5 and abs($summa) >= 0.5) {
           $summa = sprintf("%.2f", $laskurow["hinta"]);
         }
+        echo $yhtiorow["laskunsummapyoristys"];
 
         // Jos laskun loppusumma pyöristetään lähimpään tasalukuun
         if (
