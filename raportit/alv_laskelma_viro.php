@@ -7,6 +7,7 @@ require "../inc/parametrit.inc";
 1.1    EE110  Sales 20% VAT
 2.    EE200  Sales  9% VAT
 2.1    EE210  Sales  5% VAT
+2.2    EE212  Sales  13% VAT
 3.    EE300  Sales  0% VAT
 3.1    EE310  Intra-Community supply of GOODS AND SERVICES provided to a taxable person of another Member State / taxable person with limited liability
 3.1.1  EE311  Intra-Community supply of GOODS provided to a taxable person of another Member State / taxable person with limited liability
@@ -207,6 +208,11 @@ if (isset($tee) and $tee == 'erittele') {
     $taso = "ee100";
     $eetasolisa = " or alv_taso like '%ee110%'";
     $tiliointilisa = " and tiliointi.vero = 5 ";
+  }
+  elseif ($ryhma == '2.2') {
+    $taso = "ee100";
+    $eetasolisa = " or alv_taso like '%ee110%'";
+    $tiliointilisa = " and tiliointi.vero = 13 ";
   }
   elseif ($ryhma == '3') {
     $taso = "ee300";
@@ -708,6 +714,7 @@ function alvlaskelma($kk, $vv) {
 
     //1.1 Sales 20% VAT, vain omaan k‰yttˆˆn
     //2.1 Sales 5% VAT
+    //2.1 Sales 13% VAT
     $ee110 = laskeverojaverokannoittain('ee110');
 
     //3. Sales 0% VAT
@@ -725,11 +732,11 @@ function alvlaskelma($kk, $vv) {
     //3.2.1. Exportation of goods outside EU, sale to passengers with return of value added tax
     $ee321 = 0;
 
-    //4. VAT from sales: ($ee100*20%)+($ee100*9%)
-    $ee400 = round(($ee100["22.00"] * 0.22) + ($ee100["20.00"] * 0.20) + ($ee100["9.00"] * 0.09) + ($ee100["5.00"] * 0.05), 2);
+    //4. VAT from sales: ($ee100*22%)+($ee100*20%)+($ee100*9%)+($ee100*5%)+($ee100*13%)
+    $ee400 = round(($ee100["22.00"] * 0.22) + ($ee100["20.00"] * 0.20) + ($ee100["9.00"] * 0.09) + ($ee100["5.00"] * 0.05) + ($ee100["13.00"] * 0.13), 2);
 
-    //4.05. Sales with VAT: ($ee100*22%)+($ee100*20%)+($ee100*9%)+($ee100*5%)
-    $ee405 = round($ee100["22.00"] + $ee100["20.00"] + $ee100["9.00"] + $ee100["5.00"], 2);
+    //4.05. Sales with VAT: ($ee100*22%)+($ee100*20%)+($ee100*9%)+($ee100*5%)+($ee100*13%)
+    $ee405 = round($ee100["22.00"] + $ee100["20.00"] + $ee100["9.00"] + $ee100["5.00"] + $ee100["13.00"], 2);
 
     //4.1. VAT payable upon the import of the goods (Ei implementoitu)
     $ee410 = 0;
@@ -790,13 +797,14 @@ function alvlaskelma($kk, $vv) {
     echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=1.1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>1<sup>1</sup>)</a> 20% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $ee100["20.00"])."</td></tr>";
     echo "<tr class='aktiivi'><td><a href = '?tee=erittele&ryhma=2&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>2)</a> 9% m‰‰raga maksustatavad toimingud ja tehingud, sh</td><td align='right'>".sprintf('%.2f', $ee100["9.00"])."</td></tr>";
     echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=2.1&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>2<sup>1</sup>)</a> 5% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $ee110["5.00"])."</td></tr>";
+    echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=2.2&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>2<sup>2</sup>)</a> 13% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $ee110["13.00"])."</td></tr>";
 
     // V‰‰r‰t alvikannat
     foreach ($ee100 as $eekey => $eeval) {
-      if ($eekey != "22.00" and $eekey != "20.00" and $eekey != "9.00" and $eekey != "5.00") echo "<tr><td>XXX ".($eekey * 1)."% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $eeval)."</td></tr>";
+      if ($eekey != "22.00" and $eekey != "20.00" and $eekey != "9.00" and $eekey != "5.00" and $eekey != "13.00") echo "<tr><td>XXX ".($eekey * 1)."% m‰‰raga maksustatavad toimingud ja tehingud</td><td align='right'>".sprintf('%.2f', $eeval)."</td></tr>";
     }
     foreach ($ee110 as $eekey => $eeval) {
-      if ($eekey != "22.00" and $eekey != "20.00" and $eekey != "9.00" and $eekey != "5.00") echo "<tr><td>XXX ".($eekey * 1)."% m‰‰raga maksustatav kauba voi teenuse omatarve</td><td align='right'>".sprintf('%.2f', $eeval)."</td></tr>";
+      if ($eekey != "22.00" and $eekey != "20.00" and $eekey != "9.00" and $eekey != "5.00" and $eekey != "13.00") echo "<tr><td>XXX ".($eekey * 1)."% m‰‰raga maksustatav kauba voi teenuse omatarve</td><td align='right'>".sprintf('%.2f', $eeval)."</td></tr>";
     }
 
     // Veroton myynti
@@ -806,7 +814,8 @@ function alvlaskelma($kk, $vv) {
     echo "<tr class='aktiivi'><td>&raquo; <a href = '?tee=erittele&ryhma=3.2&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>3.2)</a> Kauba eksport, sh</td><td align='right'>".sprintf('%.2f', $ee320)."</td></tr>";
     echo "<tr class='aktiivi'><td>&raquo; &raquo; 3.2.1) K‰ibemaksutagastusega m¸¸k reisijale</td><td align='right'>".sprintf('%.2f', $ee321)."</td></tr>";
 
-    echo "<tr class='aktiivi'><td>4) 22% lahtrist 1 + 20% lahtrist 1<sup>1</sup> + 9% lahtrist 2 + 5% lahtrist 2<sup>1</sup></td><td align='right'>".sprintf('%.2f', $ee405)."</td></tr>";
+    echo "<tr class='aktiivi'><td>4) 22% lahtrist 1 + 20% lahtrist 1<sup>1</sup> + 9% lahtrist 2 + 5% lahtrist 2<sup>1</sup> + 13% lahtrist 2<sup>2</sup></td><td align='right'>".sprintf('%.2f', $ee405)."</td></tr>";
+    
     echo "<tr class='aktiivi'><td>&raquo; 4<sup>1</sup>) Impordilt tasumisele kuuluv k‰ibemaks (+)</td><td align='right'>".sprintf('%.2f', $ee410)."</td></tr>";
 
     echo "<tr class='aktiivi'><td><a href = '?tee=erittele&ryhma=5&vv=$vv&kk=$kk&etsivirheita=$etsivirheita'>5)</a> Kokku sisendk‰ibemaksusumma, mis on seadusega lubatud maha arvata, sh -</td><td align='right'>".sprintf('%.2f', $ee500)."</td></tr>";
