@@ -2099,7 +2099,7 @@ if (!function_exists('loppu')) {
           }
           
           if (
-            $maksuehtorow['kateinen'] == 'p' and (
+            $laskurow["kateistyyppi"] == 'p' and (
             ($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
             or 
             $asiakasrow["laskunsummapyoristys"] == 'p')
@@ -2605,6 +2605,15 @@ if (!function_exists('alvierittely')) {
         $oikpos = $pdf_lasku->strlen(sprintf('%.2f', $summa_valuutassa - $pyoristys_valuutassa), $norm);
         $pdf_lasku->draw_text(535-$oikpos, $kala, sprintf('%.2f', $summa_valuutassa - $pyoristys_valuutassa), $thispage, $norm);
         $pdf_lasku->draw_text(550, $kala, $laskurow["valkoodi"], $thispage, $norm);
+
+        if (
+          $laskurow["kateistyyppi"] == 'p' and (
+          ($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
+          or 
+          $asiakasrow["laskunsummapyoristys"] == 'p')
+        ) {
+          $pdf_lasku->draw_text(35, $kala-50, t("Voimassa Virossa 1. tammikuuta 2025 alkaen: pyöristyssääntö käteisellä maksettaessa!"), $thispage, $norm);
+        }
       }
     }
     else {
@@ -2635,6 +2644,14 @@ if (!function_exists('alvierittely')) {
         $oikpos = $pdf_lasku->strlen(sprintf('%.2f', $summa - $pyoristys), $norm);
         $pdf_lasku->draw_text(535-$oikpos, $kala, sprintf('%.2f', $summa - $pyoristys), $thispage, $norm);
         $pdf_lasku->draw_text(550, $kala, $laskurow["valkoodi"], $thispage, $norm);
+        if (
+          $laskurow["kateistyyppi"] == 'p' and (
+          ($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
+          or 
+          $asiakasrow["laskunsummapyoristys"] == 'p')
+        ) {
+          $pdf_lasku->draw_text(35, $kala-50, t("Voimassa Virossa 1. tammikuuta 2025 alkaen: pyöristyssääntö käteisellä maksettaessa!"), $thispage, $norm);
+        }
       }
     }
 
