@@ -2613,6 +2613,8 @@ if (!function_exists('alvierittely')) {
           $asiakasrow["laskunsummapyoristys"] == 'p')
         ) {
           $pdf_lasku->draw_text(35, $kala-50, t("Voimassa Virossa 1. tammikuuta 2025 alkaen: pyˆristyss‰‰ntˆ k‰teisell‰ maksettaessa!"), $thispage, $norm);
+          $pdf_lasku->draw_text(35, $kala-70, t("Jos ostaja maksaa k‰teisell‰, myyj‰ pyˆrist‰‰ ostoskorin loppusumman kassalla l‰himp‰‰n viiden sentin tasalukemaan."), $thispage, $norm);
+          $pdf_lasku->draw_text(35, $kala-80, t("N‰in ostoskorin loppusumma voi olla enint‰‰n kaksi sentti‰ halvempi tai kalliimpi."), $thispage, $norm);
         }
       }
     }
@@ -2651,6 +2653,8 @@ if (!function_exists('alvierittely')) {
           $asiakasrow["laskunsummapyoristys"] == 'p')
         ) {
           $pdf_lasku->draw_text(35, $kala-50, t("Voimassa Virossa 1. tammikuuta 2025 alkaen: pyˆristyss‰‰ntˆ k‰teisell‰ maksettaessa!"), $thispage, $norm);
+          $pdf_lasku->draw_text(35, $kala-70, t("Jos ostaja maksaa k‰teisell‰, myyj‰ pyˆrist‰‰ ostoskorin loppusumman kassalla l‰himp‰‰n viiden sentin tasalukemaan."), $thispage, $norm);
+          $pdf_lasku->draw_text(35, $kala-80, t("N‰in ostoskorin loppusumma voi olla enint‰‰n kaksi sentti‰ halvempi tai kalliimpi."), $thispage, $norm);
         }
       }
     }
