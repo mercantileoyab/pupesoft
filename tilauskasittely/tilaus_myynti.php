@@ -9880,12 +9880,15 @@ if ($tee == '') {
           $summa = sprintf("%.2f", $laskurow["hinta"]);
         }
 
+        $summa_eipyoristysta = false;
+
         // Jos laskun loppusumma pyöristetään lähimpään tasalukuun
         if (
           ($yhtiorow["laskunsummapyoristys"] == 'o' and $asiakasrow["laskunsummapyoristys"] != 'p') 
           or 
           $asiakasrow["laskunsummapyoristys"] == 'o'
         ) {
+          $summa_eipyoristysta = $summa;
           $summa = sprintf("%.2f", round($summa , 0));
         }
 
@@ -9896,15 +9899,30 @@ if ($tee == '') {
           or 
           $asiakasrow["laskunsummapyoristys"] == 'p')
         ) {
+          $summa_eipyoristysta = $summa;
           $summa = number_format(round($summa*20, 0)/20,2, '.', '');
+        }
+
+        if($summa_eipyoristysta) {
+          if ($toim != 'SIIRTOLISTA') {
+            echo "<tr>$jarjlisa
+                <td class='back' colspan='".($sarakkeet_alku-5)."'>&nbsp;</td>
+                <th colspan='5' align='right'>".t("Verollinen yht. (ei pyöristystä)").":</th>";
+            echo "<td class='spec' align='right'>".sprintf("%.2f", $summa_eipyoristysta)."</td>";
+          }
+          if ($kukarow['extranet'] == '' and $naytetaanko_kate) {
+            echo "<td class='spec' align='right'>&nbsp;</td>";
+          }
+  
+          echo "<td class='spec'>$laskurow[valkoodi]</td></tr>";
         }
 
         if ($toim != 'SIIRTOLISTA') {
           echo "<tr>$jarjlisa
               <td class='back' colspan='".($sarakkeet_alku-5)."'>&nbsp;</td>
               <th colspan='5' align='right'>".t("Verollinen yhteensä").":</th>";
-
           echo "<td class='spec' align='right'>".sprintf("%.2f", $summa)."</td>";
+
         }
 
         if ($kukarow['extranet'] == '' and $naytetaanko_kate) {
