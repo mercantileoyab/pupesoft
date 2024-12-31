@@ -422,8 +422,7 @@ function yliviivaa_alet_ja_pyoristykset($tunnus) {
 
 function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
   global $kukarow, $yhtiorow;
-  echo "toim:".$toim."<br>";
-  echo "ehto:".$mehtorow['kateinen']."<br>";
+
   if($toim != 'KATEINEN' 
     and ($laskurow['pyoristys_valuutassa'] != 0 or $laskurow['pyoristys'] != 0) 
     and $mehtorow['kateinen'] != 'p' 
