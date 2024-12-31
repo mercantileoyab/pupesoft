@@ -422,7 +422,8 @@ function yliviivaa_alet_ja_pyoristykset($tunnus) {
 
 function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
   global $kukarow, $yhtiorow;
-
+  echo "toim:".$toim."<br>";
+  echo "ehto:".$mehtorow['kateinen']."<br>";
   if($toim != 'KATEINEN' 
     and ($laskurow['pyoristys_valuutassa'] != 0 or $laskurow['pyoristys'] != 0) 
     and $mehtorow['kateinen'] != 'p' 
@@ -441,7 +442,7 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
     pupe_query($query);
   }
 
-  if($toim == 'KATEINEN' 
+  if(($toim == 'KATEINEN' or $toim == 'KATEISESTAKATEINEN') 
     and ($laskurow['pyoristys_valuutassa'] == 0 or $laskurow['pyoristys'] == 0) 
     and $mehtorow['kateinen'] == 'p' 
     and (($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
@@ -463,9 +464,6 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
               summa_valuutassa = '$loppusumma_valuutassa' 
               WHERE yhtio = '{$kukarow['yhtio']}' 
               AND tunnus = {$laskurow['tunnus']}";
-    echo "<pre>";
-    print_r($query);
-    echo "</pre>";
     pupe_query($query);
   }
 
