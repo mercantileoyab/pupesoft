@@ -1047,8 +1047,6 @@ else {
   $arvosumma_valuutassa  = round((float) $arvosumma_valuutassa, 2);
   $katesumma        = round((float) $katesumma, 2);
 
-  $pyorerotus = round((float) $loppusumma, 2) - round((float) round((float) $loppusumma / 0.05) * 0.05, 2);
-
   // Etsit‰‰n asiakas
   $query = "SELECT laskunsummapyoristys
             FROM asiakas

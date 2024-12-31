@@ -82,6 +82,7 @@ if ((int) $maksuehto != 0 and (int) $tunnus != 0) {
 
     tee_kirjanpito_muutokset($params);
     yliviivaa_alet_ja_pyoristykset($tunnus);
+    korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow);
     tarkista_pyoristys_erotukset($laskurow, $tunnus);
 
     if ($toim == 'KATEINEN' or $toim == 'KATEISESTAKATEINEN') {
@@ -417,6 +418,58 @@ function yliviivaa_alet_ja_pyoristykset($tunnus) {
   if (mysql_affected_rows() > 0) {
     echo "<font class='message'>".t("Poistettiin pyöristys- ja kassa-alekirjaukset")." (".mysql_affected_rows()." ".t("kpl").").</font><br>";
   }
+}
+
+function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
+  global $kukarow, $yhtiorow;
+
+  if($toim != 'KATEINEN' 
+    and ($laskurow['pyoristys_valuutassa'] != 0 or $laskurow['pyoristys'] != 0) 
+    and $mehtorow['kateinen'] != 'p' 
+    and (($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
+    or $asiakasrow["laskunsummapyoristys"] == 'p')
+  ) {
+    $loppusumma = round($laskurow['summa'] + $laskurow['pyoristys'], 2);
+    $loppusumma_valuutassa = round($laskurow['summa_valuutassa'] + $laskurow['pyoristys_valuutassa'], 2);
+    $query = "UPDATE lasku set 
+              pyoristys = 0,   
+              pyoristys_valuutassa = 0,
+              summa = $loppusumma, 
+              summa_valuutassa = '$loppusumma_valuutassa' 
+              WHERE yhtio = '{$kukarow['yhtio']}'
+              AND tunnus = {$laskurow['tunnus']}";
+    pupe_query($query);
+  }
+
+  if($toim == 'KATEINEN' 
+    and ($laskurow['pyoristys_valuutassa'] == 0 or $laskurow['pyoristys'] == 0) 
+    and $mehtorow['kateinen'] == 'p' 
+    and (($yhtiorow["laskunsummapyoristys"] == 'p' and $asiakasrow["laskunsummapyoristys"] != 'o')
+    or $asiakasrow["laskunsummapyoristys"] == 'p')
+  ) {
+
+    // kotivaluutassa
+    if (trim(strtoupper($laskurow["valkoodi"])) == trim(strtoupper($yhtiorow["valkoodi"]))) {
+      $laskurow['pyoristys'] = round((float) $laskurow['summa'], 2) - round((float) round((float) $laskurow['summa'] / 0.05) * 0.05, 2);
+      $laskurow['pyoristys_valuutassa'] = round((float) $laskurow['summa_valuutassa'], 2) - round((float) round((float) $laskurow['summa_valuutassa'] / 0.05) * 0.05, 2);
+    }
+
+    $loppusumma = round($laskurow['summa'] - $laskurow['pyoristys'], 2);
+    $loppusumma_valuutassa = round($laskurow['summa_valuutassa'] - $laskurow['pyoristys_valuutassa'], 2);
+    $query = "UPDATE lasku set 
+              pyoristys = '{$laskurow['pyoristys']}', 
+              pyoristys_valuutassa = '{$laskurow['pyoristys_valuutassa']}', 
+              summa = $loppusumma, 
+              summa_valuutassa = '$loppusumma_valuutassa' 
+              WHERE yhtio = '{$kukarow['yhtio']}' 
+              AND tunnus = {$laskurow['tunnus']}";
+    echo "<pre>";
+    print_r($query);
+    echo "</pre>";
+    pupe_query($query);
+  }
+
+
 }
 
 function tarkista_pyoristys_erotukset($laskurow, $tunnus) {
