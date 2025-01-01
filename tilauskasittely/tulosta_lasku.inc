@@ -2601,7 +2601,7 @@ if (!function_exists('alvierittely')) {
         $pdf_lasku->draw_text(550, $kala, $laskurow["valkoodi"], $thispage, $norm);
         $kala -= 10;
 
-        $pdf_lasku->draw_text(360, $kala, t("Yhteensä", $kieli).":", $thispage, $norm);
+        $pdf_lasku->draw_text(360, $kala, t("Summa yhteensä", $kieli).":", $thispage, $norm);
         $oikpos = $pdf_lasku->strlen(sprintf('%.2f', $summa_valuutassa - $pyoristys_valuutassa), $norm);
         $pdf_lasku->draw_text(535-$oikpos, $kala, sprintf('%.2f', $summa_valuutassa - $pyoristys_valuutassa), $thispage, $norm);
         $pdf_lasku->draw_text(550, $kala, $laskurow["valkoodi"], $thispage, $norm);
@@ -2642,7 +2642,7 @@ if (!function_exists('alvierittely')) {
         $pdf_lasku->draw_text(550, $kala, $laskurow["valkoodi"], $thispage, $norm);
         $kala -= 10;
 
-        $pdf_lasku->draw_text(360, $kala, t("Yhteensä", $kieli).":", $thispage, $norm);
+        $pdf_lasku->draw_text(360, $kala, t("Summa yhteensä", $kieli).":", $thispage, $norm);
         $oikpos = $pdf_lasku->strlen(sprintf('%.2f', $summa - $pyoristys), $norm);
         $pdf_lasku->draw_text(535-$oikpos, $kala, sprintf('%.2f', $summa - $pyoristys), $thispage, $norm);
         $pdf_lasku->draw_text(550, $kala, $laskurow["valkoodi"], $thispage, $norm);
