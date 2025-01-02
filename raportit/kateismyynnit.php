@@ -1107,7 +1107,7 @@ elseif ($tee != '') {
                    lasku.kassalipas,
                    tiliointi.ltunnus,
                    kassalipas.tunnus ktunnus,
-                   (lasku.summa - lasku.pyoristys) summa,
+                   lasku.summa summa,
                    SUM(tiliointi.summa) tilsumma
                    FROM lasku USE INDEX (yhtio_tila_mapvm)
                    JOIN maksuehto ON (maksuehto.yhtio = lasku.yhtio AND lasku.maksuehto = maksuehto.tunnus AND maksuehto.kateinen != '')
