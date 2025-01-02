@@ -47,6 +47,8 @@ if ((int) $maksuehto != 0 and (int) $tunnus != 0) {
     $konsrow = hae_asiakas($laskurow);
     $kassalipasrow = hae_kassalipas($kassalipas);
 
+    $laskurow = korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow);
+
     $params = array(
       'konsrow' => $konsrow,
       'mehtorow' => $mehtorow,
@@ -57,6 +59,7 @@ if ((int) $maksuehto != 0 and (int) $tunnus != 0) {
       'tapahtumapaiva' => $tapahtumapaiva,
       'kassalipas' => $kassalipas
     );
+
 
     if (($toim == 'KATEINEN' or $toim == 'KATEISESTAKATEINEN') and $kateinen != '') {
       // Lasku oli ennest‰‰n k‰teinen ja nyt p‰ivitet‰‰n sille joku toinen k‰teismaksuehto
@@ -82,7 +85,6 @@ if ((int) $maksuehto != 0 and (int) $tunnus != 0) {
 
     tee_kirjanpito_muutokset($params);
     yliviivaa_alet_ja_pyoristykset($tunnus);
-    korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow);
     tarkista_pyoristys_erotukset($laskurow, $tunnus);
 
     if ($toim == 'KATEINEN' or $toim == 'KATEISESTAKATEINEN') {
@@ -454,18 +456,19 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
       $laskurow['pyoristys_valuutassa'] = round((float) $laskurow['summa_valuutassa'], 2) - round((float) round((float) $laskurow['summa_valuutassa'] / 0.05) * 0.05, 2);
     }
 
-    $loppusumma = round($laskurow['summa'] - $laskurow['pyoristys'], 2);
-    $loppusumma_valuutassa = round($laskurow['summa_valuutassa'] - $laskurow['pyoristys_valuutassa'], 2);
+    $laskurow['summa'] = round($laskurow['summa'] - $laskurow['pyoristys'], 2);
+    $laskurow['summa_valuutassa'] = round($laskurow['summa_valuutassa'] - $laskurow['pyoristys_valuutassa'], 2);
     $query = "UPDATE lasku set 
               pyoristys = '{$laskurow['pyoristys']}', 
               pyoristys_valuutassa = '{$laskurow['pyoristys_valuutassa']}', 
-              summa = $loppusumma, 
-              summa_valuutassa = '$loppusumma_valuutassa' 
+              summa = '{$laskurow['summa']}',
+              summa_valuutassa = '{$laskurow['summa_valuutassa']}' 
               WHERE yhtio = '{$kukarow['yhtio']}' 
               AND tunnus = {$laskurow['tunnus']}";
     pupe_query($query);
   }
 
+  return $laskurow;
 
 }
 
