@@ -434,12 +434,12 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
     $loppusumma = round($laskurow['summa'] + $laskurow['pyoristys'], 2);
     $loppusumma_valuutassa = round($laskurow['summa_valuutassa'] + $laskurow['pyoristys_valuutassa'], 2);
     $query = "UPDATE lasku set 
-              pyoristys = 0,   
-              pyoristys_valuutassa = 0,
-              summa = $loppusumma, 
-              summa_valuutassa = '$loppusumma_valuutassa' 
+              summa = summa + pyoristys, 
+              summa_valuutassa = summa_valuutassa + pyoristys_valuutassa, 
+              pyoristys = 0, 
+              pyoristys_valuutassa = 0 
               WHERE yhtio = '{$kukarow['yhtio']}'
-              AND tunnus = {$laskurow['tunnus']}";
+              AND laskunro = {$laskurow['laskunro']}";
     pupe_query($query);
   }
 
@@ -450,7 +450,6 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
     or $asiakasrow["laskunsummapyoristys"] == 'p')
   ) {
 
-    // kotivaluutassa
     if (trim(strtoupper($laskurow["valkoodi"])) == trim(strtoupper($yhtiorow["valkoodi"]))) {
       $laskurow['pyoristys'] = round((float) $laskurow['summa'], 2) - round((float) round((float) $laskurow['summa'] / 0.05) * 0.05, 2);
       $laskurow['pyoristys_valuutassa'] = round((float) $laskurow['summa_valuutassa'], 2) - round((float) round((float) $laskurow['summa_valuutassa'] / 0.05) * 0.05, 2);
@@ -466,6 +465,42 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
               WHERE yhtio = '{$kukarow['yhtio']}' 
               AND tunnus = {$laskurow['tunnus']}";
     pupe_query($query);
+
+    $query = "SELECT 
+              lasku.tunnus tunnus,
+              lasku.pyoristys pyoristys,
+              lasku.pyoristys_valuutassa pyoristys_valuutassa,
+              lasku.summa summa,
+              lasku.summa_valuutassa summa_valuutassa,
+              lasku.valkoodi valkoodi 
+              FROM lasku 
+              JOIN maksuehto ON (maksuehto.yhtio = lasku.yhtio AND maksuehto.tunnus = lasku.maksuehto) 
+              WHERE lasku.yhtio = '{$kukarow['yhtio']}' 
+              AND lasku.laskunro  = '{$laskurow['laskunro']}' 
+              AND maksuehto.kateinen = 'p'";
+    $laskures = pupe_query($query);
+
+    while ($laskurow_p = mysql_fetch_assoc($laskures)) {
+
+      if (trim(strtoupper($laskurow_p["valkoodi"])) == trim(strtoupper($yhtiorow["valkoodi"]))) {
+        $laskurow_p['pyoristys'] = round((float) $laskurow_p['summa'], 2) - round((float) round((float) $laskurow_p['summa'] / 0.05) * 0.05, 2);
+        $laskurow_p['pyoristys_valuutassa'] = round((float) $laskurow_p['summa_valuutassa'], 2) - round((float) round((float) $laskurow_p['summa_valuutassa'] / 0.05) * 0.05, 2);
+      }
+
+      $laskurow_p['summa'] = round($laskurow_p['summa'] - $laskurow_p['pyoristys'], 2);
+      $laskurow_p['summa_valuutassa'] = round($laskurow_p['summa_valuutassa'] - $laskurow_p['pyoristys_valuutassa'], 2);
+      $query = "UPDATE lasku set 
+                pyoristys = '{$laskurow_p['pyoristys']}', 
+                pyoristys_valuutassa = '{$laskurow_p['pyoristys_valuutassa']}', 
+                summa = '{$laskurow_p['summa']}',
+                summa_valuutassa = '{$laskurow_p['summa_valuutassa']}' 
+                WHERE yhtio = '{$kukarow['yhtio']}' 
+                AND pyoristys = 0 
+                AND pyoristys_valuutassa = 0 
+                AND tunnus = {$laskurow_p['tunnus']}";
+      pupe_query($query);
+    }
+    
   }
 
   return $laskurow;
