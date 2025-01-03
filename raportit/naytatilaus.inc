@@ -2060,7 +2060,13 @@ else {
       echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Arvonlisävero", $kieli)." (".sprintf('%.2f', $arow["rivihinta"])."):</td><td align='right' class='spec' nowrap>".sprintf('%.2f', $arow["alvrivihinta"])."</td><td class='spec'>$alvi</td></tr>";
     }
 
-    echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yhteensä").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_yht)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
+    if($laskurow['pyoristys'] <> 0) {
+      $summa_pyoristys = $summa_yht - $laskurow['pyoristys'];
+      echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yht. (ei pyöristystä)").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_yht)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
+      echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yhteensä").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_pyoristys)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
+    } else {
+      echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yhteensä").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_yht)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
+    }
 
     if ($kukarow['extranet'] == '' and ($kukarow["naytetaan_katteet_tilauksella"] == "Y" or ($kukarow["naytetaan_katteet_tilauksella"] == "" and $yhtiorow["naytetaan_katteet_tilauksella"] == "Y"))) {
 

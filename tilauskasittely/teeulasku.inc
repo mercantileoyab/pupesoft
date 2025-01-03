@@ -89,7 +89,7 @@ if (mysql_num_rows($uusiuresult) > 0) {
       $alvinmaara += $arow["alvrivihinta"];
     }
 
-    $summa = $arvo+$alvinmaara;
+    $summa = $arvo+$alvinmaara-$pyoristys;
   }
 
   // generoidaan vientikurssi
