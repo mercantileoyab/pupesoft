@@ -90,7 +90,7 @@ if (mysql_num_rows($uusiuresult) > 0) {
     }
     
     $summa = $arvo+$alvinmaara;
-    if ($yhtiorow["laskunsummapyoristys"] == 'p') {
+    if ($pyoristys != 0) {
       $summa_plus_p = number_format(round($summa*20, 0)/20,2, '.', '');
       $pyoristys = round($summa-$summa_plus_p, 2);
       $summa = $summa_plus_p;

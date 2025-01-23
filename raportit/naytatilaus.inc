@@ -2061,9 +2061,9 @@ else {
     }
 
     if($laskurow['pyoristys'] <> 0) {
-      $summa_pyoristys = $summa_yht + $laskurow['pyoristys'];
-      echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yht. (ei pyöristystä)").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_pyoristys)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
-      echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yhteensä").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_yht)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
+      $summa_pyoristys = number_format(round($summa_yht*20, 0)/20,2, '.', '');
+      echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yht. (ei pyöristystä)").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_yht)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
+      echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yhteensä").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_pyoristys)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
     } else {
       echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yhteensä").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_yht)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
     }
