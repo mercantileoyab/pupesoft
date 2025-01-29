@@ -1342,7 +1342,11 @@ elseif ($tee != '') {
           $luottokortti = true;
         }
 
-        if ($row['tilsumma'] < $row['summa']) {
+        if($yhtiorow["laskunsummapyoristys"] == 'p' and $row['tyyppi'] == "Kateinen") {
+          $row['tilsumma'] = number_format(round($row['tilsumma']*20, 0)/20,2, '.', '');
+        }
+
+        if ($row['tilsumma'] != $row['summa']) {
           $echolisa = "({$row['summa']}) ";
         }
         else {
@@ -1795,7 +1799,13 @@ elseif ($tee != '') {
 
         while ($row = mysql_fetch_assoc($result)) {
 
-          if ($row['tilsumma'] < $row['summa']) {
+          if($yhtiorow["laskunsummapyoristys"] == 'p' and $row['tyyppi'] == "Kateinen") {
+            $row['tilsumma'] = number_format(round($row['tilsumma']*20, 0)/20,2, '.', '');
+          }
+
+          echo $kateinen;
+
+          if ($row['tilsumma'] != $row['summa']) {
             $echolisa = "({$row['summa']}) ";
           }
           else {
@@ -1902,7 +1912,13 @@ elseif ($tee != '') {
 
         while ($row = mysql_fetch_assoc($result)) {
 
-          if ($row['tilsumma'] < $row['summa']) {
+          if($yhtiorow["laskunsummapyoristys"] == 'p' and $row['tyyppi'] == "Kateinen") {
+            $row['tilsumma'] = number_format(round($row['tilsumma']*20, 0)/20,2, '.', '');
+          }
+
+          echo $kateinen;
+
+          if ($row['tilsumma'] != $row['summa']) {
             $echolisa = "({$row['summa']}) ";
           }
           else {
@@ -1994,7 +2010,11 @@ elseif ($tee != '') {
     else {
       while ($row = mysql_fetch_assoc($result)) {
 
-        if ($row['tilsumma'] < $row['summa']) {
+        if($yhtiorow["laskunsummapyoristys"] == 'p' and $row['tyyppi'] == "Kateinen") {
+          $row['tilsumma'] = number_format(round($row['tilsumma']*20, 0)/20,2, '.', '');
+        }
+
+        if ($row['tilsumma'] != $row['summa']) {
           $echolisa = "({$row['summa']}) ";
         }
         else {

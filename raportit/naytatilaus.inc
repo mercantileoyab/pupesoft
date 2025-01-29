@@ -1288,16 +1288,16 @@ else {
           $rihin_yht += $row["rivihinta_valuutassa"];
         }
 
-        $arvo_yht  += round($row["rivihinta_valuutassa"], 2);
-        $summa_yht += round($row["summa_valuutassa"], 2);
+        $arvo_yht  += round($row["rivihinta_valuutassa"], 3);
+        $summa_yht += round($row["summa_valuutassa"], 3);
       }
       else {
         if ($row["osto_vai_hyvitys"] != "O" and ($laskurow["tapvm"] == '0000-00-00' or ($row["var"] != "P" and $row["var"] != "J" and $row["var"] != "S"))) {
           $rihin_yht += $row["rivihinta"];
         }
 
-        $arvo_yht  += round($row["rivihinta"], 2);
-        $summa_yht += round($row["summa"], 2);
+        $arvo_yht  += round($row["rivihinta"], 3);
+        $summa_yht += round($row["summa"], 3);
       }
     }
 
@@ -2061,7 +2061,7 @@ else {
     }
 
     if($laskurow['pyoristys'] <> 0) {
-      $summa_pyoristys = number_format(round($summa_yht*20, 0)/20,2, '.', '');
+      $summa_pyoristys = $summa_yht - $laskurow['pyoristys'];
       echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yht. (ei pyöristystä)").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_yht)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
       echo "<tr><td class='back' colspan='$cspan'></td><td class='spec' colspan='3' align='right' nowrap>".t("Verollinen yhteensä").":</td><td class='spec' align='right' nowrap>".sprintf('%.2f', $summa_pyoristys)."</td><td class='spec'>$laskurow[valkoodi]</td></tr>";
     } else {
