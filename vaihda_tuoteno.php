@@ -564,7 +564,13 @@ if ($error == 0 and $tee == "file") {
                           SET $sarake = '$uustuoteno'
                           WHERE yhtio = '$kukarow[yhtio]'
                           AND $sarake = '$vantuoteno'";
-                pupe_query($query);
+                if($taulu != 'yhteensopivuus_tuote_lisatiedot') {
+                  pupe_query($query);
+                } else {
+                  $yhteensopivuus_tuote_lisatiedot = fopen(getcwd()."/datain/sql/yhteensopivuus_tuote_lisatiedot_".time().".sql", "w") or die("Unable to open file!");
+                  fwrite($yhteensopivuus_tuote_lisatiedot, $query);
+                  fclose($yhteensopivuus_tuote_lisatiedot);
+                }
               }
             }
           }

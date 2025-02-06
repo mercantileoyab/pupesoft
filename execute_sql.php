@@ -35,5 +35,7 @@ ini_set('max_execution_time', 30000);
 $sql_tiedostot = glob('datain/sql/*.{sql}', GLOB_BRACE);
 foreach($sql_tiedostot as $sql_komento) {
   $query = file_get_contents($sql_komento);
-  pupe_query($query);
+  if(pupe_query($query)) {
+    system("rm -rf ".getcwd()."/datain/sql/*");
+  }
 }
