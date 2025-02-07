@@ -567,7 +567,7 @@ if ($error == 0 and $tee == "file") {
                 if($taulu != 'yhteensopivuus_tuote_lisatiedot') {
                   pupe_query($query);
                 } else {
-                  $yhteensopivuus_tuote_lisatiedot = fopen(getcwd()."/datain/sql/yhteensopivuus_tuote_lisatiedot_".time().".sql", "w") or die("Unable to open file!");
+                  $yhteensopivuus_tuote_lisatiedot = fopen(getcwd()."/datain/sql/yhteensopivuus_tuote_lisatiedot_".time().rand(0,99999).".sql", "w") or die("Unable to open file!");
                   fwrite($yhteensopivuus_tuote_lisatiedot, $query);
                   fclose($yhteensopivuus_tuote_lisatiedot);
                 }
