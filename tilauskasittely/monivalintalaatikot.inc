@@ -88,7 +88,8 @@ $lisa_haku_asiakasosasto = "";
 $lisa_haku_asiakasryhma  = "";
 $lisa_haku_asiakaspiiri  = "";
 $lisa_haku_toimipaikka   = "";
-$lisa_haku_maa   = "";
+$lisa_haku_aleryhma      = "";
+$lisa_haku_maa           = "";
 $lisa_haku_kustp         = "";
 $lisa_haku_kohde         = "";
 $lisa_haku_projekti      = "";
@@ -145,6 +146,7 @@ if (!isset($mul_asiakasosasto)) $mul_asiakasosasto = array();
 if (!isset($mul_asiakasryhma))  $mul_asiakasryhma = array();
 if (!isset($mul_asiakaspiiri))  $mul_asiakaspiiri = array();
 if (!isset($mul_toimipaikka))   $mul_toimipaikka = array();
+if (!isset($mul_aleryhma))      $mul_aleryhma = array();
 if (!isset($mul_kustp))         $mul_kustp = array();
 if (!isset($mul_kohde))         $mul_kohde = array();
 if (!isset($mul_projekti))      $mul_projekti = array();
@@ -611,6 +613,25 @@ if (count($mul_asiakaspiiri) > 0) {
       $lisa_haku_asiakaspiiri = " and asiakas.piiri in ($asiakaspiirit) ";
       $lisa .= " and asiakas.piiri in ($asiakaspiirit) ";
     }
+  }
+}
+
+if (count($mul_aleryhma) > 0) {
+  $aleryhmat = '';
+
+  foreach ($mul_aleryhma as $aleryhmax) {
+    if (trim($aleryhmax) != '') {
+      $aleryhmax = trim(mysql_real_escape_string($aleryhmax));
+      $aleryhmat .= "'$aleryhmax',";
+      $ulisa .= "&mul_aleryhma[]=".rawurlencode($aleryhmax);
+    }
+  }
+
+  $aleryhmat = substr($aleryhmat, 0, -1);
+
+  if (trim($aleryhmat) != '') {
+    $lisa_haku_aleryhma = "  and tuote.aleryhma in ($aleryhmat)";
+    $lisa .= "  and tuote.aleryhma in ($aleryhmat)";
   }
 }
 
@@ -2102,6 +2123,57 @@ foreach ($monivalintalaatikot as $monivalintalaatikko) {
     }
 
     echo "</table></div>";
+  }
+
+  if ($monivalintalaatikko == "aleryhma") {
+
+    echo "<div class='monivalintadiv'><table valign='top'>";
+
+    if ($piirra_otsikot) {
+      echo "<tr><th>", t("Aleryhmä"), "</th></tr>";
+    }
+
+    echo "<tr>";
+
+    $query = "SELECT ryhma, if (ryhma!=selite, concat_ws(' - ', ryhma, selite), ryhma) selitetark, tunnus 
+              FROM perusalennus
+              WHERE yhtio = '$kukarow[yhtio]'
+              ORDER BY ryhma";
+    $aleryhma_result = pupe_query($query);
+
+    echo "<td nowrap style='padding:0px'><select name='mul_aleryhma[]' multiple='multiple' class='multipleselect' size='7' $autosubmit>";
+    echo "<option value=''>".t("Ei valintaa")."</option>";
+
+    while ($sxrow = mysql_fetch_array($aleryhma_result)) {
+      $sel = '';
+
+      if (count($mul_aleryhma) > 0) {
+        if (in_array(trim($sxrow['tunnus']), $mul_aleryhma)) {
+          $sel = 'SELECTED';
+        }
+      }
+
+      echo "<option value='$sxrow[ryhma]' $sel>$sxrow[selitetark]";
+      echo "</option>";
+    }
+
+    echo "</select></td>";
+    echo "</tr>";
+
+    if (strpos($_SERVER['SCRIPT_NAME'], "myyntiseuranta") !== FALSE) {
+      $ruksitchk = "";
+
+      if ($ruksit["aleryhma"] != "") {
+        $ruksitchk = "CHECKED";
+      }
+
+      echo "<tr><th>".t("Prio").": <input type='text' name='jarjestys[aleryhma]' size='2' value='$jarjestys[aleryhma]'> ".t("Aleryhmittäin")." <input type='checkbox' name='ruksit[aleryhma]' value='aleryhma' $ruksitchk><br>";
+
+      echo "</th></tr>";
+    }
+
+    echo "</table></div>";
+
   }
 
   if ($monivalintalaatikko == "toimipaikka") {
