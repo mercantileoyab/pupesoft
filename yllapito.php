@@ -1480,6 +1480,10 @@ if ($tunnus == 0 and $uusi == 0 and $errori == '') {
   // Ei näytetä seuraavia avainsanoja avainsana-ylläpitolistauksessa
   $avainsana_query_lisa = $toim == "avainsana" ? " AND laji NOT IN ('MYSQLALIAS', 'HALYRAP', 'SQLDBQUERY', 'KKOSTOT') " : "";
 
+  if($toim == 'tuotteen_orginaalit' and !$rajauslisa and !$prospektlisa and !$avainsana_query_lisa and !$tuote_status_rajaus_lisa and !$ryhma and !$haku) {
+    $lisa = " AND tunnus = 1";
+  }
+
   $query = "SELECT {$kentat}
             FROM $toim
             WHERE yhtio = '$kukarow[yhtio]'
@@ -1491,9 +1495,9 @@ if ($tunnus == 0 and $uusi == 0 and $errori == '') {
             $ryhma
             ORDER BY $jarjestys
             $limiitti";
+
   $result = pupe_query($query);
-
-
+  
   if ($toim != "yhtio" and $toim != "yhtion_parametrit" and $uusilukko == "") {
 
     echo "  <form action = 'yllapito.php?ojarj=$ojarj$ulisa";
