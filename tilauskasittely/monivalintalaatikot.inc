@@ -2148,7 +2148,7 @@ foreach ($monivalintalaatikot as $monivalintalaatikko) {
       $sel = '';
 
       if (count($mul_aleryhma) > 0) {
-        if (in_array(trim($sxrow['tunnus']), $mul_aleryhma)) {
+        if (in_array(trim($sxrow['ryhma']), $mul_aleryhma)) {
           $sel = 'SELECTED';
         }
       }
@@ -2167,7 +2167,7 @@ foreach ($monivalintalaatikot as $monivalintalaatikko) {
         $ruksitchk = "CHECKED";
       }
 
-      echo "<tr><th>".t("Prio").": <input type='text' name='jarjestys[aleryhma]' size='2' value='$jarjestys[aleryhma]'> ".t("Aleryhmittäin")." <input type='checkbox' name='ruksit[aleryhma]' value='aleryhma' $ruksitchk><br>";
+      echo "<tr><th>".t("Prio").": <input type='text' name='jarjestys[aleryhmittain]' size='2' value='$jarjestys[aleryhmittain]'> ".t("Aleryhmittäin")." <input type='checkbox' name='ruksit[aleryhmittain]' value='aleryhmittain' $ruksitchk><br>";
 
       echo "</th></tr>";
     }
