@@ -344,7 +344,7 @@ function tee_kirjanpito_muutokset($params) {
       $summalisa = $params['laskurow']['summa'] - $params['laskurow']['saldo_maksettu'];
     }
     else {
-      $summalisa = "summa";
+      $summalisa = $params['laskurow']['summa'];
     }
 
     $query = "UPDATE tiliointi
