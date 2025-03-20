@@ -1611,13 +1611,13 @@ if ((isset($aja_raportti) or isset($valitse_asiakas)) and count($_REQUEST) > 0) 
 
       //**  Aleryhmittäin start **//
       if ($mukaan == "aleryhmittain") {
-        $group .= ",perusalennus.selite";
-        $select .= "perusalennus.selite, ";
-        $order  .= "perusalennus.selite,";
+        $group .= ",Aleryhmä";
+        $select .= "if (perusalennus.ryhma!=perusalennus.selite, concat_ws(' - ', perusalennus.ryhma, perusalennus.selite), perusalennus.ryhma) as Aleryhmä, ";
+        $order  .= "Aleryhmä,";
         $gluku++;
 
         if ($rajaus[$i] != "") {
-          $lisa .= " and perusalennus.selite LIKE '%{$rajaus[$i]}%' ";
+          $lisa .= " and Aleryhmä LIKE '%{$rajaus[$i]}%' ";
         }
 
         $aleryhma_join = "JOIN perusalennus ON (perusalennus.yhtio = lasku.yhtio AND perusalennus.ryhma = tuote.aleryhma)\n";

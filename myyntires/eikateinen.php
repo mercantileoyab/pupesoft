@@ -344,7 +344,7 @@ function tee_kirjanpito_muutokset($params) {
       $summalisa = $params['laskurow']['summa'] - $params['laskurow']['saldo_maksettu'];
     }
     else {
-      $summalisa = $params['laskurow']['summa'];
+      $summalisa = 'summa';
     }
 
     $query = "UPDATE tiliointi
@@ -366,6 +366,14 @@ function tee_kirjanpito_muutokset($params) {
     }
     else {
       $summalisa = $vanharow['summa'];
+    }
+
+    if ($params['laskurow']['pyoristys'] <> 0) {
+      if($params['toim'] == 'KATEINEN' or $params['toim'] == 'KATEISESTAKATEINEN') {
+        $summalisa = $params['laskurow']['summa'];
+      } else {
+        $summalisa = $summalisa+$params['laskurow']['pyoristys'];
+      }
     }
 
     $query = "UPDATE tiliointi
