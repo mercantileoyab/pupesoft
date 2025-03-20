@@ -500,11 +500,10 @@ if ($lopetus == "") {
     <td class='back'>", t("(Toimii vain jos ajat raporttia tilauksista)"), "</td>
     </tr>
     <tr>
-    <th>", t("Listaa toimitustavoittain"), "</th>
+    <th>", t("Listaa aleryhmittäin"), "</th>
     <td><input type='text' name='jarjestys[160]' size='2' value='{$jarjestys[160]}'></td>
-    <td><input type='checkbox' name='ruksit[160]' value='toimitustavoittain' {$ruk160chk}></td>
+    <td><input type='checkbox' name='ruksit[160]' value='aleryhmittain' {$ruk160chk}></td>
     <td><input type='text' name='rajaus[160]' value='{$rajaus[160]}'></td>
-    <td class='back'>", t("(Toimii vain jos ajat raporttia tilauksista)"), "</td>
     </tr>
     <tr>
     <td class='back'><br></td>
@@ -1092,6 +1091,7 @@ if ((isset($aja_raportti) or isset($valitse_asiakas)) and count($_REQUEST) > 0) 
     $varasto_join      = "";
     $kantaasiakas_join = "";
     $maksuehto_join    = "";
+    $aleryhma_join    = "";
     $toimtuoteno_join  = "";
     $maksupvm_join     = "";
 
@@ -1608,6 +1608,21 @@ if ((isset($aja_raportti) or isset($valitse_asiakas)) and count($_REQUEST) > 0) 
         }
       }
       //**  Toimitusehdoittain loppu **//
+
+      //**  Aleryhmittäin start **//
+      if ($mukaan == "aleryhmittain") {
+        $group .= ",perusalennus.selite";
+        $select .= "perusalennus.selite, ";
+        $order  .= "perusalennus.selite,";
+        $gluku++;
+
+        if ($rajaus[$i] != "") {
+          $lisa .= " and perusalennus.selite LIKE '%{$rajaus[$i]}%' ";
+        }
+
+        $aleryhma_join = "JOIN perusalennus ON (perusalennus.yhtio = lasku.yhtio AND perusalennus.ryhma = tuote.aleryhma)\n";
+      }
+      //**  Aleryhmittäin loppu **//
       
       //**  Toimitustavoittain start **//
       if ($mukaan == "toimitustavoittain") {
@@ -2496,6 +2511,7 @@ if ((isset($aja_raportti) or isset($valitse_asiakas)) and count($_REQUEST) > 0) 
             {$varasto_join}
             {$kantaasiakas_join}
             {$maksuehto_join}
+            {$aleryhma_join}
             {$toimtuoteno_join}
             {$lisa_parametri}
             {$maksupvm_join}

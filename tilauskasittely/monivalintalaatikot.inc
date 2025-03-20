@@ -2163,7 +2163,7 @@ foreach ($monivalintalaatikot as $monivalintalaatikko) {
     if (strpos($_SERVER['SCRIPT_NAME'], "myyntiseuranta") !== FALSE) {
       $ruksitchk = "";
 
-      if ($ruksit["aleryhma"] != "") {
+      if ($ruksit["aleryhmittain"] != "") {
         $ruksitchk = "CHECKED";
       }
 
