@@ -368,7 +368,7 @@ function tee_kirjanpito_muutokset($params) {
       $summalisa = $vanharow['summa'];
     }
 
-    if ($params['laskurow']['pyoristys'] <> 0 and 1==2) {
+    if ($params['laskurow']['pyoristys'] <> 0) {
       if($params['toim'] == 'KATEINEN' or $params['toim'] == 'KATEISESTAKATEINEN') {
         $summalisa = $params['laskurow']['summa'];
       } else {
