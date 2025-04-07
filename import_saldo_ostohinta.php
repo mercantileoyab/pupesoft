@@ -106,6 +106,7 @@ class ImportSaldoHinta
     $this->toimittajat_tiedostot = array(
       "kavoparts.csv" => "1474",
       "60046_ce.csv" => "1432",
+      "32551.cennik.csv" => "1663",
       "25208_01.csv" => "1624",
       "meatdoria.csv" => "1525",
       "STANY.csv" => "1048",
@@ -128,7 +129,8 @@ class ImportSaldoHinta
       1598=>"1",
       200=>"1",
       909=>"1",
-      1652=>"1"
+      1652=>"1",
+      1663=>"1"
     );
 
     $this->toimittajen_rajoitus = $toimittajen_rajoitus;
@@ -170,6 +172,13 @@ class ImportSaldoHinta
         array(
           "tuotekoodi" => "Item No",
           "hinta" => "hinta",
+          "saldo" => "saldo"
+        )
+      ),
+      1663 => array("Product code" =>
+        array(
+          "tuotekoodi" => "code",
+          "hinta" => "Mercantile price",
           "saldo" => "saldo"
         )
       ),
@@ -267,6 +276,16 @@ class ImportSaldoHinta
           'columns' => array(2,4),
           'titles' => array('Product code','Mercantile price')
         )
+      ),
+      "32551.cennik.csv" => array(
+        'stocks' => array(
+          'columns' => array(0,4),
+          'titles' => array('code','saldo')
+        ),
+        'prices' => array(
+          'columns' => array(0,5),
+          'titles' => array('Product code','Mercantile price')
+        )
       )
     );
 
@@ -296,6 +315,10 @@ class ImportSaldoHinta
     $this->yksittaiset_tiedostot = array(
       "60046_ce.csv" => array(
         array(0,4,3),
+        array(0)
+      ),
+      "32551.cennik.csv" => array(
+        array(0,5,4),
         array(0)
       ),
       "25208_01.csv" => array(
@@ -488,13 +511,13 @@ class ImportSaldoHinta
         $count_yrita_csv_tab = count($yrita_csv_tab);
         rewind($ih);
     
-        if ($count_yrita_csv_pistepilkku > 1) {
+        if ($count_yrita_csv_pistepilkku > 2) {
           $csv_jakajaa = ";";
-        } elseif ($count_yrita_csv_pilkku > 1) {
+        } elseif ($count_yrita_csv_pilkku > 2) {
           $csv_jakajaa = ",";
-        } elseif ($count_yrita_csv_tab > 1) {
+        } elseif ($count_yrita_csv_tab > 2) {
           $csv_jakajaa = "\t";
-        } elseif($count_yrita_csv_pilkku == 1 or $count_yrita_csv_pistepilkku == 1 or $count_yrita_csv_tab == 1) {
+        } elseif($count_yrita_csv_pilkku >= 1 or $count_yrita_csv_pistepilkku >= 1 or $count_yrita_csv_tab >= 1) {
           $csv_jakajaa = ";";
         }
 
@@ -564,6 +587,8 @@ class ImportSaldoHinta
         // InterParts
         require 'ftp-get.php';
         exec('gunzip -fd '.$this->impsaloh_polku_in.'/*.gz');
+        exec('unzip '.$this->impsaloh_polku_in.'/*.zip -d '.$this->impsaloh_polku_in.'/');
+        exec('rm -f '.$this->impsaloh_polku_in.'/*.zip');
         exec('mv '.$this->impsaloh_polku_in.'/60046_ce '.$this->impsaloh_polku_in.'/60046_ce.csv');
         exec('mv '.$this->impsaloh_polku_in.'/30803_ce '.$this->impsaloh_polku_in.'/30803_ce.csv');
       }
@@ -691,16 +716,16 @@ class ImportSaldoHinta
     $count_yrita_csv_tab = count($yrita_csv_tab);
     rewind($impsaloh_csv);
 
-    if ($count_yrita_csv_pilkku > 1) {
+    if ($count_yrita_csv_pilkku > 2) {
       $kolumneja = $count_yrita_csv_pilkku;
       $csv_jakajaa = ",";
-    } elseif ($count_yrita_csv_pistepilkku > 1) {
+    } elseif ($count_yrita_csv_pistepilkku > 2) {
       $kolumneja = $count_yrita_csv_pistepilkku;
       $csv_jakajaa = ";";
-    } elseif ($count_yrita_csv_tab > 1) {
+    } elseif ($count_yrita_csv_tab > 2) {
       $kolumneja = $count_yrita_csv_tab;
       $csv_jakajaa = "\t";
-    } elseif($count_yrita_csv_pilkku == 1 or $count_yrita_csv_pistepilkku == 1 or $count_yrita_csv_tab == 1) {
+    } elseif($count_yrita_csv_pilkku >= 1 or $count_yrita_csv_pistepilkku >= 1 or $count_yrita_csv_tab >= 1) {
       $kolumneja = 1;
       $csv_jakajaa = ";";
     }
