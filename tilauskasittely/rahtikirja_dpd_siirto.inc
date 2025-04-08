@@ -243,6 +243,7 @@ if ($kollityht > 0) {
     }
 
     $parcelOrder["kollit"] = $kollityht;
+    $parcelOrder["paino"] = "1";
 
     if ($parcelOrder["toim_puh"] != '') {
       $parcelOrder["yhteyshenkilo_puh"] = $parcelOrder["toim_puh"];
@@ -270,6 +271,7 @@ if ($kollityht > 0) {
       // Jos maksuehto on jälkivaatimus, laitetaan t("Käteinen")
       // Rahtikirjanro
       // Sähköposti
+      // Paino
       $delisprintFileFormat = array(
         "tellimus" => "tilausnumero",
         "tellimus2" => "tilausnumero2",
@@ -289,6 +291,7 @@ if ($kollityht > 0) {
         "sularahas" => "kateinen",
         "veolehe_number" => "rahtikirjanro",
         "tarne_epost" => "toim_email",
+        "kaal" => "paino"
       );
     }
 
