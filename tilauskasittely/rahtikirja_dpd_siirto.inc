@@ -215,6 +215,7 @@ if ($kollityht > 0) {
     $yhres = pupe_query($query);
 
     if (mysql_num_rows($yhres) == 0) {
+
       $query = "SELECT nimi, titteli, email, puh, gsm, fax
                 FROM laskun_lisatiedot
                 JOIN yhteyshenkilo ON yhteyshenkilo.yhtio=laskun_lisatiedot.yhtio and yhteyshenkilo.tunnus=laskun_lisatiedot.yhteyshenkilo_kaupallinen and yhteyshenkilo.tyyppi = 'A'
@@ -243,7 +244,15 @@ if ($kollityht > 0) {
     }
 
     $parcelOrder["kollit"] = $kollityht;
-    $parcelOrder["paino"] = "1";
+
+    $query  = "SELECT sum(tuotemassa*(varattu+kpl)) massa 
+               FROM tilausrivi 
+               JOIN tuote ON (tuote.yhtio=tilausrivi.yhtio and tuote.tuoteno=tilausrivi.tuoteno and tuote.ei_saldoa = '') 
+               WHERE tilausrivi.yhtio = '$kukarow[yhtio]' and tilausrivi.otunnus in ($otunnukset)";
+    $painoresult = pupe_query($query);
+    $painorow = mysql_fetch_assoc($painoresult);
+
+    $parcelOrder["paino"] = number_format((float)$painorow['massa'], 2, '.', '');
 
     if ($parcelOrder["toim_puh"] != '') {
       $parcelOrder["yhteyshenkilo_puh"] = $parcelOrder["toim_puh"];
