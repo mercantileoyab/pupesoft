@@ -250,9 +250,12 @@ if ($kollityht > 0) {
                JOIN tuote ON (tuote.yhtio=tilausrivi.yhtio and tuote.tuoteno=tilausrivi.tuoteno and tuote.ei_saldoa = '') 
                WHERE tilausrivi.yhtio = '$kukarow[yhtio]' and tilausrivi.otunnus in ($otunnukset)";
     $painoresult = pupe_query($query);
-    $painorow = mysql_fetch_assoc($painoresult);
-
-    $parcelOrder["paino"] = number_format((float)$painorow['massa'], 2, '.', '');
+    if (mysql_num_rows($painoresult) > 0) {
+      $painorow = mysql_fetch_assoc($painoresult);
+      $parcelOrder["paino"] = number_format(floatval($painorow['massa']), 2, '.', '');
+    } else {
+      $parcelOrder["paino"] = 1;
+    }
 
     if ($parcelOrder["toim_puh"] != '') {
       $parcelOrder["yhteyshenkilo_puh"] = $parcelOrder["toim_puh"];
