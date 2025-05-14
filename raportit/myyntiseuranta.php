@@ -3576,7 +3576,14 @@ if ((isset($aja_raportti) or isset($valitse_asiakas)) and count($_REQUEST) > 0) 
               }
 
               if (!in_array($ken_nimi, array('asiakaslista', 'tuotelista', 'maalista'))) {
-                if (($ken_lask >= $data_start_index or $ken_nimi == "varastonarvo" or $ken_nimi == "kierto" or $ken_nimi == "varastonkpl") and is_numeric($row[$ken_nimi])) {
+                if (($ken_lask >= $data_start_index or
+                  $ken_nimi == "myyntilaskuttamattanyt" or
+                  $ken_nimi == "myyntinytyht" or
+                  $ken_nimi == "varastonarvo" or
+                  $ken_nimi == "kierto" or                                                                                                $ken_nimi == "myyntinyt" or
+                  $ken_nimi == "myyntied" or
+                  $ken_nimi == "varastonkpl"
+                ) and is_numeric($row[$ken_nimi])) {
                   if ($rivimaara <= $rivilimitti) {
                     echo "<td valign='top' align='right'>".sprintf("%.02f", $row[$ken_nimi])."</td>";
                   }
