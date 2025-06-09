@@ -285,6 +285,7 @@ if ($lopetus == "") {
   if ($ruksit[140] != '')     $ruk140chk         = "CHECKED";
   if ($ruksit[150] != '')     $ruk150chk         = "CHECKED";
   if ($ruksit[160] != '')     $ruk160chk         = "CHECKED";
+  if ($ruksit[170] != '')     $ruk170chk         = "CHECKED";
 
   if ($nimitykset != '')       $nimchk           = "CHECKED";
   if ($mitat != '')        $mitatchk        = "CHECKED";
@@ -504,6 +505,14 @@ if ($lopetus == "") {
     <td><input type='text' name='jarjestys[160]' size='2' value='{$jarjestys[160]}'></td>
     <td><input type='checkbox' name='ruksit[160]' value='aleryhmittain' {$ruk160chk}></td>
     <td><input type='text' name='rajaus[160]' value='{$rajaus[160]}'></td>
+    </tr>
+    <tr>
+    <tr>
+    <th>", t("Listaa toimitustavoittain"), "</th>
+    <td><input type='text' name='jarjestys[170]' size='2' value='{$jarjestys[170]}'></td>
+    <td><input type='checkbox' name='ruksit[170]' value='toimitustavoittain' {$ruk170chk}></td>
+    <td><input type='text' name='rajaus[170]' value='{$rajaus[170]}'></td>
+    <td class='back'>", t("(Toimii vain jos ajat raporttia tilauksista)"), "</td>
     </tr>
     <tr>
     <td class='back'><br></td>
