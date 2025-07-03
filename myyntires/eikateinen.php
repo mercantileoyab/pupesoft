@@ -48,6 +48,11 @@ if ((int) $maksuehto != 0 and (int) $tunnus != 0) {
     $kassalipasrow = hae_kassalipas($kassalipas);
 
     $laskurow = korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow);
+    $_oma_pyoristys = false;
+    if(isset($laskurow['pyoristetty'])) {
+      unset($laskurow['pyoristetty']);
+      $_oma_pyoristys = true;
+    }
 
     $params = array(
       'konsrow' => $konsrow,
@@ -85,7 +90,7 @@ if ((int) $maksuehto != 0 and (int) $tunnus != 0) {
 
     tee_kirjanpito_muutokset($params);
     yliviivaa_alet_ja_pyoristykset($tunnus);
-    tarkista_pyoristys_erotukset($laskurow, $tunnus);
+    tarkista_pyoristys_erotukset($laskurow, $tunnus, $_oma_pyoristys);
 
     if ($toim == 'KATEINEN' or $toim == 'KATEISESTAKATEINEN') {
       vapauta_kateistasmaytys($kassalipasrow, $tapahtumapaiva);
@@ -474,6 +479,8 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
               AND tunnus = {$laskurow['tunnus']}";
     pupe_query($query);
 
+    $laskurow['pyoristetty'] = "1";
+
     $query = "SELECT 
               lasku.tunnus tunnus,
               lasku.pyoristys pyoristys,
@@ -515,7 +522,7 @@ function korjaa_laskun_pyoristys_valuutassa($toim, $laskurow, $mehtorow) {
 
 }
 
-function tarkista_pyoristys_erotukset($laskurow, $tunnus) {
+function tarkista_pyoristys_erotukset($laskurow, $tunnus, $_oma_pyoristys=false) {
   global $kukarow , $yhtiorow;
 
   $query = "SELECT sum(summa) summa, sum(summa_valuutassa) summa_valuutassa
@@ -526,6 +533,12 @@ function tarkista_pyoristys_erotukset($laskurow, $tunnus) {
   $result = pupe_query($query);
   $check1 = mysql_fetch_assoc($result);
 
+  if($_oma_pyoristys) {
+    $tapvm_lisa = "tapvm = now(),";
+  } else {
+    $tapvm_lisa = "tapvm = '".$laskurow['tapvm']."',";
+  }
+
   if ($check1['summa'] != 0) {
     $query = "INSERT into tiliointi set
               yhtio            = '$kukarow[yhtio]',
@@ -534,7 +547,7 @@ function tarkista_pyoristys_erotukset($laskurow, $tunnus) {
               kustp            = 0,
               kohde            = 0,
               projekti         = 0,
-              tapvm            = '$laskurow[tapvm]',
+              $tapvm_lisa
               summa            = -1 * $check1[summa],
               summa_valuutassa = -1 * $check1[summa_valuutassa],
               valkoodi         = '$laskurow[valkoodi]',
