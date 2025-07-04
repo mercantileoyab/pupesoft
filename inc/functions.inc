@@ -4394,8 +4394,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio   = '$kukarow[yhtio]'
                    and asiakas   = '$laskurow[liitostunnus]'
                    and asiakas   > 0
-                   and ryhma     = '$trow[aleryhma]'
-                   and ryhma    != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and valkoodi  = '$laskurow[valkoodi]'
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus}))
@@ -4405,8 +4407,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio   = '$kukarow[yhtio]'
                    and ytunnus   = '$laskurow[ytunnus]'
                    and ytunnus  != ''
-                   and ryhma     = '$trow[aleryhma]'
-                   and ryhma    != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and valkoodi  = '$laskurow[valkoodi]'
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus}))
@@ -4472,8 +4476,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio   = '$kukarow[yhtio]'
                    and asiakas   = '$laskurow[liitostunnus]'
                    and asiakas   > 0
-                   and ryhma     = '$trow[aleryhma]'
-                   and ryhma    != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and valkoodi  in ('$yhtiorow[valkoodi]','')
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus}))
@@ -4483,8 +4489,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio   = '$kukarow[yhtio]'
                    and ytunnus   = '$laskurow[ytunnus]'
                    and ytunnus  != ''
-                   and ryhma     = '$trow[aleryhma]'
-                   and ryhma    != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and valkoodi  in ('$yhtiorow[valkoodi]','')
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus}))
@@ -4961,8 +4969,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio            = '$kukarow[yhtio]'
                   and asiakas_segmentti  in ($alehi_assegmenttirow[tunnukset])
                   and asiakas_segmentti != ''
-                  and ryhma              = '$trow[aleryhma]'
-                  and ryhma             != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus            = ''
                   and asiakas            = 0
                   and valkoodi           = '$laskurow[valkoodi]'
@@ -5031,8 +5041,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio            = '$kukarow[yhtio]'
                   and asiakas_segmentti  in ($alehi_assegmenttirow[tunnukset])
                   and asiakas_segmentti != ''
-                  and ryhma              = '$trow[aleryhma]'
-                  and ryhma             != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus            = ''
                   and asiakas            = 0
                   and valkoodi           in ('$yhtiorow[valkoodi]','')
@@ -5100,8 +5112,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio        = '$kukarow[yhtio]'
                   and asiakas_ryhma  = '$alehi_asrow[ryhma]'
                   and asiakas_ryhma != ''
-                  and ryhma          = '$trow[aleryhma]'
-                  and ryhma         != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus        = ''
                   and asiakas        = 0
                   and valkoodi       = '$laskurow[valkoodi]'
@@ -5170,8 +5184,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio        = '$kukarow[yhtio]'
                   and asiakas_ryhma  = '$alehi_asrow[ryhma]'
                   and asiakas_ryhma != ''
-                  and ryhma          = '$trow[aleryhma]'
-                  and ryhma         != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus        = ''
                   and asiakas        = 0
                   and valkoodi       in ('$yhtiorow[valkoodi]','')
@@ -5239,8 +5255,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio   = '$kukarow[yhtio]'
                   and piiri     = '$alehi_asrow[piiri]'
                   and piiri    != ''
-                  and ryhma     = '$trow[aleryhma]'
-                  and ryhma    != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus   = ''
                   and asiakas   = 0
                   and valkoodi  = '$laskurow[valkoodi]'
@@ -5304,8 +5322,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio   = '$kukarow[yhtio]'
                   and piiri     = '$alehi_asrow[piiri]'
                   and piiri    != ''
-                  and ryhma     = '$trow[aleryhma]'
-                  and ryhma    != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus   = ''
                   and asiakas   = 0
                   and valkoodi  in ('$yhtiorow[valkoodi]','')
@@ -5374,8 +5394,10 @@ if (!function_exists("alehinta")) {
                    and asiakas        = '$laskurow[liitostunnus]'
                    and asiakas        > 0
                    and asiakas_ryhma  = ''
-                   and ryhma          = '$trow[aleryhma]'
-                   and ryhma         != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus})
                    and (alennus < 0 or left(alennus,1) = '-'))
@@ -5386,8 +5408,10 @@ if (!function_exists("alehinta")) {
                    and ytunnus        = '$laskurow[ytunnus]'
                    and ytunnus       != ''
                    and asiakas_ryhma  = ''
-                   and ryhma          = '$trow[aleryhma]'
-                   and ryhma         != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus})
                    and (alennus < 0 or left(alennus,1) = '-'))
@@ -5456,8 +5480,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio            = '$kukarow[yhtio]'
                   and asiakas_segmentti  in ($alehi_assegmenttirow[tunnukset])
                   and asiakas_segmentti != ''
-                  and ryhma              = '$trow[aleryhma]'
-                  and ryhma             != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus            = ''
                   and asiakas            = 0
                   and (minkpl <= $kpl or minkpl = 0)
@@ -5528,8 +5554,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio        = '$kukarow[yhtio]'
                   and asiakas_ryhma  = '$alehi_asrow[ryhma]'
                   and asiakas_ryhma != ''
-                  and ryhma          = '$trow[aleryhma]'
-                  and ryhma         != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus        = ''
                   and asiakas        = 0
                   and (minkpl <= $kpl or minkpl = 0)
@@ -5600,8 +5628,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio  = '$kukarow[yhtio]'
                   and piiri    = '$alehi_asrow[piiri]'
                   and piiri   != ''
-                  and ryhma    = '$trow[aleryhma]'
-                  and ryhma   != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus  = ''
                   and asiakas  = 0
                   and (minkpl <= $kpl or minkpl = 0)
@@ -5671,8 +5701,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and asiakas  = '$laskurow[liitostunnus]'
                    and asiakas  > 0
-                   and ryhma    = '$trow[aleryhma]'
-                   and ryhma   != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus})
                    and alennus  = 999.99)
@@ -5682,8 +5714,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and ytunnus  = '$laskurow[ytunnus]'
                    and ytunnus != ''
-                   and ryhma    = '$trow[aleryhma]'
-                   and ryhma   != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and (minkpl <= $kpl or minkpl = 0)
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus})
                    and alennus  = 999.99)
@@ -6000,8 +6034,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and asiakas  = '$laskurow[liitostunnus]'
                    and asiakas  > 0
-                   and ryhma    = '$trow[aleryhma]'
-                   and ryhma   != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and (minkpl = 0 or (minkpl <= $kpl and monikerta = '') or (mod($kpl, minkpl) = 0 and monikerta != ''))
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus})
                    and alennus  >= 0
@@ -6012,8 +6048,10 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and ytunnus  = '$laskurow[ytunnus]'
                    and ytunnus != ''
-                   and ryhma    = '$trow[aleryhma]'
-                   and ryhma   != ''
+                   AND (
+                     (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                     OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                   )
                    and (minkpl = 0 or (minkpl <= $kpl and monikerta = '') or (mod($kpl, minkpl) = 0 and monikerta != ''))
                    and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus})
                    and alennus  >= 0
@@ -6094,8 +6132,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio            = '$kukarow[yhtio]'
                   and asiakas_segmentti  in ($alehi_assegmenttirow[tunnukset])
                   and asiakas_segmentti != ''
-                  and ryhma              = '$trow[aleryhma]'
-                  and ryhma             != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus            = ''
                   and asiakas            = 0
                   and (minkpl = 0 or (minkpl <= $kpl and monikerta = '') or (mod($kpl, minkpl) = 0 and monikerta != ''))
@@ -6115,8 +6155,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio        = '$kukarow[yhtio]'
                   and asiakas_ryhma  = '$alehi_asrow[ryhma]'
                   and asiakas_ryhma != ''
-                  and ryhma          = '$trow[aleryhma]'
-                  and ryhma         != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus        = ''
                   and asiakas        = 0
                   and (minkpl = 0 or (minkpl <= $kpl and monikerta = '') or (mod($kpl, minkpl) = 0 and monikerta != ''))
@@ -6136,8 +6178,10 @@ if (!function_exists("alehinta")) {
                   WHERE yhtio  = '$kukarow[yhtio]'
                   and piiri    = '$alehi_asrow[piiri]'
                   and piiri   != ''
-                  and ryhma    = '$trow[aleryhma]'
-                  and ryhma   != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and ytunnus  = ''
                   and asiakas  = 0
                   and (minkpl = 0 or (minkpl <= $kpl and monikerta = '') or (mod($kpl, minkpl) = 0 and monikerta != ''))
@@ -6178,8 +6222,10 @@ if (!function_exists("alehinta")) {
         $query = "SELECT alennus
                   FROM perusalennus
                   WHERE yhtio  = '$kukarow[yhtio]'
-                  and ryhma    = '$trow[aleryhma]'
-                  and ryhma   != ''
+                  AND (
+                    (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki = '$trow[tuotemerkki]'))
+                    OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
+                  )
                   and alennus  >= 0
                   and alennus  <= 100";
         $hresult = pupe_query($query);

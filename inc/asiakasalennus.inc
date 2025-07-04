@@ -14,6 +14,7 @@ if ($from == "") {
   (SELECT concat(avainsana.selite, '<br>', avainsana.selitetark) FROM avainsana WHERE avainsana.laji = 'piiri' AND avainsana.selite = asiakasalennus.piiri AND avainsana.yhtio = asiakasalennus.yhtio) 'Piiri',
   asiakasalennus.tuoteno,
   asiakasalennus.ryhma 'Alennusryhmä',
+  asiakasalennus.tuotemerkki 'Tuotemerkki',
   asiakasalennus.alennus,
   asiakasalennus.alennuslaji,
   asiakasalennus.minkpl 'Minkpl',
@@ -23,6 +24,7 @@ else {
   // HUOM HUOM: ethän muuta näitä ilman, että korjaat myös yllapito.php:ssä iframen lukitse_avaimeen muuttujat
   $kentat = "asiakasalennus.tunnus,
   concat_ws('<br>', asiakasalennus.tuoteno, asiakasalennus.ryhma) 'Tuoteno/Alennusryhmä',
+  asiakasalennus.tuotemerkki,
   asiakasalennus.alennus,
   asiakasalennus.alennuslaji,
   asiakasalennus.minkpl 'Minkpl',
@@ -31,7 +33,7 @@ else {
 // HUOM HUOM: ethän muuta näitä ilman, että korjaat myös yllapito.php:ssä iframen lukitse_avaimeen muuttujat
 $hakukentat = "tunnus, asiakas, ytunnus,asiakas_segmentti, asiakas_ryhma,piiri, tuoteno, ryhma, alennus, alennuslaji, minkpl, alkupvm/loppupvm";
 
-$jarjestys = "asiakasalennus.ytunnus, asiakasalennus.asiakas_ryhma, asiakasalennus.piiri, asiakasalennus.tuoteno, asiakasalennus.ryhma, asiakasalennus.minkpl, asiakasalennus.alkupvm, asiakasalennus.loppupvm";
+$jarjestys = "asiakasalennus.ytunnus, asiakasalennus.asiakas_ryhma, asiakasalennus.piiri, asiakasalennus.tuoteno, asiakasalennus.ryhma, asiakasalennus.tuotemerkki, asiakasalennus.minkpl, asiakasalennus.alkupvm, asiakasalennus.loppupvm";
 
 if ($nayta_eraantyneet != "") {
   $rajauslisa = " and asiakasalennus.loppupvm > '0000-00-00' and asiakasalennus.loppupvm < now() ";

@@ -85,6 +85,25 @@ if (mysql_field_name($result, $i) == "ryhma") {
   $jatko = 0;
 }
 
+if (mysql_field_name($result, $i) == "tuotemerkki") {
+
+  $vresult = t_avainsana("tuotemerkki");
+
+  $ulos = "<td><select name='$nimi' ".js_alasvetoMaxWidth($nimi, 300).">";
+  $ulos .= "<option value = '' >".t("Ei valittu")."</option>";
+
+  while ($vrow=mysql_fetch_array($vresult)) {
+    $sel="";
+    if (strtoupper($trow[$i]) == strtoupper($vrow['selite'])) {
+      $sel = "selected";
+    }
+    $ulos .= "<option value = '$vrow[selite]' $sel>$vrow[selite]</option>";
+  }
+
+  $ulos .= "</select></td><td><small>".t("Selite: Rajaa alennus annettuun tuotemerkkiin")."</small></td>\n";
+  $jatko = 0;
+}
+
 if (mysql_field_name($result, $i) == "campaign_id") {
 
   $query = "SELECT campaigns.*
