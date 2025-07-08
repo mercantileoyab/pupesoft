@@ -4,7 +4,7 @@ if (!function_exists("asiakasalennustarkista")) {
   function asiakasalennustarkista(&$t, $i, $result, $tunnus, &$virhe, $trow) {
     global $kukarow, $yhtiorow, $alias_set, $alasveto;
 
-    static $chytunnus, $chasiakas_ryhma, $chtuoteno, $chryhma, $chminkpl, $chmonikerta, $chalkupvm, $chloppupvm, $chastunn, $chtuoteno_ind, $chsegmentti, $chpiiri, $chalennuslaji;
+    static $chytunnus, $chasiakas_ryhma, $chtuoteno, $chryhma, $chtuotemerkki, $chminkpl, $chmonikerta, $chalkupvm, $chloppupvm, $chastunn, $chtuoteno_ind, $chsegmentti, $chpiiri, $chalennuslaji;
 
     if (mysql_field_name($result, $i) == "alennus") {
       if (trim($t[$i]) == '') {
@@ -135,6 +135,10 @@ if (!function_exists("asiakasalennustarkista")) {
       }
     }
 
+    if (mysql_field_name($result, $i) == "tuotemerkki") { 
+      $chtuotemerkki = $t[$i];
+    }
+
     if (mysql_field_name($result, $i) == "asiakas_segmentti") {
       $chsegmentti = (int) $t[$i];
 
@@ -165,8 +169,8 @@ if (!function_exists("asiakasalennustarkista")) {
       }
     }
 
-    if ($chryhma == '' and $chtuoteno == '' and mysql_field_name($result, $i) == 'ryhma') {
-      $virhe[$i] = t("Sinun on annettava joko tuote tai ryhmä!");
+    if ($chryhma == '' and $chtuoteno == '' and $chtuotemerkki == '' and mysql_field_name($result, $i) == 'tuotemerkki') {
+      $virhe[$i] = t("Sinun on annettava joko tuote, tuotemerkki tai ryhmä!");
     }
 
     if ($chryhma == '**') {
