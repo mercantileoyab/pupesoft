@@ -5373,7 +5373,8 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio        = '$kukarow[yhtio]'
                    and asiakas        = '$laskurow[liitostunnus]'
                    and asiakas        > 0
-                   and asiakas_ryhma  = ''
+                   and (asiakas_ryhma = '' OR asiakas_ryhma = '$alehi_asrow[ryhma]') 
+                   and (tuoteno = '' OR tuoteno = '$trow[tuoteno]')
                    AND (
                      (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki IS NULL OR tuotemerkki = '$trow[tuotemerkki]'))
                      OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
@@ -5386,8 +5387,9 @@ if (!function_exists("alehinta")) {
                    FROM asiakasalennus asale2 USE INDEX (yhtio_ytunnus_ryhma)
                    WHERE yhtio        = '$kukarow[yhtio]'
                    and ytunnus        = '$laskurow[ytunnus]'
-                   and ytunnus       != ''
-                   and asiakas_ryhma  = ''
+                   and ytunnus       != '' 
+                   and (asiakas_ryhma = '' OR asiakas_ryhma = '$alehi_asrow[ryhma]') 
+                   and (tuoteno = '' OR tuoteno = '$trow[tuoteno]')
                    AND (
                      (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki IS NULL OR tuotemerkki = '$trow[tuotemerkki]'))
                      OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
@@ -5680,6 +5682,8 @@ if (!function_exists("alehinta")) {
                    FROM asiakasalennus asale1 USE INDEX (yhtio_asiakas_ryhma)
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and asiakas  = '$laskurow[liitostunnus]'
+                   and (asiakas_ryhma = '' OR asiakas_ryhma = '$alehi_asrow[ryhma]') 
+                   and (tuoteno = '' OR tuoteno = '$trow[tuoteno]') 
                    and asiakas  > 0
                    AND (
                      (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki IS NULL OR tuotemerkki = '$trow[tuotemerkki]'))
@@ -5693,7 +5697,9 @@ if (!function_exists("alehinta")) {
                    FROM asiakasalennus asale2 USE INDEX (yhtio_ytunnus_ryhma)
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and ytunnus  = '$laskurow[ytunnus]'
-                   and ytunnus != ''
+                   and ytunnus != '' 
+                   and (asiakas_ryhma = '' OR asiakas_ryhma = '$alehi_asrow[ryhma]') 
+                   and (tuoteno = '' OR tuoteno = '$trow[tuoteno]')
                    AND (
                      (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki IS NULL OR tuotemerkki = '$trow[tuotemerkki]'))
                      OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
@@ -5985,7 +5991,10 @@ if (!function_exists("alehinta")) {
                  and asiakas  = '$laskurow[liitostunnus]'
                  and asiakas  > 0
                  and tuoteno  = '$trow[tuoteno]'
-                 and tuoteno != ''
+                 and tuoteno != '' 
+                 and asiakas_ryhma = '' 
+                 and ryhma = '' 
+                 and (tuotemerkki = '' OR tuotemerkki IS NULL) 
                  and (minkpl = 0 or (minkpl <= $kpl and monikerta = '') or (mod($kpl, minkpl) = 0 and monikerta != ''))
                  and ((alkupvm <= current_date and if (loppupvm = '0000-00-00','9999-12-31',loppupvm) >= current_date) or (alkupvm='0000-00-00' and loppupvm='0000-00-00'){$kampanjarajaus})
                  and alennus  >= 0
@@ -6014,6 +6023,8 @@ if (!function_exists("alehinta")) {
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and asiakas  = '$laskurow[liitostunnus]'
                    and asiakas  > 0
+                   and (asiakas_ryhma = '' OR asiakas_ryhma = '$alehi_asrow[ryhma]')
+                   and (tuoteno = '' OR tuoteno = '$trow[tuoteno]')
                    AND (
                      (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki IS NULL OR tuotemerkki = '$trow[tuotemerkki]'))
                      OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')
@@ -6027,7 +6038,9 @@ if (!function_exists("alehinta")) {
                    FROM asiakasalennus asale2 USE INDEX (yhtio_ytunnus_ryhma)
                    WHERE yhtio  = '$kukarow[yhtio]'
                    and ytunnus  = '$laskurow[ytunnus]'
-                   and ytunnus != ''
+                   and ytunnus != '' 
+                   and (asiakas_ryhma = '' OR asiakas_ryhma = '$alehi_asrow[ryhma]') 
+                   and (tuoteno = '' OR tuoteno = '$trow[tuoteno]')
                    AND (
                      (ryhma <> '' AND ryhma = '$trow[aleryhma]' AND (tuotemerkki = '' OR tuotemerkki IS NULL OR tuotemerkki = '$trow[tuotemerkki]'))
                      OR (ryhma = '' AND tuotemerkki = '$trow[tuotemerkki]')

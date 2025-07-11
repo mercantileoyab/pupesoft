@@ -266,10 +266,6 @@ if (!function_exists("asiakasalennustarkista")) {
       if ($chsegmentti > 0) $rajlask++;
       if ($chastunn > 0) $rajlask++;
 
-      if ($rajlask > 1 or $rajlask == 0) {
-        $virhe[$i] = t("Valitse vain asiakas, ytunnus, asiakasryhmä, asiakassegmentti tai piiri!");
-      }
-
       $and = '';
 
       if ($chasiakas_ryhma != '') $and .= " and asiakas_ryhma = '$chasiakas_ryhma'";
