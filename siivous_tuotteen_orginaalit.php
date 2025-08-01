@@ -34,7 +34,6 @@ date_default_timezone_set('Europe/Helsinki');
 require_once 'inc/connect.inc';    // avaa $GLOBALS['masterlink']
 require_once 'inc/functions.inc';  // Pupesoft-apurit
 
-/* ------------------------------------------------------- company */
 $yhtioRivi = hae_yhtion_parametrit(pupesoft_cleanstring($argv[1]));
 if (!$yhtioRivi) {
   die("Unknown yhtio {$argv[1]}\n");
@@ -42,18 +41,18 @@ if (!$yhtioRivi) {
 $yhtio = $yhtioRivi['yhtio'];
 cron_log();                        // normaali Pupesoft-ajon lokimerkinta
 
-/* ------------------------------------------------------ helpers */
 function puhdista_koodi($s) {
   return strtoupper(str_replace(
     array('/', '_', '.', ' ', '-', '(', ')'), '', $s));
 }
 
 /**
- * Tunnistaa poistettavat rivit ryhman sisalta ja lisaa ne $poistettavatRivit-taulukkoon.
+ * Tunnistaa poistettavat rivit ryhman sisalta, kirjoittaa ne CSV-tiedostoon ja lisaa niiden tunnukset poistolistaan.
  * @param array $rivit Ryhma riveja, joilla on sama avain.
- * @param array &$poistettavatRivit Viittaus paataulukkoon, joka sisaltaa kaikki poistettavaksi merkityt rivit.
+ * @param array &$poistettavatTunnukset Viittaus taulukkoon, joka sisaltaa kaikki poistettavaksi merkityt tunnukset.
+ * @param resource $csvTiedosto Avoin tiedostokahva CSV-tiedostoon.
  */
-function kasittele_ryhma(array $rivit, array &$poistettavatRivit) {
+function kasittele_ryhma(array $rivit, array &$poistettavatTunnukset, $csvTiedosto) {
 
   if (!$rivit) return;
 
@@ -69,8 +68,9 @@ function kasittele_ryhma(array $rivit, array &$poistettavatRivit) {
   /* saanto 1: Jos puhdas versio on olemassa, kaikki likaiset versiot merkataan poistettavaksi. */
   if ($puhtaat) {
     foreach ($likaiset as $rivi) {
-      // Kayta tunnusta avaimena duplikaattien estamiseksi ja tallenna koko rivi.
-      $poistettavatRivit[$rivi['tunnus']] = $rivi;
+      // Kirjoita rivi heti CSV-tiedostoon ja lisaa vain tunnus poistolistalle.
+      fputcsv($csvTiedosto, $rivi, ';');
+      $poistettavatTunnukset[] = $rivi['tunnus'];
     }
   }
 
@@ -85,7 +85,8 @@ function kasittele_ryhma(array $rivit, array &$poistettavatRivit) {
     foreach (array_slice($puhtaat, 1) as $rivi) {
       // Poista, jos vanhempi kuin uusin. Saman aikaleiman omaavat rivit sailytetaan.
       if ($rivi['luontiaika'] < $uusinAika) {
-        $poistettavatRivit[$rivi['tunnus']] = $rivi;
+        fputcsv($csvTiedosto, $rivi, ';');
+        $poistettavatTunnukset[] = $rivi['tunnus'];
       }
     }
   }
@@ -128,9 +129,18 @@ if (!$tulos) {
   die("SELECT failed: " . mysql_error($yhteys) . "\n");
 }
 
-$ryhmaAvain       = null;
-$rivit            = array();
-$poistettavatRivit = array(); // Tama tallentaa nyt koko rivin tiedot, ei ainoastaan tunnuksia.
+$csvTiedostonNimi = 'deleted_tuotteen_orginaalit_' . date('Ymd_His') . '.csv';
+$csvTiedosto = fopen($csvTiedostonNimi, 'w');
+if ($csvTiedosto === false) {
+  die("Error: Could not open CSV file for writing: $csvTiedostonNimi\n");
+}
+// Kirjoita CSV-otsikko heti tiedoston luonnin jalkeen.
+fputcsv($csvTiedosto, array('tunnus', 'tuoteno', 'orig_tuoteno', 'aineisto', 'merkki', 'luontiaika'), ';');
+
+
+$ryhmaAvain            = null;
+$rivit                 = array();
+$poistettavatTunnukset = array(); // Tama tallentaa nyt vain tunnukset, mika saastaa muistia.
 
 /* rakenna uniikki avain duplikaattijoukolle */
 function rakenna_avain($rivi) {
@@ -147,7 +157,7 @@ while ($rivi = mysql_fetch_assoc($tulos)) {
   // Kun avain vaihtuu, olemme siirtyneet uuteen potentiaalisten duplikaattien ryhmaan.
   // Kasittele valmis ryhma ennen uuden aloittamista.
   if ($ryhmaAvain !== null && $avain !== $ryhmaAvain) {
-    kasittele_ryhma($rivit, $poistettavatRivit);
+    kasittele_ryhma($rivit, $poistettavatTunnukset, $csvTiedosto);
     $rivit = array(); // Nollaa seuraavaa ryhmaa varten.
   }
 
@@ -155,42 +165,31 @@ while ($rivi = mysql_fetch_assoc($tulos)) {
   $ryhmaAvain = $avain;
 }
 /* Kasittele viimeinen ryhma silmukan paatyttya. */
-kasittele_ryhma($rivit, $poistettavatRivit);
+kasittele_ryhma($rivit, $poistettavatTunnukset, $csvTiedosto);
 
-/* -------------------------------------------------- CSV Export */
-$csvTiedostonNimi = 'deleted_tuotteen_orginaalit_' . date('Ymd_His') . '.csv';
-$csvTiedosto = fopen($csvTiedostonNimi, 'w');
-
-if ($csvTiedosto === false) {
-  die("Error: Could not open CSV file for writing: $csvTiedostonNimi\n");
-}
-
-// Kirjoita uusi CSV-otsikko kaikilla pyydetyilla sarakkeilla.
-fputcsv($csvTiedosto, array('tunnus', 'tuoteno', 'orig_tuoteno', 'aineisto', 'merkki', 'luontiaika'));
-
-// Kirjoita poistetun rivin kaikki tiedot CSV-tiedostoon.
-foreach ($poistettavatRivit as $poistettuRivi) {
-  fputcsv($csvTiedosto, $poistettuRivi);
-}
-
+// Sulje CSV-tiedosto, kun kaikki rivit on kasitelty.
 fclose($csvTiedosto);
-echo "Tallennettu tiedostoon: $csvTiedostonNimi\n";
+echo "Exported data of deleted rows to: $csvTiedostonNimi\n";
 
-
-/* -------------------------------------------------- perform deletes */
 $yhteensaPoistettu = 0;
 $pala              = 1000;
-// Hae tunnukset tietotaulukkomme avaimista DELETE-kyselya varten.
-$poistettavatTunnukset = array_keys($poistettavatRivit);
 
-for ($i = 0, $n = count($poistettavatTunnukset); $i < $n; $i += $pala) {
-  $tunnukset = array_slice($poistettavatTunnukset, $i, $pala);
+// Varmistetaan, etta tietokantayhteys on elossa ennen poistoja.
+// Pitka rivien kasittely saattaa katkaista yhteyden.
+if (!mysql_ping($yhteys)) {
+  die("Tietokantayhteys katkesi eika sita voitu palauttaa.\n");
+}
+
+// Poistetaan duplikaatit $poistettavatTunnukset-taulukon perusteella.
+$uniikitPoistettavatTunnukset = array_unique($poistettavatTunnukset);
+
+for ($i = 0, $n = count($uniikitPoistettavatTunnukset); $i < $n; $i += $pala) {
+  $tunnukset = array_slice($uniikitPoistettavatTunnukset, $i, $pala);
   $poistoSql = "DELETE FROM tuotteen_orginaalit
     WHERE tunnus IN (" . implode(',', $tunnukset) . ")";
   pupe_query($poistoSql);
   $yhteensaPoistettu += count($tunnukset);
 }
 
-/* ---------------------------- result */
-echo "Poistetut rivit: $yhteensaPoistettu\n";
+echo "Removed rows: $yhteensaPoistettu\n";
 ?>
