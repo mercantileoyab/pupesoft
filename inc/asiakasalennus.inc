@@ -31,7 +31,7 @@ else {
   concat_ws('<br>', asiakasalennus.alkupvm, asiakasalennus.loppupvm) 'Alku/Loppu'";
 }
 // HUOM HUOM: ethän muuta näitä ilman, että korjaat myös yllapito.php:ssä iframen lukitse_avaimeen muuttujat
-$hakukentat = "tunnus, asiakas, ytunnus,asiakas_segmentti, asiakas_ryhma,piiri, tuoteno, ryhma, alennus, alennuslaji, minkpl, alkupvm/loppupvm";
+$hakukentat = "tunnus, asiakas, ytunnus,asiakas_segmentti, asiakas_ryhma,piiri, tuoteno, ryhma, tuotemerkki, alennus, alennuslaji, minkpl, alkupvm/loppupvm";
 
 $jarjestys = "asiakasalennus.ytunnus, asiakasalennus.asiakas_ryhma, asiakasalennus.piiri, asiakasalennus.tuoteno, asiakasalennus.ryhma, asiakasalennus.tuotemerkki, asiakasalennus.minkpl, asiakasalennus.alkupvm, asiakasalennus.loppupvm";
 
