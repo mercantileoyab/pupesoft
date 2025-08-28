@@ -413,6 +413,16 @@ if (mysql_field_name($result, $i) == "alkuperamaa") {
   $jatko = 0;
 }
 
+if (mysql_field_name($result, $i) == "mhkerroin") {
+  if(!$trow[$i]) {
+    $mhkerroin = 1;
+  } else {
+    $mhkerroin = $trow[$i];
+  }
+  $ulos = "<td><input type='number' step='0.01' value='$mhkerroin' placeholder='1.00' name='{$nimi}'></td>";
+  $jatko = 0;
+}
+
 if (mysql_field_name($result, $i) == "status") {
   $ulos = "<td><select name='{$nimi}' ".js_alasvetoMaxWidth($nimi, 300).">";
   $ulos .= product_status_options($trow[$i]);
