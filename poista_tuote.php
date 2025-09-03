@@ -229,52 +229,97 @@ if ($error == 0 and $tee == "file") {
 
       $tuoteno = strtoupper(trim($rivi[0]));
 
+      $ohita_tuoteno = false;
+
       $query  = "SELECT tunnus
                  FROM tuote
                  WHERE yhtio = '$kukarow[yhtio]'
                  AND tuoteno = '$tuoteno'";
       $tuoteresult = pupe_query($query);
-
-      if (mysql_num_rows($tuoteresult) == 1) {
-
-        $tuoterow = mysql_fetch_assoc($tuoteresult);
-        $tuote_tunnus = $tuoterow['tunnus'];
-
-        is_log(t("Poistetaan tuotenumero").": $tuoteno.");
-        flush();
-
-        // Poistetaan liitetiedostot
-        if ($tuote_tunnus > 0) {
-            $query = "DELETE FROM liitetiedostot
-                      WHERE yhtio = '$kukarow[yhtio]'
-                      AND liitos = 'tuote'
-                      AND liitostunnus = '$tuote_tunnus'";
-            pupe_query($query);
-        }
-
-        foreach ($tulos as $saraketaulu) {
-
-          list($taulu, $sarake) = explode("##", $saraketaulu);
-
-          if ($taulu == 'puun_alkio') {
-            $query = "DELETE FROM puun_alkio
-                      WHERE yhtio = '$kukarow[yhtio]'
-                      AND laji    = 'Tuote'
-                      AND liitos  = '$tuoteno'";
-             pupe_query($query);
-          }
-          else {
-            $query = "DELETE FROM $taulu
-                      WHERE yhtio = '$kukarow[yhtio]'
-                      AND $sarake = '$tuoteno'";
-            pupe_query($query);
-          }
-        }
-        $lask++;
-      }
-      else {
+      if (mysql_num_rows($tuoteresult) != 1) {
         is_log(t("TUOTENUMEROA EI LÖYDY")." $tuoteno");
+        $ohita_tuoteno = true;
       }
+
+      $query  = "SELECT GROUP_CONCAT(CONCAT(tunnus, ' | ".t("Tilaus").":', otunnus) SEPARATOR ', ') as tunnukset 
+                 FROM (
+                  SELECT tunnus, otunnus 
+                  FROM tilausrivi 
+                  WHERE yhtio = '$kukarow[yhtio]'
+                  AND tuoteno = '$tuoteno' 
+                  LIMIT 5
+                 ) as subquery";
+      $tuoteresult = pupe_query($query);
+      if (mysql_num_rows($tuoteresult) > 0) {
+        $tuoteresult_rows = mysql_fetch_assoc($tuoteresult);
+        if($tuoteresult_rows['tunnukset']) {
+          is_log($tuoteno.": ".t("TILAUSRIVIT LÖYDETTY: <br>").$tuoteresult_rows['tunnukset']);
+          $ohita_tuoteno = true;
+        }
+      }
+
+      $query  = "SELECT GROUP_CONCAT(CONCAT(tunnus, ' | ".t("Kpl").":', kpl) SEPARATOR ', ') as tunnukset
+                 FROM (
+                  SELECT tunnus, kpl 
+                  FROM tapahtuma 
+                  WHERE yhtio = '$kukarow[yhtio]' 
+                  AND laji NOT IN ('poistettupaikka','uusipaikka','siirto') 
+                  AND tuoteno = '$tuoteno' 
+                  LIMIT 5
+                ) as subquery";
+      $tuoteresult = pupe_query($query);
+      if (mysql_num_rows($tuoteresult) > 0) {
+        $tuoteresult_rows = mysql_fetch_assoc($tuoteresult);
+        if($tuoteresult_rows['tunnukset']) {
+          is_log($tuoteno.": ".t("TAPAHTUMAT LÖYDETTY: <br>").$tuoteresult_rows['tunnukset']);
+          $ohita_tuoteno = true;
+        }
+      }
+
+      if($ohita_tuoteno) {
+        $unlokki = "UNLOCK TABLES";
+        $res     = pupe_query($unlokki);
+        continue;
+      }
+
+      $tuoterow = mysql_fetch_assoc($tuoteresult);
+      $tuote_tunnus = $tuoterow['tunnus'];
+
+      is_log(t("Poistetaan tuotenumero").": $tuoteno.");
+      flush();
+
+      // Poistetaan liitetiedostot
+      if ($tuote_tunnus > 0) {
+          $query = "DELETE FROM liitetiedostot
+                    WHERE yhtio = '$kukarow[yhtio]'
+                    AND liitos = 'tuote'
+                    AND liitostunnus = '$tuote_tunnus'";
+          pupe_query($query);
+      }
+
+      foreach ($tulos as $saraketaulu) {
+
+        list($taulu, $sarake) = explode("##", $saraketaulu);
+
+        if(in_array($taulu, Array("tilausrivi", "tapahtuma"))) {
+          continue;
+        }
+
+        if ($taulu == 'puun_alkio') {
+          $query = "DELETE FROM puun_alkio
+                    WHERE yhtio = '$kukarow[yhtio]'
+                    AND laji    = 'Tuote'
+                    AND liitos  = '$tuoteno'";
+            pupe_query($query);
+        }
+        else {
+          $query = "DELETE FROM $taulu
+                    WHERE yhtio = '$kukarow[yhtio]'
+                    AND $sarake = '$tuoteno'";
+          pupe_query($query);
+        }
+      }
+      $lask++;
     }
 
     $unlokki = "UNLOCK TABLES";
