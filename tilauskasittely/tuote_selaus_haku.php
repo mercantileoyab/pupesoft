@@ -65,7 +65,34 @@ if ($kukarow['extranet'] == '' and empty($verkkokauppa)) {
 
         });
 
-      </script>";
+      </script>
+
+      <script type='text/javascript'>
+        document.addEventListener(\"DOMContentLoaded\", function() {
+          // Funktio, joka puhdistaa syotteen erikoismerkeista ja muuttaa sen suuraakkosiksi
+          function puhdistaAlkuperaisnumero() {
+            // Poistetaan tietyt erikoismerkit ja muutetaan kirjaimet suuriksi
+            var puhdistettuArvo = this.value.replace(/[\/_. \-()]/g, '').toUpperCase();
+            
+            // Asetetaan puhdistettu arvo takaisin kenttaan vain jos se on muuttunut,
+            // jotta valtytaan kursorin hyppimiselta
+            if (this.value !== puhdistettuArvo) {
+              this.value = puhdistettuArvo;
+            }
+          }
+
+          // Haetaan syotekentta nimen perusteella
+          var alkuperaisnumeroKentta = document.querySelector('input[name=\"alkuperaisnumero\"]');
+
+          // Varmistetaan, etta kentta loytyi, ennen kuin lisataan tapahtumankasittelija
+          if (alkuperaisnumeroKentta) {
+            // Lisataan tapahtumankasittelija, joka aktivoituu syotteen muuttuessa (kirjoitus, liittaminen, jne.)
+            alkuperaisnumeroKentta.addEventListener('input', puhdistaAlkuperaisnumero);
+          }
+        });
+      </script>
+      
+      ";
 }
 
 // Jos tullaan sivuvalikosta extranetiss‰ tyhj‰t‰‰n kesken ettei lis‰t‰ tuotteita v‰‰r‰lle tilaukselle

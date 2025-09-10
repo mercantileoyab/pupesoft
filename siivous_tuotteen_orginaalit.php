@@ -3,12 +3,13 @@
 /**
  * siivous_tuotteen_orginaalit.php
  *
- * Siivoaa tuotteen_orginaalit-taulua kahdella eri logiikalla:
+ * Siivoaa tuotteen_orginaalit-taulua kolmella eri logiikalla:
  * 1. Poistaa tuplarivit (duplikaatit).
  * 2. Poistaa turhat rivit, joita ei loydy tuote-taulusta (turhat).
+ * 3. Korjaa orig_tuoteno- ja aineisto-sarakkeet (erikoismerkit).
  *
- * Tulostaa lopuksi poistettujen rivien maaran ja tallentaa poistetut
- * rivit CSV-tiedostoon.
+ * Tulostaa lopuksi kasiteltyjen rivien maaran ja tallentaa muutokset
+ * CSV-tiedostoon.
  *
  * Kaytto
  * -----
@@ -17,13 +18,16 @@
  *
  * Turhien rivien poisto:
  * php siivous_tuotteen_orginaalit.php <yhtio> turhat
+ *
+ * Erikoismerkkien ja aineiston korjaus:
+ * php siivous_tuotteen_orginaalit.php <yhtio> erikoismerkit
  */
 
 if (php_sapi_name() !== 'cli') {
   die("Aja komentorivilta.\n");
 }
 if (empty($argv[1]) || empty($argv[2])) {
-  die("Kaytto: php {$argv[0]} <yhtio> [duplikaatit|turhat]\n");
+  die("Kaytto: php {$argv[0]} <yhtio> [duplikaatit|turhat|erikoismerkit]\n");
 }
 
 date_default_timezone_set('Europe/Helsinki');
@@ -38,10 +42,10 @@ if (!$yhtioRivi) {
 }
 $yhtio = $yhtioRivi['yhtio'];
 
-$siivousTila = isset($argv[2]) ? $argv[2] : 'duplikaatit'; // Oletus on duplikaattien poisto
+$siivousTila = isset($argv[2]) ? $argv[2] : 'duplikaatit';
 
-if (!in_array($siivousTila, array('duplikaatit', 'turhat'))) {
-  die("Virheellinen siivoustila. Valitse 'duplikaatit' tai 'turhat'.\n");
+if (!in_array($siivousTila, array('duplikaatit', 'turhat', 'erikoismerkit'))) {
+  die("Virheellinen siivoustila. Valitse 'duplikaatit', 'turhat' tai 'erikoismerkit'.\n");
 }
 
 cron_log(); // normaali Pupesoft-ajon lokimerkinta
@@ -59,21 +63,13 @@ function rakenna_avain($rivi) {
          puhdista_koodi($rivi['orig_tuoteno']);
 }
 
-/**
- * Suorittaa poistokyselyn annetuille tunnuksille.
- * @param array $tunnukset Poistettavien rivien tunnukset.
- * @return int Poistettujen rivien maara.
- */
 function suoritaPoisto($tunnukset) {
     if (empty($tunnukset)) {
         return 0;
     }
     
-    // Varmistetaan, etta tietokantayhteys on elossa
     if (!mysql_ping($GLOBALS['masterlink'])) {
         echo "Tietokantayhteys katkesi, yritetaan yhdistaa uudelleen...\n";
-        // Yrita yhdistaa uudelleen (riippuu connect.inc-tiedoston toiminnallisuudesta)
-        // Jos ei onnistu, pupe_query yleensa kuolee ja antaa virheen.
     }
 
     $poistoSql = "DELETE FROM tuotteen_orginaalit WHERE tunnus IN (" . implode(',', $tunnukset) . ")";
@@ -120,7 +116,7 @@ function kasittele_duplikaattiryhma(array $rivit, array &$poistettavatTunnukset,
 function suoritaDuplikaattienSiivous($yhtio, $csvTiedosto) {
   echo "Aloitetaan duplikaattien siivous...\n";
   $yhteensaPoistettu = 0;
-  $poistoPalaKoko = 1000; // Poistetaan 1000 rivia kerrallaan
+  $poistoPalaKoko = 1000;
   $keratytTunnukset = array();
   $yhteys = $GLOBALS['masterlink'];
 
@@ -177,11 +173,10 @@ function suoritaDuplikaattienSiivous($yhtio, $csvTiedosto) {
 
     if (count($keratytTunnukset) >= $poistoPalaKoko) {
         $yhteensaPoistettu += suoritaPoisto(array_unique($keratytTunnukset));
-        $keratytTunnukset = array(); // Nollataan taulukko
+        $keratytTunnukset = array();
     }
   }
 
-  // Poistetaan loputkin keratyt tunnukset
   if (!empty($keratytTunnukset)) {
       $yhteensaPoistettu += suoritaPoisto(array_unique($keratytTunnukset));
   }
@@ -195,7 +190,6 @@ function suoritaTurhienSiivous($yhtio, $csvTiedosto) {
   echo "Aloitetaan turhien rivien siivous...\n";
   $yhteensaPoistettu = 0;
   $yhteys = $GLOBALS['masterlink'];
-
   $palaKoko = 50000;
 
   $rajaSql = "SELECT MIN(tunnus) AS min_tunnus, MAX(tunnus) AS max_tunnus FROM tuotteen_orginaalit WHERE yhtio = '$yhtio'";
@@ -213,13 +207,12 @@ function suoritaTurhienSiivous($yhtio, $csvTiedosto) {
     $alku = $i;
     $loppu = $i + $palaKoko - 1;
     echo "Kasitellaan tunnukset valilta $alku - $loppu...\n";
-
     $palanTunnukset = array();
 
     $sql = "
       SELECT t_org.tunnus, t_org.tuoteno, t_org.orig_tuoteno
       FROM tuotteen_orginaalit AS t_org
-      LEFT JOIN tuote AS t ON t_org.tuoteno = t.tuoteno AND t_org.yhtio = t.yhtio
+      LEFT JOIN tuote AS t ON t_org.orig_tuoteno = t.tuoteno AND t_org.yhtio = t.yhtio
       WHERE t_org.yhtio = '$yhtio'
         AND t_org.tunnus BETWEEN $alku AND $loppu
         AND t.tuoteno IS NULL";
@@ -231,39 +224,122 @@ function suoritaTurhienSiivous($yhtio, $csvTiedosto) {
     }
 
     while ($rivi = mysql_fetch_assoc($tulos)) {
-      fputcsv($csvTiedosto, $rivi, ';');
+      fputcsv($csvTiedosto, array($rivi['tunnus'], $rivi['tuoteno'], $rivi['orig_tuoteno']), ';');
       $palanTunnukset[] = $rivi['tunnus'];
     }
     mysql_free_result($tulos);
-
-    // Suoritetaan poisto heti taman palan osalta
+    
     $yhteensaPoistettu += suoritaPoisto($palanTunnukset);
   }
 
   return $yhteensaPoistettu;
 }
 
+/* ------------------------------------------------------ Erikoismerkkien siivouslogiikka */
+
+function suoritaErikoismerkkiSiivous($yhtio, $csvTiedosto) {
+  echo "Aloitetaan erikoismerkkien ja aineiston siivous...\n";
+  $yhteensaPaivitetty = 0;
+  $yhteys = $GLOBALS['masterlink'];
+  $palaKoko = 50000;
+  
+  $puhdistusLauseke = "UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(orig_tuoteno, '/', ''), '_', ''), '.', ''), ' ', ''), '-', ''), '(', ''), ')', ''))";
+
+  $rajaSql = "SELECT MIN(tunnus) AS min_tunnus, MAX(tunnus) AS max_tunnus FROM tuotteen_orginaalit WHERE yhtio = '$yhtio'";
+  $rajaTulos = pupe_query($rajaSql);
+  $rajat = mysql_fetch_assoc($rajaTulos);
+  $minTunnus = $rajat['min_tunnus'];
+  $maxTunnus = $rajat['max_tunnus'];
+
+  if (!$minTunnus) {
+    echo "Ei riveja kasiteltavaksi.\n";
+    return 0;
+  }
+
+  for ($i = $minTunnus; $i <= $maxTunnus; $i += $palaKoko) {
+    $alku = $i;
+    $loppu = $i + $palaKoko - 1;
+    echo "Kasitellaan tunnukset valilta $alku - $loppu...\n";
+
+    // VAIHE 1: Etsi kaikki korjattavat rivit ja kirjaa ne CSV:hen
+    $hakuSql = "
+      SELECT tunnus, orig_tuoteno, aineisto
+      FROM tuotteen_orginaalit
+      WHERE yhtio = '$yhtio'
+        AND tunnus BETWEEN $alku AND $loppu
+        AND (
+          (orig_tuoteno != $puhdistusLauseke AND LENGTH($puhdistusLauseke) > 0)
+          OR BINARY aineisto != UPPER(aineisto)
+        )";
+
+    $tulos = mysql_unbuffered_query($hakuSql, $yhteys);
+    if (!$tulos) {
+        echo("Varoitus: Haku epaonnistui: " . mysql_error($yhteys) . "\n");
+        continue;
+    }
+
+    $muutettavienMaara = 0;
+    while ($rivi = mysql_fetch_assoc($tulos)) {
+        $puhdasKoodi = puhdista_koodi($rivi['orig_tuoteno']);
+        $isoAineisto = strtoupper($rivi['aineisto']);
+        fputcsv($csvTiedosto, array($rivi['tunnus'], $rivi['orig_tuoteno'], $puhdasKoodi, $rivi['aineisto'], $isoAineisto), ';');
+        $muutettavienMaara++;
+    }
+    mysql_free_result($tulos);
+
+    // VAIHE 2: Suorita yksi massapaivitys kaikille loydetyille riveille
+    if ($muutettavienMaara > 0) {
+        $paivitysSql = "
+            UPDATE tuotteen_orginaalit
+            SET
+                orig_tuoteno = IF(LENGTH($puhdistusLauseke) > 0, $puhdistusLauseke, orig_tuoteno),
+                aineisto = UPPER(aineisto)
+            WHERE
+                yhtio = '$yhtio'
+                AND tunnus BETWEEN $alku AND $loppu
+                AND (
+                    (orig_tuoteno != $puhdistusLauseke AND LENGTH($puhdistusLauseke) > 0)
+                    OR BINARY aineisto != UPPER(aineisto)
+                )";
+        
+        pupe_query($paivitysSql);
+        $yhteensaPaivitetty += $muutettavienMaara;
+    }
+  }
+
+  return $yhteensaPaivitetty;
+}
+
 
 /* -------------------------------------------------- Paaohjelma */
 
-$csvTiedostonNimi = 'poistetut_orginaalit_' . $siivousTila . '_' . date('Ymd_His') . '.csv';
+$csvTiedostonNimi = 'siivotut_orginaalit_' . $siivousTila . '_' . date('Ymd_His') . '.csv';
 $csvTiedosto = fopen($csvTiedostonNimi, 'w');
 if ($csvTiedosto === false) {
   die("Ei voitu avata CSV-tiedostoa kirjoitusta varten: $csvTiedostonNimi\n");
 }
-fputcsv($csvTiedosto, array('tunnus', 'tuoteno', 'orig_tuoteno'), ';');
 
-$yhteensaPoistettu = 0;
+$yhteensaKasitelty = 0;
+$tulosViesti = "";
 
-if ($siivousTila == 'duplikaatit') {
-  $yhteensaPoistettu = suoritaDuplikaattienSiivous($yhtio, $csvTiedosto);
-} elseif ($siivousTila == 'turhat') {
-  $yhteensaPoistettu = suoritaTurhienSiivous($yhtio, $csvTiedosto);
+if ($siivousTila == 'erikoismerkit') {
+  fputcsv($csvTiedosto, array('tunnus', 'vanha_orig_tuoteno', 'uusi_orig_tuoteno', 'vanha_aineisto', 'uusi_aineisto'), ';');
+  $yhteensaKasitelty = suoritaErikoismerkkiSiivous($yhtio, $csvTiedosto);
+  $tulosViesti = "Paivitettyja riveja yhteensa: $yhteensaKasitelty";
+} else {
+  fputcsv($csvTiedosto, array('tunnus', 'tuoteno', 'orig_tuoteno'), ';');
+  if ($siivousTila == 'duplikaatit') {
+    $yhteensaKasitelty = suoritaDuplikaattienSiivous($yhtio, $csvTiedosto);
+  } elseif ($siivousTila == 'turhat') {
+    $yhteensaKasitelty = suoritaTurhienSiivous($yhtio, $csvTiedosto);
+  }
+  $tulosViesti = "Poistettuja riveja yhteensa: $yhteensaKasitelty";
 }
 
 fclose($csvTiedosto);
-echo "Poistettavien rivien tiedot exportattu tiedostoon: $csvTiedostonNimi\n";
+echo "Kasiteltyjen rivien tiedot exportattu tiedostoon: $csvTiedostonNimi\n";
 
 /* ---------------------------- Tulos */
-echo "Poistettuja riveja yhteensa: $yhteensaPoistettu\n";
+echo $tulosViesti . "\n";
 ?>
+
