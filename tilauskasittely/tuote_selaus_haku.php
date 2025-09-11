@@ -1234,6 +1234,32 @@ if ($submit_button != '' and ($lisa != '' or $lisa_parametri != '')) {
             }
           }
         }
+      } else {
+        $available_rows = array();
+        $other_rows = array();
+
+        foreach ($rows as $row_key => $row_value) {
+          $myytavissa = 0;
+
+          if ($row_value["tuoteperhe"] == $row_value["tuoteno"]) {
+            $myytavissa_tp = tuoteperhe_myytavissa($row_value["tuoteno"], "", "KAIKKI", 0, "", "", "", "", "", $laskurow["toim_maa"], $saldoaikalisa);
+            foreach ($myytavissa_tp as $varasto => $myytakissa) {
+              $myytavissa += $myytakissa;
+            }
+          }
+          else {
+            list($saldo, $hyllyssa, $myytavissa) = saldo_myytavissa($row_value["tuoteno"], "KAIKKI", 0, "", "", "", "", "", $laskurow["toim_maa"], $saldoaikalisa);
+          }
+
+          if ($myytavissa > 0) {
+            $available_rows[$row_key] = $row_value;
+          }
+          else {
+            $other_rows[$row_key] = $row_value;
+          }
+        }
+
+        $rows = $available_rows + $other_rows;
       }
 
       // Poistetaan vielä kokonaiset tuoteperheet
