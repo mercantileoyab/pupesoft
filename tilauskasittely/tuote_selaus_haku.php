@@ -1240,7 +1240,6 @@ if ($submit_button != '' and ($lisa != '' or $lisa_parametri != '')) {
 
         foreach ($rows as $row_key => $row_value) {
           $myytavissa = 0;
-
           if ($row_value["tuoteperhe"] == $row_value["tuoteno"]) {
             $myytavissa_tp = tuoteperhe_myytavissa($row_value["tuoteno"], "", "KAIKKI", 0, "", "", "", "", "", $laskurow["toim_maa"], $saldoaikalisa);
             foreach ($myytavissa_tp as $varasto => $myytakissa) {
@@ -1250,15 +1249,21 @@ if ($submit_button != '' and ($lisa != '' or $lisa_parametri != '')) {
           else {
             list($saldo, $hyllyssa, $myytavissa) = saldo_myytavissa($row_value["tuoteno"], "KAIKKI", 0, "", "", "", "", "", $laskurow["toim_maa"], $saldoaikalisa);
           }
-
           if ($myytavissa > 0) {
-            $available_rows[$row_key] = $row_value;
+            if ($row_value["vastaavat"] > 0 and $row_value["mikavastaava"] != "") {
+              $vastaavat_loytyi = array_keys(array_column($rows, 'vastaavat'), $row_value["vastaavat"]);
+              foreach($vastaavat_loytyi as $vastaavat_loytyi_k => $vastaavat_loytyi_k_t) {
+                $vastaavat_loytyi_v = array_values($rows);
+                $available_rows[$row_value["vastaavat"].$vastaavat_loytyi_v[$vastaavat_loytyi_k_t]['tuoteno']] = $vastaavat_loytyi_v[$vastaavat_loytyi_k_t];
+              }
+            } else {
+              $available_rows[$row_key] = $row_value;
+            }
           }
           else {
             $other_rows[$row_key] = $row_value;
           }
         }
-
         $rows = $available_rows + $other_rows;
       }
 
