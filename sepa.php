@@ -4,8 +4,8 @@
 Tehty ja validoitu k‰ytt‰en speksej‰:
 
 URL: http://www.iso20022.org/catalogue_of_unifi_messages.page
-Msg ID: pain.001.001.02
-Message Name: CustomerCreditTransferInitiationV02
+Msg ID: pain.001.001.03
+Message Name: CustomerCreditTransferInitiationV03
 */
 
 function sepa_header() {
@@ -13,409 +13,265 @@ function sepa_header() {
 
   $xmlstr  = '<?xml version="1.0" encoding="UTF-8"?>';
   $xmlstr .= '<Document ';
-  $xmlstr .= 'xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.02" ';
+  $xmlstr .= 'xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03" ';
   $xmlstr .= 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ';
-  $xmlstr .= 'xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.001.001.02 pain.001.001.02.xsd">';
+  $xmlstr .= 'xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03 pain.001.001.03.xsd">';
   $xmlstr .= '</Document>';
 
   $xml = new SimpleXMLElement($xmlstr);
 
-  $pain = $xml->addChild('pain.001.001.02');
+  $pain = $xml->addChild('CstmrCdtTrfInitn');
   $GrpHdr = $pain->addChild('GrpHdr');                                                  // GroupHeader
-  $GrpHdr->addChild('MsgId', date('Y-m-d')."T".date('H:i:s'));                                    // MessageIdentification, Text, Pakollinen kentt‰
-  $GrpHdr->addChild('CreDtTm', date('Y-m-d')."T".date('H:i:s'));                                    // CreationDateTime, DateTime, Pakollinen kentt‰
-  // $GrpHdr->addChild('Authstn', '');                                                  // Authorisation
-  $GrpHdr->addChild('BtchBookg', 'true');                                                // BatchBooking, Indicator
-  $GrpHdr->addChild('NbOfTxs', 0);                                                  // NumberOfTransactions, Text, Pakollinen kentt‰
-  // $GrpHdr->addChild('CtrlSum', '');                                                  // ControlSum, Quantity
-  $GrpHdr->addChild('Grpg', 'MIXD');                                                  // Grouping, Pakollinen kentt‰
-  $InitgPty = $GrpHdr->addChild('InitgPty', '');                                            // InitiatingParty, Pakollinen
-  $InitgPty->addChild('Nm', sprintf("%-1.70s", $yhtiorow['nimi']));                                // Name 1-70
-  $PstlAdr = $InitgPty->addChild('PstlAdr', '');                                          // PostalAddress
-  // $PstlAdr->addChild('AdrTp', '');
-  $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $yhtiorow['osoite']));                            // AddressLine
-  $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $yhtiorow['maa']."-".$yhtiorow['postino']." ".$yhtiorow['postitp']));
-  $PstlAdr->addChild('StrtNm', sprintf("%-1.70s", $yhtiorow['osoite']));                            // StreetName
-  // $PstlAdr->addChild('BldgNb', '');
-  $PstlAdr->addChild('PstCd', sprintf("%-1.16s", $yhtiorow['maa']."-".$yhtiorow['postino']));                  // PostCode
-  $PstlAdr->addChild('TwnNm', sprintf("%-1.35s", $yhtiorow['postitp']));                            // TownName
-  // $PstlAdr->addChild('CtrySubDvsn', '');
-  $PstlAdr->addChild('Ctry', sprintf("%-1.2s", $yhtiorow['maa']));                              // Country
-  // $Id = $InitgPty->addChild('Id', '');
-  // $OrgId = $Id->addChild('OrgId', '');
-  // $OrgId->addChild('BIC', '');
-  // $OrgId->addChild('IBEI', '');
-  // $OrgId->addChild('BEI', '');
-  // $OrgId->addChild('EANGLN', '');
-  // $OrgId->addChild('USCHU', '');
-  // $OrgId->addChild('DUNS', '');
-  // $OrgId->addChild('BkPtyId', '');
-  // $OrgId->addChild('TaxIdNb', '');
-  // $PrtryId = $OrgId->addChild('PrtryId', '');
-  // $PrtryId->addChild('Id', '');
-  // $PrtryId->addChild('Issr', '');
+  $GrpHdr->addChild('MsgId', date('Y-m-d')."T".date('H:i:s')."-".mt_rand(100,999));     // MessageIdentification
+  $GrpHdr->addChild('CreDtTm', date('Y-m-d')."T".date('H:i:s'));                        // CreationDateTime
+  $GrpHdr->addChild('NbOfTxs', 0);                                                      // NumberOfTransactions
+  $GrpHdr->addChild('CtrlSum', 0);                                                      // ControlSum
+
+  $InitgPty = $GrpHdr->addChild('InitgPty', '');                                        // InitiatingParty
+  $InitgPty->addChild('Nm', sprintf("%-1.70s", $yhtiorow['nimi']));                     // Name
+  
+  // Identification structure matching try2.xml
+  $Id = $InitgPty->addChild('Id');
+  $OrgId = $Id->addChild('OrgId');
+  $Othr = $OrgId->addChild('Othr');
+  $Othr->addChild('Id', str_replace(array(' ', '-'), '', $yhtiorow['ytunnus']));
+  $SchmeNm = $Othr->addChild('SchmeNm');
+  $SchmeNm->addChild('Cd', 'BANK');
 }
 
 function sepa_paymentinfo($laskurow) {
   global $xml, $pain, $PmtInf, $yhtiorow;
 
-  $PmtInf = $pain->addChild('PmtInf');                                                // PaymentInformation
-  $PmtInfId = $PmtInf->addChild('PmtInfId', $laskurow['tunnus']);                                  // PaymentInformationIdentification, Pakollinen kentt‰
-  $PmtMtd = $PmtInf->addChild('PmtMtd', 'TRF');                                           // PaymentMethod, Pakollinen kentt‰ (TRF = transfer)
+  $PmtInf = $pain->addChild('PmtInf');                                                  // PaymentInformation
+  $PmtInfId = $PmtInf->addChild('PmtInfId', $laskurow['tunnus']);                       // PaymentInformationIdentification
+  $PmtMtd = $PmtInf->addChild('PmtMtd', 'TRF');                                         // PaymentMethod
+  $PmtInf->addChild('BtchBookg', 'true');                                               // BatchBooking
+  
+  // Placeholders - updated at the end
+  $PmtInf->addChild('NbOfTxs', 0);
+  $PmtInf->addChild('CtrlSum', 0);
 
   if ($laskurow["sepa"] === 'SEPA') {
-    $PmtTpInf = $PmtInf->addChild('PmtTpInf');                                            // Jos SEPA maa, laitetaan n‰m‰ segmentit mukaan
-    // $InstrPrty = $PmtTpInf->addChild('InstrPrty');
+    $PmtTpInf = $PmtInf->addChild('PmtTpInf');
     $SvcLvl = $PmtTpInf->addChild('SvcLvl');
     $SvcLvl->addChild('Cd', 'SEPA');
   }
-  // $LclInstrm = $PmtTpInf->addChild('LclInstrm');
-  // $LclInstrm->addChild('Cd', '');
-  // $CtgyPurp = $PmtTpInf->addChild('CtgyPurp');
-  $ReqdExctnDt = $PmtInf->addChild('ReqdExctnDt', $laskurow['olmapvm']);                              // RequestedExecutionDate, Pakollinen kentt‰
-  // $PoolgAdjstmntDt = $PmtInf->addChild('PoolgAdjstmntDt');
 
-  $Dbtr = $PmtInf->addChild('Dbtr');                                                // Debtor
-  $Dbtr->addChild('Nm', sprintf("%-1.70s", $yhtiorow['nimi']));                                // Name
-  $PstlAdr = $Dbtr->addChild('PstlAdr');                                            // PostalAddress
-  // $PstlAdr->addChild('AdrTp', '');
-  $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $yhtiorow['osoite']));                          // AddressLine
+  $ReqdExctnDt = $PmtInf->addChild('ReqdExctnDt', $laskurow['olmapvm']);                // RequestedExecutionDate
+
+  $Dbtr = $PmtInf->addChild('Dbtr');                                                    // Debtor
+  $Dbtr->addChild('Nm', sprintf("%-1.70s", $yhtiorow['nimi']));                         // Name
+  
+  $PstlAdr = $Dbtr->addChild('PstlAdr');                                                // PostalAddress
+  // MATCHING TRY2.XML: Ctry first, then AdrLines
+  $PstlAdr->addChild('Ctry', $yhtiorow['maa']);
+  $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $yhtiorow['osoite']));               // AddressLine
   $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $yhtiorow['maa']."-".$yhtiorow['postino']." ".$yhtiorow['postitp']));
-  // $PstlAdr->addChild('StrtNm', '');
-  // $PstlAdr->addChild('BldgNb', '');
-  // $PstlAdr->addChild('PstCd', $yhtiorow['maa']."-".$yhtiorow['postino']);
-  // $PstlAdr->addChild('TwnNm', $yhtiorow['postitp']);
-  // $PstlAdr->addChild('CtrySubDvsn', '');
-  $PstlAdr->addChild('Ctry', sprintf("%-2.2s", $yhtiorow['maa']));                            // Country
-  $Id = $Dbtr->addChild('Id');                                                // Identification
-  $OrgId = $Id->addChild('OrgId');                                            // OrganisationIdentification
-  // $OrgId->addChild('BIC', '');
-  // $OrgId->addChild('IBEI', '');
-  // $OrgId->addChild('BEI', '');
-  // $OrgId->addChild('EANGLN', '');
-  // $OrgId->addChild('USCHU', '');
-  // $OrgId->addChild('DUNS', '');
+
+  $Id = $Dbtr->addChild('Id');                                                          // Identification
+  $OrgId = $Id->addChild('OrgId');                                                      // OrganisationIdentification
+
   if ($laskurow["yriti_asiakastunnus"] != "0" and $laskurow["yriti_asiakastunnus"] != "") {
-    $OrgId->addChild('BkPtyId', $laskurow["yriti_asiakastunnus"]);                            // BankPartyIdentification, Pakollinen kentt‰ (service code given by Nordea)
+    $Othr = $OrgId->addChild('Othr');
+    $Othr->addChild('Id', $laskurow["yriti_asiakastunnus"]);
+    $SchmeNm = $Othr->addChild('SchmeNm');
+    $SchmeNm->addChild('Cd', 'BANK');
   }
   else {
-    $OrgId->addChild('BkPtyId', $yhtiorow['ytunnus']);                                  // BankPartyIdentification, Pakollinen kentt‰ (service code given by Nordea)
+    $Othr = $OrgId->addChild('Othr');
+    $Othr->addChild('Id', str_replace(array(' ', '-'), '', $yhtiorow['ytunnus']));
+    $SchmeNm = $Othr->addChild('SchmeNm');
+    $SchmeNm->addChild('Cd', 'BANK');
   }
-  // $OrgId->addChild('TaxIdNb', '');
-  // $PrtryId = $OrgId->addChild('PrtryId', '');
-  // $PrtryId->addChild('Id', '');
-  // $PrtryId->addChild('Issr', '');
+
   $DbtrAcct = $PmtInf->addChild('DbtrAcct');                                            // DebtorAccount
-  $Id = $DbtrAcct->addChild('Id');                                              // Identification
-  $Id->addChild('IBAN', $laskurow['yriti_iban']);                                      // IBAN, Pakollinen kentt‰
-  // $DbtrAcct->addChild('Ccy');
-  // $DbtrAcct->addChild('Nm');
-  $DbtrAgt = $PmtInf->addChild('DbtrAgt');                                            // DebtorAgent
-  $FinInstnId  = $DbtrAgt->addChild('FinInstnId');                                        // FinancialInstitutionIdentification
-  $FinInstnId->addChild('BIC', $laskurow['yriti_bic']);                                  // BIC, Pakollinen kentt‰
+  $Id = $DbtrAcct->addChild('Id');                                                      // Identification
+  $Id->addChild('IBAN', $laskurow['yriti_iban']);                                       // IBAN
+  
+  $DbtrAgt = $PmtInf->addChild('DbtrAgt');                                              // DebtorAgent
+  $FinInstnId  = $DbtrAgt->addChild('FinInstnId');                                      // FinancialInstitutionIdentification
+  
+  if (!empty($laskurow['yriti_bic'])) {
+    $FinInstnId->addChild('BIC', $laskurow['yriti_bic']);
+  } else {
+    $Othr = $FinInstnId->addChild('Othr');
+    $Othr->addChild('Id', 'NOTPROVIDED');
+  }
 
-  // $UltmtDbtr = $PmtInf->addChild('UltmtDbtr');                                          // UltimateDebtor (k‰ytet‰‰n vain jos eri kuin Debtor)
-  // $UltmtDbtr->addChild('Nm');                                                  // Name
-  // $PstlAdr = $UltmtDbtr->addChild('PstlAdr');                                          // PostalAddress
-  // $PstlAdr->addChild('AdrTp', '');
-  // $PstlAdr->addChild('AdrLine', '');                                              // AddressLine
-  // $PstlAdr->addChild('StrtNm', '');
-  // $PstlAdr->addChild('BldgNb', '');
-  // $PstlAdr->addChild('PstCd', $yhtiorow['maa']."-".$yhtiorow['postino']);
-  // $PstlAdr->addChild('TwnNm', $yhtiorow['postitp']);
-  // $PstlAdr->addChild('CtrySubDvsn', '');
-  // $PstlAdr->addChild('Ctry', $yhtiorow['maa']);                                        // Country
-  // $Id = $UltmtDbtr->addChild('Id');                                              // Identification
-  // $OrgId = $Id->addChild('OrgId');                                              // OrganisationIdentification
-  // $OrgId->addChild('BIC', '');
-  // $OrgId->addChild('IBEI', '');
-  // $OrgId->addChild('BEI', '');
-  // $OrgId->addChild('EANGLN', '');
-  // $OrgId->addChild('USCHU', '');
-  // $OrgId->addChild('DUNS', '');
-  // $OrgId->addChild('BkPtyId', $yhtiorow['ytunnus']);                                    // BankPartyIdentification, Pakollinen kentt‰ (service code given by Nordea)
-  // $OrgId->addChild('TaxIdNb', '');
-  // $PrtryId = $OrgId->addChild('PrtryId', '');
-  // $PrtryId->addChild('Id', '');
-  // $PrtryId->addChild('Issr', '');
-  // $UltmtDbtr->addChild('CtryOfRes');
-
-  $ChrgBr = $PmtInf->addChild('ChrgBr', 'SLEV');                                          // ChargeBearer (SLEV = shared charges)
-  // HUOM: CdtTrfTxInf -segmentille, on oma funktio -> sepa_credittransfer
+  $ChrgBr = $PmtInf->addChild('ChrgBr', 'SLEV');                                        // ChargeBearer
 }
 
 function sepa_credittransfer($laskurow, $popvm_nyt, $netotetut_rivit = '') {
   global $xml, $pain, $PmtInf, $yhtiorow, $kukarow;
 
-  // HUOM: T‰m‰ kuuluu PmtInf -segmentin sis‰‰n!
-  $CdtTrfTxInf = $PmtInf->addChild('CdtTrfTxInf', '');                    // CreditTransferTransaction Information
-  $PmtId = $CdtTrfTxInf->addChild('PmtId', '');                      // PaymentIdentification
+  $CdtTrfTxInf = $PmtInf->addChild('CdtTrfTxInf', '');                                  // CreditTransferTransaction Information
+  $PmtId = $CdtTrfTxInf->addChild('PmtId', '');                                         // PaymentIdentification
   $InstrId = $PmtId->addChild('InstrId', "{$laskurow['tunnus']}-".preg_replace("/[^0-9]/", "", $popvm_nyt));      // Instruction Id
-  $EndToEndId = $PmtId->addChild('EndToEndId', "{$laskurow['tunnus']}-".preg_replace("/[^0-9]/", "", $popvm_nyt));  // EndToEndIdentification, Pakollinen kentt‰
+  $EndToEndId = $PmtId->addChild('EndToEndId', "{$laskurow['tunnus']}-".preg_replace("/[^0-9]/", "", $popvm_nyt));  // EndToEndIdentification
 
-  $PmtTpInf = $CdtTrfTxInf->addChild('PmtTpInf', '');                    // PaymentTypeInformation
-  // $InstrPrty = $PmtTpInf->addChild('InstrPrty', '');
-  // $SvcLvl = $PmtTpInf->addChild('SvcLvl', '');                    // ServiceLevel
-  // $Prtry = $SvcLvl->addChild('Prtry', '');                    // Proprietary Nordea (URGP = Urgent payment)
-  // $Cd = $SvcLvl->addChild('Cd', 'SEPA');
-  // $LclInstrm = $PmtTpInf->addChild('LclInstrm', '');
-  // $Cd = $LclInstrm->addChild('Cd', '');
-  // $CtgyPurp = $PmtTpInf->addChild('CtgyPurp', '');                  // CategoryPurpose (INTC = Intercompany eli Nordea -> Nordea)
-
-  $Amt = $CdtTrfTxInf->addChild('Amt', '');                        // Amount
+  $Amt = $CdtTrfTxInf->addChild('Amt', '');                                             // Amount
 
   if ($laskurow['alatila'] != 'K') {
-    $InstdAmt = $Amt->addChild('InstdAmt', round($laskurow['summa'], 2));              // InstructedAmount, Pakollinen kentt‰
+    $InstdAmt = $Amt->addChild('InstdAmt', sprintf("%.02f", round($laskurow['summa'], 2)));              // InstructedAmount
   }
   else {
-    $InstdAmt = $Amt->addChild('InstdAmt', round($laskurow['summa'] - $laskurow['kasumma'], 2));  // InstructedAmount, Pakollinen kentt‰
+    $InstdAmt = $Amt->addChild('InstdAmt', sprintf("%.02f", round($laskurow['summa'] - $laskurow['kasumma'], 2)));  // InstructedAmount
   }
-  $InstdAmt->addAttribute('Ccy', $laskurow['valkoodi']);                  // Currency, Pakollinen attribute
+  $InstdAmt->addAttribute('Ccy', $laskurow['valkoodi']);                                // Currency
 
-  // $XchgRateInf = $CdtTrfTxInf->addChild('XchgRateInf', '');                // ExchangeRateInformation
-  //   $XchgRate = $XchgRateInf->addChild('XchgRate', '');
-  //   $RateTp = $XchgRateInf->addChild('RateTp', '');
-  //   $CtrctId = $XchgRateInf->addChild('CtrctId', '');                  // ContractIdentification (FX trade reference provided the FX rate is agreed in advance)
-  // $ChrgBr = $CdtTrfTxInf->addChild('ChrgBr', 'SLEV');
-  // $ChqInstr = $CdtTrfTxInf->addChild('ChqInstr', '');
-  //   $ChqTp = $ChqInstr->addChild('ChqTp', '');
-  //   $DlvryMtd = $ChqInstr->addChild('DlvryMtd', '');
-  //     $Cd = $DlvryMtd->addChild('Cd', '');
-  // $UltmtDbtr = $CdtTrfTxInf->addChild('UltmtDbtr', '');                  // UltimateDebtor (k‰ytet‰‰n vain jos eri kuin Debtor)
-  //   $Nm = $UltmtDbtr->addChild('Nm', '');                        // Name
-  //   $PstlAdr = $UltmtDbtr->addChild('PstlAdr', '');
-  //     $AdrTp = $PstlAdr->addChild('AdrTp', '');
-  //     $AdrLine = $PstlAdr->addChild('AdrLine', '');
-  //     $StrtNm = $PstlAdr->addChild('StrtNm', '');
-  //     $BldgNb = $PstlAdr->addChild('BldgNb', '');
-  //     $PstCd = $PstlAdr->addChild('PstCd', '');
-  //     $TwnNm = $PstlAdr->addChild('TwnNm', '');
-  //     $CtrySubDvsn = $PstlAdr->addChild('CtrySubDvsn', '');
-  //     $Ctry = $PstlAdr->addChild('Ctry', '');
-  //   $Id = $UltmtDbtr->addChild('Id', '');
-  //     $OrgId = $Id->addChild('OrgId', '');
-  //       $BIC = $OrgId->addChild('BIC', '');
-  //       $IBEI = $OrgId->addChild('IBEI', '');
-  //       $BEI = $OrgId->addChild('BEI', '');
-  //       $EANGLN = $OrgId->addChild('EANGLN', '');
-  //       $USCHU = $OrgId->addChild('USCHU', '');
-  //       $DUNS = $OrgId->addChild('DUNS', '');
-  //       $BkPtyId = $OrgId->addChild('BkPtyId', '');
-  //       $TaxIdNb = $OrgId->addChild('TaxIdNb', '');
-  //       $PrtryId = $OrgId->addChild('PrtryId', '');
-  //         $Id = $PrtryId->addChild('Id', '');
-  //         $Issr = $PrtryId->addChild('Issr', '');
-  //   $CtryOfRes = $UltmtDbtr->addChild('CtryOfRes', '');
-  // $IntrmyAgt1 = $CdtTrfTxInf->addChild('IntrmyAgt1', '');
-  //   $FinInstnId = $IntrmyAgt1->addChild('FinInstnId', '');
-  //     $BIC = $FinInstnId->addChild('BIC', '');
-  // $IntrmyAgt1Acct = $CdtTrfTxInf->addChild('IntrmyAgt1Acct', '');
-  //   $Id = $IntrmyAgt1Acct->addChild('Id', '');
-  //     $IBAN = $Id->addChild('IBAN', '');
-  //   $Ccy = $IntrmyAgt1Acct->addChild('Ccy', '');
-  //   $Nm = $IntrmyAgt1Acct->addChild('Nm', '');
-  // $IntrmyAgt2 = $CdtTrfTxInf->addChild('IntrmyAgt2', '');
-  //   $FinInstnId = $IntrmyAgt2->addChild('FinInstnId', '');
-  //     $BIC = $FinInstnId->addChild('BIC', '');
-  // $IntrmyAgt2Acct = $CdtTrfTxInf->addChild('IntrmyAgt2Acct', '');
-  //   $Id = $IntrmyAgt2Acct->addChild('Id', '');
-  //     $IBAN = $Id->addChild('IBAN', '');
-  //   $Ccy = $IntrmyAgt2Acct->addChild('Ccy', '');
-  //   $Nm = $IntrmyAgt2Acct->addChild('Nm', '');
-
-  $CdtrAgt = $CdtTrfTxInf->addChild('CdtrAgt', '');                        // CreditorAgent
-  $FinInstnId = $CdtrAgt->addChild('FinInstnId', '');                      // FinancialInstitutionIdentification
-  $BIC = $FinInstnId->addChild('BIC', $laskurow['swift']);                // BIC
-
-  if ($laskurow['clearing'] != '') {
-    $CmbndId = $FinInstnId->addChild('CmbndId', '');                    // CombinedIdentification
-    $ClrSysMmbId = $CmbndId->addChild('ClrSysMmbId', '');                // ClearingSystemMemberIdentification
-    $ClrSysMmbId->addChild('Id', sprintf("%-1.35s", $laskurow['clearing']));       // Identification
-    $Nm = $CmbndId->addChild('Nm', sprintf("%-1.70s", $laskurow['pankki1']));         // Name (Bank's)
-    $PstlAdr = $CmbndId->addChild('PstlAdr', '');                    // Postal Address
-    $PstlAdr->addChild('CtrySubDvsn', sprintf("%-1.35s", $laskurow['pankki2']));  // CountrySubDivision
-    $PstlAdr->addChild('Ctry', '');                          // Country
+  // Creditor Agent (CdtrAgt)
+  $CdtrAgt = $CdtTrfTxInf->addChild('CdtrAgt', '');
+  $FinInstnId = $CdtrAgt->addChild('FinInstnId', '');
+  if (!empty($laskurow['swift'])) {
+    $FinInstnId->addChild('BIC', $laskurow['swift']);
+  } else {
+    // If no BIC, empty structure or Othr based on bank reqs. Try2.xml uses BIC.
   }
 
-  // $CdtrAgtAcct = $CdtTrfTxInf->addChild('CdtrAgtAcct', '');
-  //   $Id = $CdtrAgtAcct->addChild('Id', '');
-  //     $IBAN = $Id->addChild('IBAN', '');
-  //   $Ccy = $CdtrAgtAcct->addChild('Ccy', '');
-  //   $Nm = $CdtrAgtAcct->addChild('Nm', '');
+  $Cdtr = $CdtTrfTxInf->addChild('Cdtr', '');                                           // Creditor
 
-  $Cdtr = $CdtTrfTxInf->addChild('Cdtr', '');                                                  // Creditor
-
-  // jos pankkihaltijan nimi on syˆtetty, laitetaan se nimen tilalle
   if (trim($laskurow['pankki_haltija']) != '') {
-    $Nm = $Cdtr->addChild('Nm', sprintf("%-1.70s", str_replace("&", "&amp;", $laskurow['pankki_haltija'])));                    // Name, Pakollinen kentt‰ 1-70
+    $Nm = $Cdtr->addChild('Nm', sprintf("%-1.70s", str_replace("&", "&amp;", $laskurow['pankki_haltija']))); // Name
   }
   else {
-    $Nm = $Cdtr->addChild('Nm', sprintf("%-1.70s", str_replace("&", "&amp;", trim($laskurow['nimi']." ".$laskurow['nimitark']))));                        // Name, Pakollinen kentt‰ 1-70
+    $Nm = $Cdtr->addChild('Nm', sprintf("%-1.70s", str_replace("&", "&amp;", trim($laskurow['nimi']." ".$laskurow['nimitark'])))); // Name
   }
-  $PstlAdr = $Cdtr->addChild('PstlAdr', '');                                                // PostalAddress
-  // $AdrTp = $PstlAdr->addChild('AdrTp', '');
+  
+  $PstlAdr = $Cdtr->addChild('PstlAdr', '');                                            // PostalAddress
 
-  // Danske hylk‰‰ (joskus) aineistot, jos on vaan space, laitetaan tyhj‰ss‰ tapauksessa defaultteja
-  $_osoite  = trim($laskurow['osoite']) == ''  ? '-'  : $laskurow['osoite'];
-  $_postino = trim($laskurow['postino']) == '' ? '-'  : $laskurow['postino'];
-  $_postitp = trim($laskurow['postitp']) == '' ? '-'  : $laskurow['postitp'];
-  $_maa     = trim($laskurow['maa']) == ''     ? 'FI' : $laskurow['maa'];
+  if ($laskurow['yriti_bic'] == 'HELSFIHH') {
+    $_osoite  = trim($laskurow['osoite'])  == '' ? ''  : $laskurow['osoite'];
+    $_postino = trim($laskurow['postino']) == '' ? ''  : $laskurow['postino'];
+    $_postitp = trim($laskurow['postitp']) == '' ? ''  : $laskurow['postitp'];
+    $_erotin = "";
+  }
+  else {
+    $_osoite  = trim($laskurow['osoite'])  == '' ? '-'  : $laskurow['osoite'];
+    $_postino = trim($laskurow['postino']) == '' ? '-'  : $laskurow['postino'];
+    $_postitp = trim($laskurow['postitp']) == '' ? '-'  : $laskurow['postitp'];
+    $_erotin = "-";
+  }
 
-  $AdrLine = $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $_osoite)); // AddressLine 1-70
-  $AdrLine = $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", "{$_maa}-{$_postino}-{$_postitp}"));
-  $StrtNm = $PstlAdr->addChild('StrtNm', sprintf("%-1.70s", $_osoite)); // StreetName 1-70
-  // $BldgNb = $PstlAdr->addChild('BldgNb', ''); // BuildingNumber
-  $PstCd = $PstlAdr->addChild('PstCd', sprintf("%-1.16s", "{$_maa}-{$_postino}")); // PostCode 1-16
-  $TwnNm = $PstlAdr->addChild('TwnNm', sprintf("%-1.35s", $_postitp)); // TownName 1-35
-  // $CtrySubDvsn = $PstlAdr->addChild('CtrySubDvsn', '');
-  $Ctry = $PstlAdr->addChild('Ctry', sprintf("%-2.2s", $_maa)); // Country
+  $_maa = trim($laskurow['maa']) == '' ? 'FI' : $laskurow['maa'];
 
-  // $Id = $Cdtr->addChild('Id', '');
-  //   $OrgId = $Id->addChild('OrgId', '');
-  //     $BIC = $OrgId->addChild('BIC', '');
-  //     $IBEI = $OrgId->addChild('IBEI', '');
-  //     $BEI = $OrgId->addChild('BEI', '');
-  //     $EANGLN = $OrgId->addChild('EANGLN', '');
-  //     $USCHU = $OrgId->addChild('USCHU', '');
-  //     $DUNS = $OrgId->addChild('DUNS', '');
-  //     $BkPtyId = $OrgId->addChild('BkPtyId', $laskurow['ytunnus']);
-  //     $TaxIdNb = $OrgId->addChild('TaxIdNb', '');
-  //     $PrtryId = $OrgId->addChild('PrtryId', '');
-  //       $Id = $PrtryId->addChild('Id', '');
-  //       $Issr = $PrtryId->addChild('Issr', '');
-
-  $CtryOfRes = $Cdtr->addChild('CtryOfRes', sprintf("%-2.2s", $_maa));
-  $CdtrAcct = $CdtTrfTxInf->addChild('CdtrAcct', '');                  // CreditorAccount
-  $Id = $CdtrAcct->addChild('Id', '');                      // Identification
+  // Order from try2.xml for Cdtr: StrtNm, PstCd, TwnNm, Ctry, AdrLine
+  $PstlAdr->addChild('StrtNm', sprintf("%-1.70s", $_osoite)); // StreetName
+  $PstlAdr->addChild('PstCd', sprintf("%-1.16s", "{$_maa}{$_erotin}{$_postino}")); // PostCode
+  $PstlAdr->addChild('TwnNm', sprintf("%-1.35s", $_postitp)); // TownName
+  $PstlAdr->addChild('Ctry', sprintf("%-2.2s", $_maa)); // Country
+  
+  $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $_osoite)); // AddressLine
+  $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", "{$_maa}{$_erotin}{$_postino}{$_erotin}{$_postitp}"));
+  
+  $CdtrAcct = $CdtTrfTxInf->addChild('CdtrAcct', '');                                   // CreditorAccount
+  $Id = $CdtrAcct->addChild('Id', '');                                                  // Identification
   if (tarkista_sepa($laskurow["iban_maa"]) !== FALSE) {
-    $Id->addChild('IBAN', $laskurow['ultilno']);              // IBAN = kotimaa, BBAN = ulkomaa, Pakollinen tieto
+    $Id->addChild('IBAN', $laskurow['ultilno']);                                        // IBAN
   }
   else {
-    $Id->addChild('BBAN', $laskurow['ultilno']);              // IBAN = kotimaa, BBAN = ulkomaa, Pakollinen tieto
+    $Id->addChild('BBAN', $laskurow['ultilno']);                                        // BBAN
   }
-  //   $Ccy = $CdtrAcct->addChild('Ccy', '');
-  //   $Nm = $CdtrAcct->addChild('Nm', '');
-  // $UltmtCdtr = $CdtTrfTxInf->addChild('UltmtCdtr', '');
-  //   $Nm = $UltmtCdtr->addChild('Nm', '');
-  //   $PstlAdr = $UltmtCdtr->addChild('PstlAdr', '');
-  //     $AdrTp = $PstlAdr->addChild('AdrTp', '');
-  //     $AdrLine = $PstlAdr->addChild('AdrLine', '');
-  //     $StrtNm = $PstlAdr->addChild('StrtNm', '');
-  //     $BldgNb = $PstlAdr->addChild('BldgNb', '');
-  //     $PstCd = $PstlAdr->addChild('PstCd', '');
-  //     $TwnNm = $PstlAdr->addChild('TwnNm', '');
-  //     $CtrySubDvsn = $PstlAdr->addChild('CtrySubDvsn', '');
-  //     $Ctry = $PstlAdr->addChild('Ctry', '');
-  //   $Id = $UltmtCdtr->addChild('Id', '');
-  //     $OrgId = $Id->addChild('OrgId', '');
-  //       $BIC = $OrgId->addChild('BIC', '');
-  //       $IBEI = $OrgId->addChild('IBEI', '');
-  //       $BEI = $OrgId->addChild('BEI', '');
-  //       $EANGLN = $OrgId->addChild('EANGLN', '');
-  //       $USCHU = $OrgId->addChild('USCHU', '');
-  //       $DUNS = $OrgId->addChild('DUNS', '');
-  //       $BkPtyId = $OrgId->addChild('BkPtyId', '');
-  //       $TaxIdNb = $OrgId->addChild('TaxIdNb', '');
-  //       $PrtryId = $OrgId->addChild('PrtryId', '');
-  //         $Id = $PrtryId->addChild('Id', '');
-  //         $Issr = $PrtryId->addChild('Issr', '');
-  //   $CtryOfRes = $UltmtCdtr->addChild('CtryOfRes', '');
-  // $InstrForDbtrAgt = $CdtTrfTxInf->addChild('InstrForDbtrAgt', '');
-  // $Purp = $CdtTrfTxInf->addChild('Purp', '');
-  //   $Cd = $Purp->addChild('Cd', '');
-  // $RgltryRptg = $CdtTrfTxInf->addChild('RgltryRptg', '');
-  //   $DbtCdtRptgInd = $RgltryRptg->addChild('DbtCdtRptgInd', '');
-  //   $Authrty = $RgltryRptg->addChild('Authrty', '');
-  //     $AuthrtyNm = $Authrty->addChild('AuthrtyNm', '');
-  //     $AuthrtyCtry = $Authrty->addChild('AuthrtyCtry', '');
-  //   $RgltryDtls = $RgltryRptg->addChild('RgltryDtls', '');
-  //     $Cd = $RgltryDtls->addChild('Cd', '');
-  //     $Amt = $RgltryDtls->addChild('Amt', '');
-  //     $Inf = $RgltryDtls->addChild('Inf', '');
-  $RmtInf = $CdtTrfTxInf->addChild('RmtInf', '');                            // RemittanceInformation
 
+  // Determine if RmtInf is needed
+  $rmtInfNeeded = false;
   if ($yhtiorow['maa'] == 'EE' and strlen(trim($laskurow["laskunro"])) > 0 and $laskurow['viesti'] != "") {
-    $reference_number_and_message = "/RFB/".$laskurow['laskunro']."/TXT/".$laskurow['viesti'];
-    $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $reference_number_and_message));          // Unstructured (max 140 char)
+    $rmtInfNeeded = true;
   }
-  else {
-    if (strlen(trim($laskurow["viite"])) > 0 and $laskurow["tilaustyyppi"] == 'M') {             // Matkalaskuilla viite viestiksi sanomalle
-      $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viite']));          // Unstructured (max 140 char)
-    }
-    elseif (strlen(trim($laskurow["viite"])) > 0) {
-      $Strd = $RmtInf->addChild('Strd', '');                              // Structured (Max 9 occurrences)
-      // $RfrdDocInf = $Strd->addChild('RfrdDocInf', '');                      // ReferredDocumentInformation
-      //   $RfrdDocTp = $RfrdDocInf->addChild('RfrdDocTp', '');
-      //     $Cd = $RfrdDocTp->addChild('Cd', '');
-      //   $RfrdDocNb = $RfrdDocInf->addChild('RfrdDocNb', '');
-      // $RfrdDocRltdDt = $Strd->addChild('RfrdDocRltdDt', '');
-      // $RfrdDocAmt = $Strd->addChild('RfrdDocAmt', '');
-      //   $RmtdAmt = $RfrdDocAmt->addChild('RmtdAmt', '');
-      $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                      // CreditorReferenceInformation
-      $CdtrRefTp = $CdtrRefInf->addChild('CdtrRefTp', '');                  // CreditorReferenceType
-      $Cd = $CdtrRefTp->addChild('Cd', 'SCOR');                      // Code (SCOR = Structured Communication Reference)
-      $CdtrRef = $CdtrRefInf->addChild('CdtrRef', sprintf("%-1.35s", $laskurow['viite']));  // CreditorReference
-      // $AddtlRmtInf = $Strd->addChild('AddtlRmtInf', '');
-    }
-    elseif ($laskurow['viesti'] != "") {
-      $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viesti']));          // Unstructured (max 140 char)
-    }
+  elseif (strlen(trim($laskurow["viite"])) > 0) {
+    $rmtInfNeeded = true;
   }
-
-  // jos t‰m‰ muuttuja on setattu, on t‰m‰ ko. lasku/tapahtuma netotettu n‰ist‰ tunnuksista!
+  elseif ($laskurow['viesti'] != "") {
+    $rmtInfNeeded = true;
+  }
   if ($netotetut_rivit != "") {
+    $rmtInfNeeded = true;
+  }
 
-    $query = "SELECT *
-              FROM lasku
-              WHERE yhtio = '$kukarow[yhtio]'
-              AND tunnus  in ($netotetut_rivit)";
-    $result = pupe_query($query);
+  if ($rmtInfNeeded) {
+    $RmtInf = $CdtTrfTxInf->addChild('RmtInf', '');                                       // RemittanceInformation
 
-    while ($nettorow = mysql_fetch_assoc($result)) {
-
-      // Jos laskunumero on syˆtetty, lis‰t‰‰n se viestiin mukaan
-      if ($nettorow['laskunro'] != 0 and $nettorow['laskunro'] != $nettorow['viesti']) {
-        $nettorow['viesti'] = (trim($nettorow['viesti']) == "") ? $nettorow['laskunro'] : trim($nettorow['viesti']." ".$nettorow['laskunro']);
+    if ($yhtiorow['maa'] == 'EE' and strlen(trim($laskurow["laskunro"])) > 0 and $laskurow['viesti'] != "") {
+      $reference_number_and_message = "/RFB/".$laskurow['laskunro']."/TXT/".$laskurow['viesti'];
+      $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $reference_number_and_message)); // Unstructured
+    }
+    else {
+      if (strlen(trim($laskurow["viite"])) > 0 and $laskurow["tilaustyyppi"] == 'M') {    // Matkalaskuilla viite viestiksi
+        $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viite']));     // Unstructured
       }
-
-      if ($nettorow["summa"] < 0) {
-        $code = "CREN";  // hyvityslasku
+      elseif (strlen(trim($laskurow["viite"])) > 0) {
+        $Strd = $RmtInf->addChild('Strd', '');                                            // Structured
+        $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                                  // CreditorReferenceInformation
+        
+        // Structure from try2.xml: Tp > CdOrPrtry > Cd = SCOR
+        $Tp = $CdtrRefInf->addChild('Tp', '');
+        $CdOrPrtry = $Tp->addChild('CdOrPrtry', '');
+        $CdOrPrtry->addChild('Cd', 'SCOR');                                               // Code
+        
+        $CdtrRefInf->addChild('Ref', sprintf("%-1.35s", $laskurow['viite']));             // Reference
       }
-      else {
-        $code = "CINV";  // veloituslasku
+      elseif ($laskurow['viesti'] != "") {
+        $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viesti']));    // Unstructured
       }
+    }
 
-      $Strd = $RmtInf->addChild('Strd', '');                                 // Structured (Max 9 occurrences)
+    // jos t‰m‰ muuttuja on setattu, on t‰m‰ ko. lasku/tapahtuma netotettu n‰ist‰ tunnuksista!
+    if ($netotetut_rivit != "") {
 
-      $RfrdDocInf = $Strd->addChild('RfrdDocInf', '');                         // ReferredDocumentInformation
-      $RfrdDocTp = $RfrdDocInf->addChild('RfrdDocTp', '');                     // ReferredDocumentType
-      $Cd = $RfrdDocTp->addChild('Cd', $code);                         // Code, Pakollinen tieto (CINV = Commercial invoice, CREN = Credit note)
-      // $RfrdDocNb = $RfrdDocInf->addChild('RfrdDocNb', '');
-      // $RfrdDocRltdDt = $Strd->addChild('RfrdDocRltdDt', '');
-      $RfrdDocAmt = $Strd->addChild('RfrdDocAmt', '');                         // ReferredDocumentAmount
+      $query = "SELECT *
+                FROM lasku
+                WHERE yhtio = '$kukarow[yhtio]'
+                AND tunnus  in ($netotetut_rivit)";
+      $result = pupe_query($query);
 
-      if ($nettorow["summa"] < 0) {
-        $RmtdAmt = $RfrdDocAmt->addChild('CdtNoteAmt', abs($nettorow["summa"]));      // CreditNoteAmount
-      }
-      else {
-        if ($nettorow['alatila'] != 'K') {
-          $RmtdAmt = $RfrdDocAmt->addChild('RmtdAmt', $nettorow["summa"]);             // RemittedAmount
+      while ($nettorow = mysql_fetch_assoc($result)) {
+
+        // Jos laskunumero on syˆtetty, lis‰t‰‰n se viestiin mukaan
+        if ($nettorow['laskunro'] != 0 and $nettorow['laskunro'] != $nettorow['viesti']) {
+          $nettorow['viesti'] = (trim($nettorow['viesti']) == "") ? $nettorow['laskunro'] : trim($nettorow['viesti']." ".$nettorow['laskunro']);
+        }
+
+        if ($nettorow["summa"] < 0) {
+          $code = "CREN";  // hyvityslasku
         }
         else {
-          $RmtdAmt = $RfrdDocAmt->addChild('RmtdAmt', round($nettorow["summa"] - $nettorow['kasumma'], 2));             // RemittedAmount
+          $code = "CINV";  // veloituslasku
         }
-      }
 
-      $RmtdAmt->addAttribute('Ccy', $nettorow['valkoodi']);                     // Attribute Currency
+        $Strd = $RmtInf->addChild('Strd', '');                                            // Structured
 
-      if (strlen(trim($nettorow["viite"])) > 0) {
-        $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                         // CreditorReferenceInformation
-        $CdtrRefTp = $CdtrRefInf->addChild('CdtrRefTp', '');                     // CreditorReferenceType
-        $Cd = $CdtrRefTp->addChild('Cd', 'SCOR');                         // Code (SCOR = Structured Communication Reference)
-        $CdtrRef = $CdtrRefInf->addChild('CdtrRef', sprintf("%-1.35s", $nettorow['viite']));  // CreditorReference
-      }
-      elseif ($nettorow["viesti"] != "") {
-        $AddtlRmtInf = $Strd->addChild('AddtlRmtInf', sprintf("%-1.140s", $nettorow['viesti']));  // AdditionalRemittanceInformation
+        $RfrdDocInf = $Strd->addChild('RfrdDocInf', '');                                  // ReferredDocumentInformation
+        $RfrdDocTp = $RfrdDocInf->addChild('RfrdDocTp', '');                              // ReferredDocumentType
+        
+        // Consistent structure
+        $CdOrPrtry = $RfrdDocTp->addChild('CdOrPrtry', '');
+        $CdOrPrtry->addChild('Cd', $code);                                                // Code
+        
+        $RfrdDocAmt = $Strd->addChild('RfrdDocAmt', '');                                  // ReferredDocumentAmount
+
+        if ($nettorow["summa"] < 0) {
+          $RmtdAmt = $RfrdDocAmt->addChild('CdtNoteAmt', sprintf("%.02f", abs($nettorow["summa"]))); // CreditNoteAmount
+        }
+        else {
+          if ($nettorow['alatila'] != 'K') {
+            $RmtdAmt = $RfrdDocAmt->addChild('RmtdAmt', sprintf("%.02f", $nettorow["summa"])); // RemittedAmount
+          }
+          else {
+            $RmtdAmt = $RfrdDocAmt->addChild('RmtdAmt', sprintf("%.02f", round($nettorow["summa"] - $nettorow['kasumma'], 2))); // RemittedAmount
+          }
+        }
+
+        $RmtdAmt->addAttribute('Ccy', $nettorow['valkoodi']);                             // Attribute Currency
+
+        if (strlen(trim($nettorow["viite"])) > 0) {
+          $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                                // CreditorReferenceInformation
+          $Tp = $CdtrRefInf->addChild('Tp', '');
+          $CdOrPrtry = $Tp->addChild('CdOrPrtry', '');
+          $CdOrPrtry->addChild('Cd', 'SCOR');
+          $CdtrRefInf->addChild('Ref', sprintf("%-1.35s", $nettorow['viite']));           // Reference
+        }
+        elseif ($nettorow["viesti"] != "") {
+          $AddtlRmtInf = $Strd->addChild('AddtlRmtInf', sprintf("%-1.140s", $nettorow['viesti'])); // AdditionalRemittanceInformation
+        }
       }
     }
   }
@@ -560,7 +416,6 @@ $haku_query = "SELECT lasku.*,
                yriti.iban yriti_iban,
                yriti.bic yriti_bic,
                yriti.asiakastunnus yriti_asiakastunnus,
-               yriti.tunnus AS yriti_tunnus,
                date_format(lasku.popvm, '%d.%m.%y.%H.%i.%s') popvm_dmy
                FROM lasku
                INNER JOIN valuu ON (valuu.yhtio = lasku.yhtio
@@ -714,12 +569,13 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
     // Etsit‰‰n samalle p‰iv‰lle tarpeeksi veloituksia, haetaan ensin kaikki miinukset, sitten summan mukaan desc
     $query = "SELECT lasku.tunnus laskutunnus,
-              if(lasku.alatila = 'K', summa - kasumma, summa) maksettavasumma
+              if(lasku.alatila = 'K', summa - kasumma, summa) maksettavasumma, yriti.bic
               FROM lasku
-              WHERE yhtio    = '$kukarow[yhtio]'
+              INNER JOIN yriti ON yriti.tunnus = lasku.maksu_tili AND yriti.yhtio = lasku.yhtio
+              WHERE lasku.yhtio    = '$kukarow[yhtio]'
               {$lisa}
               AND ultilno    = '$laskurow[ultilno]'
-              AND valkoodi   = '$laskurow[valkoodi]'
+              AND lasku.valkoodi   = '$laskurow[valkoodi]'
               AND maksu_tili = '$laskurow[maksu_tili]'
               AND olmapvm    = '$laskurow[olmapvm]'
               ORDER BY if(summa < 0, 1, 2), summa DESC";
@@ -728,19 +584,26 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
     // T‰ll‰ lasketaan monta laskua tarvitaan mukaan
     $nettosumma_yhteensa = 0;
     $nettolaskuja_yhteensa = 0;
+    $nordea_hyvityslaskuja_yhteensa = 0;
 
     // T‰nne tallennetaan laskujen tunnukset
     $nettolaskujen_tunnukset = "";
+    $summa_plussalla = false;
 
     // Loopataan laskuja l‰pi, kunnes p‰‰st‰‰n plussalle
     while ($nettolaskurow = mysql_fetch_assoc($nettolaskures)) {
+      if (!$summa_plussalla) {
+        $nettosumma_yhteensa += $nettolaskurow["maksettavasumma"];
+        $nettolaskujen_tunnukset .= "$nettolaskurow[laskutunnus],";
+        $nettolaskuja_yhteensa++;
+      }
 
-      $nettosumma_yhteensa += $nettolaskurow["maksettavasumma"];
-      $nettolaskujen_tunnukset .= "$nettolaskurow[laskutunnus],";
-      $nettolaskuja_yhteensa++;
+      if ($nettolaskurow["maksettavasumma"] < 0 and $nettolaskurow['bic'] == 'NDEAFIHH') {
+        $nordea_hyvityslaskuja_yhteensa++;
+      }
 
       if ($nettosumma_yhteensa > 0) {
-        break;
+        $summa_plussalla = true;
       }
     }
 
@@ -759,11 +622,23 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
       exit;
     }
 
-    if ($nettolaskuja_yhteensa > 9) {
+    if ($nettolaskuja_yhteensa > 999) {
 
       echo "<tr>";
       echo "<th>".t("Virhe")."</th>";
-      echo "<td><font class='error'>Hyvityslaskujen netotus koostuu yli yhdeks‰st‰ tapahtumasta! SEPA aineisto ei tue n‰in isoja netotuksia! $laskurow[valkoodi] $laskurow[ultilno], $laskurow[olmapvm]</font></td>";
+      echo "<td><font class='error'>Hyvityslaskujen netotus koostuu yli 999 tapahtumasta! SEPA aineisto ei tue n‰in isoja netotuksia! $laskurow[valkoodi] $laskurow[ultilno], $laskurow[olmapvm]</font></td>";
+      echo "</tr>";
+      echo "</table>";
+
+      require "inc/footer.inc";
+      exit;
+    }
+
+    if ($nordea_hyvityslaskuja_yhteensa > 9) {
+
+      echo "<tr>";
+      echo "<th>".t("Virhe")."</th>";
+      echo "<td><font class='error'>" . t("Poimittu aineisto voi sis‰lt‰‰ vain 9 hyvityslaskua yhdelle toimittajalle") . ".</font></td>";
       echo "</tr>";
       echo "</table>";
 
@@ -883,8 +758,33 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
     }
   }
 
-  // Lis‰t‰‰n viel‰ oikea tapahtumien m‰‰r‰ sanoman headeriin
-  $xml->{"pain.001.001.02"}->GrpHdr->NbOfTxs = $tapahtuma_maara;
+  // Update total transactions and control sum at the very end
+  // Using global $pain which refers to CstmrCdtTrfInitn
+  $total_txs = 0;
+  $total_sum = 0.0;
+
+  // We need to iterate over all PmtInf blocks to update their individual totals first
+  foreach ($pain->PmtInf as $pmtInf) {
+      $group_txs = 0;
+      $group_sum = 0.0;
+
+      foreach ($pmtInf->CdtTrfTxInf as $tx) {
+          $group_txs++;
+          $val = (float) $tx->Amt->InstdAmt;
+          $group_sum += $val;
+      }
+
+      $pmtInf->NbOfTxs = $group_txs;
+      $pmtInf->CtrlSum = sprintf("%.02f", $group_sum);
+
+      $total_txs += $group_txs;
+      $total_sum += $group_sum;
+  }
+
+  // Update Group Header totals
+  $pain->GrpHdr->NbOfTxs = $total_txs;
+  $pain->GrpHdr->CtrlSum = sprintf("%.02f", $total_sum);
+
 
   /* T‰m‰ blocki piti poistaa, koska rikkoo Samlinkin. Aineistossa ei saa olla mit‰‰n j‰sentely‰.
   // Kirjoitetaaan XML, tehd‰‰n t‰st‰ j‰sennelty aineisto. T‰m‰ toimii paremmin mm OPn kanssa
@@ -896,7 +796,23 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
   */
 
   // Kirjoitetaaan XML ja tehd‰‰n UTF8 encode
-  fwrite($toot, str_replace(chr(10), "", utf8_encode($xml->asXML())));
+  // REMOVED STR_REPLACE to allow pretty print matching try2.xml structure
+  $dom = new DOMDocument('1.0');
+  $dom->preserveWhiteSpace = false;
+  $dom->formatOutput = true;
+  
+  $xml_output = $xml->asXML();
+  
+  // Ensure output is UTF-8 (DB is ISO-8859-1)
+  if (function_exists('mb_convert_encoding')) {
+    $xml_output = mb_convert_encoding($xml_output, 'UTF-8', 'ISO-8859-1');
+  } else {
+    $xml_output = utf8_encode($xml_output);
+  }
+
+  $dom->loadXML($xml_output);
+  fwrite($toot, $dom->saveXML());
+  
   fclose($toot);
 
   // Tehd‰‰n viel‰ t‰ss‰ vaiheessa XML validointi, vaikka ainesto onkin jo tehty. :(
@@ -905,7 +821,8 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
   $xml_virheet = "";
   $xml_domdoc = new DomDocument;
   $xml_file = $pankkitiedostot_polku.$kaunisnimi;
-  $xml_schema = "$pupe_root_polku/datain/pain.001.001.02.xsd";
+  // Updated to pain.001.001.03.xsd
+  $xml_schema = "$pupe_root_polku/datain/pain.001.001.03.xsd";
 
   // T‰m‰ tiedosto l‰hetet‰‰n pankkiin!
   $pankkiyhteys_tiedosto = $kaunisnimi;
@@ -1006,3 +923,4 @@ if (SEPA_PANKKIYHTEYS and !empty($pankkiyhteys_tiedosto)) {
     echo "</form>";
   }
 }
+?>
