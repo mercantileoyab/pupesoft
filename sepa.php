@@ -1,12 +1,31 @@
 <?php
 
 /*
-Tehty ja validoitu käyttäen speksejä:
+Tehty ja validoitu kayttaen spekseja:
 
 URL: http://www.iso20022.org/catalogue_of_unifi_messages.page
 Msg ID: pain.001.001.03
 Message Name: CustomerCreditTransferInitiationV03
 */
+
+function sanitize_sepa_string($string) {
+    $replacements = array(
+        '?' => 'A', '?' => 'a',
+        '?' => 'O', '?' => 'o',
+        '?' => 'A', '?' => 'a',
+        '?' => 'U', '?' => 'u',
+        '?' => 'O', '?' => 'o',
+        '?' => 'S', '?' => 's',
+        '?' => 'Z', '?' => 'z',
+        // Add other necessary replacements here
+    );
+    
+    $string = strtr($string, $replacements);
+    
+    // Allow only basic characters: a-z, A-Z, 0-9, spaces, and specific punctuation
+    // SEPA allowed characters: a-z A-Z 0-9 / - ? : ( ) . , ' + space
+    return preg_replace('/[^a-zA-Z0-9\/\-\?:\(\)\.,\'\+ ]/', '', $string);
+}
 
 function sepa_header() {
   global $xml, $pain, $yhtiorow;
@@ -30,7 +49,6 @@ function sepa_header() {
   $InitgPty = $GrpHdr->addChild('InitgPty', '');                                        // InitiatingParty
   $InitgPty->addChild('Nm', sprintf("%-1.70s", $yhtiorow['nimi']));                     // Name
   
-  // Identification structure matching try2.xml
   $Id = $InitgPty->addChild('Id');
   $OrgId = $Id->addChild('OrgId');
   $Othr = $OrgId->addChild('Othr');
@@ -47,7 +65,6 @@ function sepa_paymentinfo($laskurow) {
   $PmtMtd = $PmtInf->addChild('PmtMtd', 'TRF');                                         // PaymentMethod
   $PmtInf->addChild('BtchBookg', 'true');                                               // BatchBooking
   
-  // Placeholders - updated at the end
   $PmtInf->addChild('NbOfTxs', 0);
   $PmtInf->addChild('CtrlSum', 0);
 
@@ -63,7 +80,6 @@ function sepa_paymentinfo($laskurow) {
   $Dbtr->addChild('Nm', sprintf("%-1.70s", $yhtiorow['nimi']));                         // Name
   
   $PstlAdr = $Dbtr->addChild('PstlAdr');                                                // PostalAddress
-  // MATCHING TRY2.XML: Ctry first, then AdrLines
   $PstlAdr->addChild('Ctry', $yhtiorow['maa']);
   $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $yhtiorow['osoite']));               // AddressLine
   $PstlAdr->addChild('AdrLine', sprintf("%-1.70s", $yhtiorow['maa']."-".$yhtiorow['postino']." ".$yhtiorow['postitp']));
@@ -86,7 +102,7 @@ function sepa_paymentinfo($laskurow) {
 
   $DbtrAcct = $PmtInf->addChild('DbtrAcct');                                            // DebtorAccount
   $Id = $DbtrAcct->addChild('Id');                                                      // Identification
-  $Id->addChild('IBAN', $laskurow['yriti_iban']);                                       // IBAN
+  $Id->addChild('IBAN', str_replace(' ', '', $laskurow['yriti_iban']));                 // IBAN
   
   $DbtrAgt = $PmtInf->addChild('DbtrAgt');                                              // DebtorAgent
   $FinInstnId  = $DbtrAgt->addChild('FinInstnId');                                      // FinancialInstitutionIdentification
@@ -119,23 +135,27 @@ function sepa_credittransfer($laskurow, $popvm_nyt, $netotetut_rivit = '') {
   }
   $InstdAmt->addAttribute('Ccy', $laskurow['valkoodi']);                                // Currency
 
-  // Creditor Agent (CdtrAgt)
   $CdtrAgt = $CdtTrfTxInf->addChild('CdtrAgt', '');
   $FinInstnId = $CdtrAgt->addChild('FinInstnId', '');
   if (!empty($laskurow['swift'])) {
     $FinInstnId->addChild('BIC', $laskurow['swift']);
-  } else {
-    // If no BIC, empty structure or Othr based on bank reqs. Try2.xml uses BIC.
   }
 
   $Cdtr = $CdtTrfTxInf->addChild('Cdtr', '');                                           // Creditor
 
-  if (trim($laskurow['pankki_haltija']) != '') {
-    $Nm = $Cdtr->addChild('Nm', sprintf("%-1.70s", str_replace("&", "&amp;", $laskurow['pankki_haltija']))); // Name
+  $creditorName = (trim($laskurow['pankki_haltija']) != '') 
+      ? $laskurow['pankki_haltija'] 
+      : trim($laskurow['nimi']." ".$laskurow['nimitark']);
+
+  // Replace & or &amp; with "and" BEFORE sanitization
+  $creditorName = str_replace(array('&amp;', '&'), 'and', $creditorName);
+
+  // Sanitize name if not domestic (FI)
+  if (strtolower($laskurow['maa']) != 'fi') {
+      $creditorName = sanitize_sepa_string($creditorName);
   }
-  else {
-    $Nm = $Cdtr->addChild('Nm', sprintf("%-1.70s", str_replace("&", "&amp;", trim($laskurow['nimi']." ".$laskurow['nimitark'])))); // Name
-  }
+
+  $Nm = $Cdtr->addChild('Nm', sprintf("%-1.70s", $creditorName)); // Name
   
   $PstlAdr = $Cdtr->addChild('PstlAdr', '');                                            // PostalAddress
 
@@ -154,7 +174,12 @@ function sepa_credittransfer($laskurow, $popvm_nyt, $netotetut_rivit = '') {
 
   $_maa = trim($laskurow['maa']) == '' ? 'FI' : $laskurow['maa'];
 
-  // Order from try2.xml for Cdtr: StrtNm, PstCd, TwnNm, Ctry, AdrLine
+  // Sanitize address fields if not domestic
+  if (strtolower($laskurow['maa']) != 'fi') {
+      $_osoite = sanitize_sepa_string($_osoite);
+      $_postitp = sanitize_sepa_string($_postitp);
+  }
+
   $PstlAdr->addChild('StrtNm', sprintf("%-1.70s", $_osoite)); // StreetName
   $PstlAdr->addChild('PstCd', sprintf("%-1.16s", "{$_maa}{$_erotin}{$_postino}")); // PostCode
   $PstlAdr->addChild('TwnNm', sprintf("%-1.35s", $_postitp)); // TownName
@@ -166,15 +191,16 @@ function sepa_credittransfer($laskurow, $popvm_nyt, $netotetut_rivit = '') {
   $CdtrAcct = $CdtTrfTxInf->addChild('CdtrAcct', '');                                   // CreditorAccount
   $Id = $CdtrAcct->addChild('Id', '');                                                  // Identification
   if (tarkista_sepa($laskurow["iban_maa"]) !== FALSE) {
-    $Id->addChild('IBAN', $laskurow['ultilno']);                                        // IBAN
+    $Id->addChild('IBAN', str_replace(' ', '', $laskurow['ultilno']));                  // IBAN
   }
   else {
-    $Id->addChild('BBAN', $laskurow['ultilno']);                                        // BBAN
+    $Othr = $Id->addChild('Othr');
+    $Othr->addChild('Id', $laskurow['ultilno']);                                        // Othr
   }
 
-  // Determine if RmtInf is needed
   $rmtInfNeeded = false;
-  if ($yhtiorow['maa'] == 'EE' and strlen(trim($laskurow["laskunro"])) > 0 and $laskurow['viesti'] != "") {
+  
+  if ($yhtiorow['maa'] == 'EE') {
     $rmtInfNeeded = true;
   }
   elseif (strlen(trim($laskurow["viite"])) > 0) {
@@ -190,33 +216,8 @@ function sepa_credittransfer($laskurow, $popvm_nyt, $netotetut_rivit = '') {
   if ($rmtInfNeeded) {
     $RmtInf = $CdtTrfTxInf->addChild('RmtInf', '');                                       // RemittanceInformation
 
-    if ($yhtiorow['maa'] == 'EE' and strlen(trim($laskurow["laskunro"])) > 0 and $laskurow['viesti'] != "") {
-      $reference_number_and_message = "/RFB/".$laskurow['laskunro']."/TXT/".$laskurow['viesti'];
-      $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $reference_number_and_message)); // Unstructured
-    }
-    else {
-      if (strlen(trim($laskurow["viite"])) > 0 and $laskurow["tilaustyyppi"] == 'M') {    // Matkalaskuilla viite viestiksi
-        $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viite']));     // Unstructured
-      }
-      elseif (strlen(trim($laskurow["viite"])) > 0) {
-        $Strd = $RmtInf->addChild('Strd', '');                                            // Structured
-        $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                                  // CreditorReferenceInformation
-        
-        // Structure from try2.xml: Tp > CdOrPrtry > Cd = SCOR
-        $Tp = $CdtrRefInf->addChild('Tp', '');
-        $CdOrPrtry = $Tp->addChild('CdOrPrtry', '');
-        $CdOrPrtry->addChild('Cd', 'SCOR');                                               // Code
-        
-        $CdtrRefInf->addChild('Ref', sprintf("%-1.35s", $laskurow['viite']));             // Reference
-      }
-      elseif ($laskurow['viesti'] != "") {
-        $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viesti']));    // Unstructured
-      }
-    }
-
-    // jos tämä muuttuja on setattu, on tämä ko. lasku/tapahtuma netotettu näistä tunnuksista!
     if ($netotetut_rivit != "") {
-
+      $ustrd_parts = array();
       $query = "SELECT *
                 FROM lasku
                 WHERE yhtio = '$kukarow[yhtio]'
@@ -224,53 +225,66 @@ function sepa_credittransfer($laskurow, $popvm_nyt, $netotetut_rivit = '') {
       $result = pupe_query($query);
 
       while ($nettorow = mysql_fetch_assoc($result)) {
-
-        // Jos laskunumero on syötetty, lisätään se viestiin mukaan
-        if ($nettorow['laskunro'] != 0 and $nettorow['laskunro'] != $nettorow['viesti']) {
-          $nettorow['viesti'] = (trim($nettorow['viesti']) == "") ? $nettorow['laskunro'] : trim($nettorow['viesti']." ".$nettorow['laskunro']);
-        }
-
-        if ($nettorow["summa"] < 0) {
-          $code = "CREN";  // hyvityslasku
-        }
-        else {
-          $code = "CINV";  // veloituslasku
-        }
-
-        $Strd = $RmtInf->addChild('Strd', '');                                            // Structured
-
-        $RfrdDocInf = $Strd->addChild('RfrdDocInf', '');                                  // ReferredDocumentInformation
-        $RfrdDocTp = $RfrdDocInf->addChild('RfrdDocTp', '');                              // ReferredDocumentType
+        $id_str = "";
+        $prefix = ($nettorow["summa"] < 0) ? "Cdt Note" : "Inv";
         
-        // Consistent structure
-        $CdOrPrtry = $RfrdDocTp->addChild('CdOrPrtry', '');
-        $CdOrPrtry->addChild('Cd', $code);                                                // Code
-        
-        $RfrdDocAmt = $Strd->addChild('RfrdDocAmt', '');                                  // ReferredDocumentAmount
-
-        if ($nettorow["summa"] < 0) {
-          $RmtdAmt = $RfrdDocAmt->addChild('CdtNoteAmt', sprintf("%.02f", abs($nettorow["summa"]))); // CreditNoteAmount
-        }
-        else {
-          if ($nettorow['alatila'] != 'K') {
-            $RmtdAmt = $RfrdDocAmt->addChild('RmtdAmt', sprintf("%.02f", $nettorow["summa"])); // RemittedAmount
-          }
-          else {
-            $RmtdAmt = $RfrdDocAmt->addChild('RmtdAmt', sprintf("%.02f", round($nettorow["summa"] - $nettorow['kasumma'], 2))); // RemittedAmount
-          }
-        }
-
-        $RmtdAmt->addAttribute('Ccy', $nettorow['valkoodi']);                             // Attribute Currency
-
         if (strlen(trim($nettorow["viite"])) > 0) {
-          $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                                // CreditorReferenceInformation
+          $id_str = "Ref " . trim($nettorow["viite"]);
+        } elseif (strlen(trim($nettorow["laskunro"])) > 0) {
+          $id_str = "$prefix " . trim($nettorow["laskunro"]);
+        } elseif ($nettorow["viesti"] != "") {
+          $id_str = "Msg " . trim($nettorow["viesti"]);
+        } else {
+          $id_str = "Doc " . $nettorow["tunnus"];
+        }
+        
+        $ustrd_parts[] = $id_str;
+      }
+      
+      $full_ustrd = implode(', ', $ustrd_parts);
+      $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $full_ustrd));
+    }
+    else {
+      if ($yhtiorow['maa'] == 'EE') {
+        // REMOVED /RFB/ PREFIX LOGIC
+        if (strlen(trim($laskurow["viite"])) > 0) {
+          $reference_number_and_message = $laskurow['viite'];
+          if ($laskurow['viesti'] != "" && $laskurow['viesti'] != $laskurow['viite']) {
+              $reference_number_and_message .= " " . $laskurow['viesti'];
+          }
+        }
+        elseif (strlen(trim($laskurow["laskunro"])) > 0) {
+          $reference_number_and_message = $laskurow['laskunro'];
+          if ($laskurow['viesti'] != "") {
+              $reference_number_and_message .= " " . $laskurow['viesti'];
+          }
+        } elseif ($laskurow['viesti'] != "") {
+          $reference_number_and_message = $laskurow['viesti'];
+        } else {
+          $reference_number_and_message = "Invoice " . $laskurow['tunnus'];
+        }
+        $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $reference_number_and_message)); // Unstructured
+      }
+      else {
+        if (strlen(trim($laskurow["viite"])) > 0 and $laskurow["tilaustyyppi"] == 'M') {
+          $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viite']));     // Unstructured
+        }
+        elseif (strlen(trim($laskurow["viite"])) > 0) {
+          $Strd = $RmtInf->addChild('Strd', '');                                            // Structured
+          $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                                  // CreditorReferenceInformation
+          
           $Tp = $CdtrRefInf->addChild('Tp', '');
           $CdOrPrtry = $Tp->addChild('CdOrPrtry', '');
-          $CdOrPrtry->addChild('Cd', 'SCOR');
-          $CdtrRefInf->addChild('Ref', sprintf("%-1.35s", $nettorow['viite']));           // Reference
+          $CdOrPrtry->addChild('Cd', 'SCOR');                                               // Code
+          
+          $CdtrRefInf->addChild('Ref', sprintf("%-1.35s", $laskurow['viite']));             // Reference
         }
-        elseif ($nettorow["viesti"] != "") {
-          $AddtlRmtInf = $Strd->addChild('AddtlRmtInf', sprintf("%-1.140s", $nettorow['viesti'])); // AdditionalRemittanceInformation
+        elseif ($laskurow['viesti'] != "") {
+          $viesti_content = $laskurow['viesti'];
+          if (strtolower($laskurow['maa']) != 'fi') {
+             $viesti_content = sanitize_sepa_string($viesti_content);
+          }
+          $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $viesti_content));    // Unstructured
         }
       }
     }
@@ -287,7 +301,6 @@ require "inc/pankkiyhteys_functions.inc";
 
 $tee = empty($tee) ? '' : $tee;
 
-// Onko maksuaineistoille annettu salasanat.php:ssä oma polku jonne tallennetaan
 if ($tee == "KIRJOITAKOPIO" || isset($vanhatee) && $vanhatee == "KIRJOITAKOPIO") {
   $pankkitiedostot_polku = "/tmp";
 }
@@ -301,7 +314,6 @@ else {
   $pankkitiedostot_polku = $pupe_root_polku."/dataout";
 }
 
-// Varmistetaan, että loppuu kauttaviivaan
 $pankkitiedostot_polku = rtrim($pankkitiedostot_polku, '/').'/';
 
 if ($tee == "lataa_tiedosto") {
@@ -322,14 +334,13 @@ if (!is_writable($pankkitiedostot_polku)) {
   $tee = "";
 }
 
-// Pankkiyhteys oikeellisuustarkastukset
 if ($tee == "laheta_pankkiin") {
   if (empty($salasana)) {
-    virhe("Salasana täytyy antaa!");
+    virhe("Salasana taytyy antaa!");
     $tee = "virhe";
   }
   elseif (!hae_pankkiyhteys_ja_pura_salaus($pankkiyhteys_tunnus, $salasana)) {
-    virhe("Antamasi salasana on väärä!");
+    virhe("Antamasi salasana on vaara!");
     $tee = "virhe";
   }
 
@@ -346,7 +357,6 @@ if ($tee == "laheta_pankkiin") {
   }
 }
 
-// Pankkiyhteys tiedoston lähetys
 if ($tee == "laheta_pankkiin") {
   $_xml = file_get_contents($pankkiyhteys_tiedosto_full);
   $_data = base64_encode($_xml);
@@ -361,7 +371,7 @@ if ($tee == "laheta_pankkiin") {
   $vastaus = sepa_upload_file($params);
 
   if ($vastaus) {
-    viesti("Maksuaineisto lähetetty, vastaus pankista:");
+    viesti("Maksuaineisto lahetetty, vastaus pankista:");
 
     echo "<br/>";
     echo "<table>";
@@ -376,7 +386,6 @@ if ($tee == "laheta_pankkiin") {
     echo "</table>";
     echo "<br/><br/>";
 
-    // Nollataan tämä, niin ei näytetä lähetyskäyttöliittymää uudestaan!
     $pankkiyhteys_tiedosto = "";
   }
 
@@ -385,12 +394,11 @@ if ($tee == "laheta_pankkiin") {
 
 $pankkitili_tunnus = empty($pankkitili_tunnus) ? 0 : (int) $pankkitili_tunnus;
 
-// Jos halutaan tiedosto per pankki per päivä
 if ($yhtiorow["pankkitiedostot"] == "E") {
   echo "<font class='error'>";
   echo t("SEPA-aineston voi luoda ainoastaan per pankki tai kaikki pankit yhteen tiedostoon.");
   echo "<br>";
-  echo t("Tarkista pankkitiedostot -yhtiön parametrti.");
+  echo t("Tarkista pankkitiedostot -yhtion parametrti.");
   echo "</font>";
 
   $tee = "virhe";
@@ -403,11 +411,9 @@ else {
   $lisa = " and lasku.tila = 'P' and lasku.maksaja = '$kukarow[kuka]' ";
 }
 
-// Haetaan kaiki SEPA-maat
 $sepa_maat_array = tarkista_sepa('', 'K');
 $sepamaat        = "'".implode("','", $sepa_maat_array)."'";
 
-// Haetaan poimitut maksut (HUOM: sama selecti alempana!!!!)
 $haku_query = "SELECT lasku.*,
                if(lasku.ultilno_maa != '', lasku.ultilno_maa, lasku.maa) iban_maa,
                if((lasku.ultilno_maa != ''
@@ -436,7 +442,6 @@ if ($tee == "") {
   echo "<font class='message'>".t("Sinulla on")." {$_num} ".t("laskua poimittuna").".</font>";
   echo "<br><br>";
 
-  // Jos meillä on pankkiyhteys käytössä, niin pitää hakea pankkitilin tunnus
   if (SEPA_PANKKIYHTEYS and $_num > 0) {
     $_temp = mysql_fetch_assoc($result);
     $pankkitili_tunnus = $_temp['yriti_tunnus'];
@@ -447,44 +452,43 @@ if ($tee == "") {
 
   while ($laskurow = mysql_fetch_assoc($result)) {
 
-    // Tehdään oikeellisuustarkastuksia
     if (tarkista_iban($laskurow["ultilno"]) != $laskurow["ultilno"] and tarkista_sepa($laskurow["iban_maa"]) !== FALSE) {
-      echo "<font class='error'>Laskun tilinumero ei ole oikeellinen IBAN tilinumero, laskua ei voida lisätä aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) $laskurow[ultilno]</font><br>";
+      echo "<font class='error'>Laskun tilinumero ei ole oikeellinen IBAN tilinumero, laskua ei voida lisata aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) $laskurow[ultilno]</font><br>";
       $virheita++;
       continue;
     }
     elseif (tarkista_bban($laskurow["ultilno"]) === FALSE) {
-      echo "<font class='error'>Laskun tilinumero ei ole oikeellinen BBAN tilinumero, laskua ei voida lisätä aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) $laskurow[ultilno]</font><br>";
+      echo "<font class='error'>Laskun tilinumero ei ole oikeellinen BBAN tilinumero, laskua ei voida lisata aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) $laskurow[ultilno]</font><br>";
       $virheita++;
       continue;
     }
 
     if ($laskurow["ultilno"] == "") {
-      echo "<font class='error'>Laskulta puuttuu tilinumero, laskua ei voida lisätä aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
+      echo "<font class='error'>Laskulta puuttuu tilinumero, laskua ei voida lisata aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
       $virheita++;
       continue;
     }
 
     if (tarkista_iban($laskurow["yriti_iban"]) == "") {
-      echo "<font class='error'>Yrityksen pankkitili $laskurow[yriti_iban] ei ole oikeellinen IBAN tilinumero, laskua ei voida lisätä aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
+      echo "<font class='error'>Yrityksen pankkitili $laskurow[yriti_iban] ei ole oikeellinen IBAN tilinumero, laskua ei voida lisata aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
       $virheita++;
       continue;
     }
 
     if (tarkista_bic($laskurow["yriti_bic"]) === FALSE) {
-      echo "<font class='error'>Yrityksen pankkitilin $laskurow[yriti_iban] BIC on virheellinen, laskua ei voida lisätä aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
+      echo "<font class='error'>Yrityksen pankkitilin $laskurow[yriti_iban] BIC on virheellinen, laskua ei voida lisata aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
       $virheita++;
       continue;
     }
 
     if (tarkista_bic($laskurow["swift"]) === FALSE) {
-      echo "<font class='error'>Laskun BIC ei ole oikeellinen, laskua ei voida lisätä aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) $laskurow[swift]</font><br>";
+      echo "<font class='error'>Laskun BIC ei ole oikeellinen, laskua ei voida lisata aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) $laskurow[swift]</font><br>";
       $virheita++;
       continue;
     }
 
     if ($laskurow["summa"] == 0) {
-      echo "<font class='error'>Laskulta puuttuu summa, laskua ei voida lisätä aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
+      echo "<font class='error'>Laskulta puuttuu summa, laskua ei voida lisata aineistoon! $laskurow[nimi] ($laskurow[summa] $laskurow[valkoodi]) </font><br>";
       $virheita++;
       continue;
     }
@@ -511,7 +515,6 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
     $popvm_row = mysql_fetch_assoc($result);
 
-    // uniikkia tunnusta varten popvm: aineistokopiolle alkuperäinen ja uudelle aineistolle se joka kirjoitetaan kantaan
     if ($tee == "KIRJOITAKOPIO") {
       $popvm_nyt = $popvm_row["popvm"];
       $popvm_dmy = $popvm_row["popvm_dmy"];
@@ -521,7 +524,6 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
       $popvm_dmy = date("d.m.y.H.i.s");
     }
 
-    // Päätetääm maksuaineston tiedostonimi
     if (strtoupper($yhtiorow['maa']) == 'EE' and substr($popvm_row['yriti_iban'], 0, 2) == "EE") {
       $kaunisnimi = "EESEPA-$kukarow[yhtio]-".$popvm_dmy.".xml";
     }
@@ -544,11 +546,10 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
     echo "</tr>";
   }
   else {
-    echo "<font class='message'>".t("Sopivia laskuja ei löydy")."</font>";
+    echo "<font class='message'>".t("Sopivia laskuja ei loydy")."</font>";
     exit;
   }
 
-  // Alustetaan muuttujat
   $tapahtuma_maara    = 0;
   $edpvm              = "0000-00-00";
   $edsepa             = "";
@@ -556,7 +557,6 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
   $netotettava_laskut = array();
   $netotettava_summa  = array();
 
-  // Tarkistetaan ensin mahdolliset netotettavat hyvitykset
   $query = "SELECT maksu_tili, ultilno, olmapvm, valkoodi
             FROM lasku
             WHERE yhtio = '$kukarow[yhtio]'
@@ -567,7 +567,6 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
   while ($laskurow = mysql_fetch_assoc($result)) {
 
-    // Etsitään samalle päivälle tarpeeksi veloituksia, haetaan ensin kaikki miinukset, sitten summan mukaan desc
     $query = "SELECT lasku.tunnus laskutunnus,
               if(lasku.alatila = 'K', summa - kasumma, summa) maksettavasumma, yriti.bic
               FROM lasku
@@ -581,16 +580,13 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
               ORDER BY if(summa < 0, 1, 2), summa DESC";
     $nettolaskures = pupe_query($query);
 
-    // Tällä lasketaan monta laskua tarvitaan mukaan
     $nettosumma_yhteensa = 0;
     $nettolaskuja_yhteensa = 0;
     $nordea_hyvityslaskuja_yhteensa = 0;
 
-    // Tänne tallennetaan laskujen tunnukset
     $nettolaskujen_tunnukset = "";
     $summa_plussalla = false;
 
-    // Loopataan laskuja läpi, kunnes päästään plussalle
     while ($nettolaskurow = mysql_fetch_assoc($nettolaskures)) {
       if (!$summa_plussalla) {
         $nettosumma_yhteensa += $nettolaskurow["maksettavasumma"];
@@ -607,14 +603,13 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
       }
     }
 
-    // Vika pilkku pois
     $nettolaskujen_tunnukset = substr($nettolaskujen_tunnukset, 0, -1);
 
     if ($nettosumma_yhteensa < 0) {
 
       echo "<tr>";
       echo "<th>".t("Virhe")."</th>";
-      echo "<td><font class='error'>Hyvityslaskujen netotus jää miinukselle! Poimi lisää laskuja tilille $laskurow[valkoodi] $laskurow[ultilno], $laskurow[olmapvm]</font></td>";
+      echo "<td><font class='error'>Hyvityslaskujen netotus jaa miinukselle! Poimi lisaa laskuja tilille $laskurow[valkoodi] $laskurow[ultilno], $laskurow[olmapvm]</font></td>";
       echo "</tr>";
       echo "</table>";
 
@@ -626,7 +621,7 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
       echo "<tr>";
       echo "<th>".t("Virhe")."</th>";
-      echo "<td><font class='error'>Hyvityslaskujen netotus koostuu yli 999 tapahtumasta! SEPA aineisto ei tue näin isoja netotuksia! $laskurow[valkoodi] $laskurow[ultilno], $laskurow[olmapvm]</font></td>";
+      echo "<td><font class='error'>Hyvityslaskujen netotus koostuu yli 999 tapahtumasta! SEPA aineisto ei tue nain isoja netotuksia! $laskurow[valkoodi] $laskurow[ultilno], $laskurow[olmapvm]</font></td>";
       echo "</tr>";
       echo "</table>";
 
@@ -638,7 +633,7 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
       echo "<tr>";
       echo "<th>".t("Virhe")."</th>";
-      echo "<td><font class='error'>" . t("Poimittu aineisto voi sisältää vain 9 hyvityslaskua yhdelle toimittajalle") . ".</font></td>";
+      echo "<td><font class='error'>" . t("Poimittu aineisto voi sisaltaa vain 9 hyvityslaskua yhdelle toimittajalle") . ".</font></td>";
       echo "</tr>";
       echo "</table>";
 
@@ -650,10 +645,8 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
     $netotettava_summa[]  = $nettosumma_yhteensa;
   }
 
-  // SEPA header
   sepa_header();
 
-  // Tehdään netotetut tapahtumat
   foreach ($netotettava_laskut as $i => $tunnukset) {
     $query = "SELECT lasku.*, if(lasku.ultilno_maa != '', lasku.ultilno_maa, lasku.maa) iban_maa,
               if((lasku.ultilno_maa != ''
@@ -670,20 +663,18 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
     $result = pupe_query($query);
     $nettorow = mysql_fetch_assoc($result);
 
-    // Viesti ei saa olla tyhjä
     $nettorow["viesti"] = (trim($nettorow["viesti"]) == "") ? $nettorow["laskunro"] : $nettorow["viesti"];
     $nettorow["viesti"] = (trim($nettorow["viesti"]) == "") ? $nettorow["viite"] : $nettorow["viesti"];
 
-    $nettorow["viite"]    = '';            // Viitenroa ei sallita netotetulla tapahtumalla
-    $nettorow["alatila"]  = '';            // Ei käteisalennusta netotetulla tapahtumalla
-    $nettorow["summa"]    = $netotettava_summa[$i];  // Netotettu summa
+    $nettorow["viite"]    = '';
+    $nettorow["alatila"]  = '';
+    $nettorow["summa"]    = $netotettava_summa[$i];
 
     sepa_paymentinfo($nettorow);
     sepa_credittransfer($nettorow, $popvm_nyt, $tunnukset);
     $tapahtuma_maara++;
 
     if ($tee == "KIRJOITA") {
-      // päivitetään laskut "odottaa suoritusta" tilaan
       $query = "UPDATE lasku
                 SET tila = 'Q',
                 popvm       = '$popvm_nyt'
@@ -695,12 +686,10 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
   $netotetut_laskut = implode(",", $netotettava_laskut);
 
-  // Haetaan poimitut maksut POISLUKIEN netotetut
   if ($netotetut_laskut != "") {
     $lisa .= " and lasku.tunnus not in ($netotetut_laskut) ";
   }
 
-  // Haetaan poimitut maksut (HUOM: sama selecti ylempänä!!!!)
   $haku_query = "SELECT lasku.*,
                  if(lasku.ultilno_maa != '', lasku.ultilno_maa, lasku.maa) iban_maa,
                  if((lasku.ultilno_maa != ''
@@ -723,13 +712,11 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
   while ($laskurow = mysql_fetch_assoc($result)) {
 
-    // Jos laskunumero on syötetty, lisätään se viestiin mukaan
     if ($laskurow['laskunro'] != 0 and $laskurow['laskunro'] != $laskurow['viesti'] and $yhtiorow['maa'] != 'EE') {
       $laskurow['viesti'] = (trim($laskurow['viesti']) == "") ? $laskurow['laskunro'] : $laskurow['viesti']." ".$laskurow['laskunro'];
     }
 
     if ($kukarow["yhtio"] == "kiko") {
-      // Tehdään erät per päivä ja sepa-maksut yhteen ja muut toiseen
       if ($edpvm != $laskurow['olmapvm'] or $edsepa != $laskurow['sepa']) {
         sepa_paymentinfo($laskurow);
         $edpvm  = $laskurow['olmapvm'];
@@ -748,7 +735,6 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
     $tapahtuma_maara++;
 
     if ($tee == "KIRJOITA") {
-      // päivitetään lasku "odottaa suoritusta" tilaan
       $query = "UPDATE lasku
                 SET tila = 'Q',
                 popvm       = '$popvm_nyt'
@@ -758,12 +744,9 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
     }
   }
 
-  // Update total transactions and control sum at the very end
-  // Using global $pain which refers to CstmrCdtTrfInitn
   $total_txs = 0;
   $total_sum = 0.0;
 
-  // We need to iterate over all PmtInf blocks to update their individual totals first
   foreach ($pain->PmtInf as $pmtInf) {
       $group_txs = 0;
       $group_sum = 0.0;
@@ -781,29 +764,15 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
       $total_sum += $group_sum;
   }
 
-  // Update Group Header totals
   $pain->GrpHdr->NbOfTxs = $total_txs;
   $pain->GrpHdr->CtrlSum = sprintf("%.02f", $total_sum);
 
-
-  /* Tämä blocki piti poistaa, koska rikkoo Samlinkin. Aineistossa ei saa olla mitään jäsentelyä.
-  // Kirjoitetaaan XML, tehdään tästä jäsennelty aineisto. Tämä toimii paremmin mm OPn kanssa
-  $dom = new DOMDocument('1.0');
-  $dom->preserveWhiteSpace = true;
-  $dom->formatOutput = true;
-  $dom->loadXML(str_replace(array("\n", "\r"), "", utf8_encode($xml->asXML())));
-  fwrite($toot, ($dom->saveXML()));
-  */
-
-  // Kirjoitetaaan XML ja tehdään UTF8 encode
-  // REMOVED STR_REPLACE to allow pretty print matching try2.xml structure
   $dom = new DOMDocument('1.0');
   $dom->preserveWhiteSpace = false;
   $dom->formatOutput = true;
   
   $xml_output = $xml->asXML();
   
-  // Ensure output is UTF-8 (DB is ISO-8859-1)
   if (function_exists('mb_convert_encoding')) {
     $xml_output = mb_convert_encoding($xml_output, 'UTF-8', 'ISO-8859-1');
   } else {
@@ -815,23 +784,20 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
   
   fclose($toot);
 
-  // Tehdään vielä tässä vaiheessa XML validointi, vaikka ainesto onkin jo tehty. :(
   libxml_use_internal_errors(true);
 
   $xml_virheet = "";
   $xml_domdoc = new DomDocument;
   $xml_file = $pankkitiedostot_polku.$kaunisnimi;
-  // Updated to pain.001.001.03.xsd
   $xml_schema = "$pupe_root_polku/datain/pain.001.001.03.xsd";
 
-  // Tämä tiedosto lähetetään pankkiin!
   $pankkiyhteys_tiedosto = $kaunisnimi;
 
   $xml_domdoc->Load($xml_file);
 
   if (!$xml_domdoc->schemaValidate($xml_schema)) {
 
-    echo "<font class='message'>SEPA-aineistosta löytyi vielä seuraavat virheet, aineisto saattaa hylkääntyä pankissa!</font><br><br>";
+    echo "<font class='message'>SEPA-aineistosta loytyi viela seuraavat virheet, aineisto saattaa hylkaantya pankissa!</font><br><br>";
 
     $all_errors = libxml_get_errors();
 
@@ -842,7 +808,6 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
 
     echo "<br>";
 
-    // Lähetetään viesti adminille!
     mail($yhtiorow['admin_email'], mb_encode_mimeheader($yhtiorow['nimi']." - SEPA Error", "ISO-8859-1", "Q"), $xml_virheet."\n", "From: ".mb_encode_mimeheader($yhtiorow["nimi"], "ISO-8859-1", "Q")." <$yhtiorow[postittaja_email]>\n", "-f $yhtiorow[postittaja_email]");
   }
 
@@ -862,7 +827,6 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
   echo "</tr>";
   echo "</table>";
 
-  // Jos kaikki siirtoon tarvittavat parametrit on kunnossa, siirretään tiedosto!
   $y = $kukarow["yhtio"];
   if (isset(  $maksuaineiston_siirto[$y]["host"],
       $maksuaineiston_siirto[$y]["user"],
@@ -878,9 +842,7 @@ if ($tee == "KIRJOITA" or $tee == "KIRJOITAKOPIO") {
   }
 }
 
-// Jos meillä on SEPA pankkiyhteys käytössä
 if (SEPA_PANKKIYHTEYS and !empty($pankkiyhteys_tiedosto)) {
-  // Katsotaan, että pankkiyhteys on perustettu
   $query = "SELECT pankkiyhteys.tunnus AS pankkiyhteys_tunnus
             FROM yriti
             INNER JOIN pankkiyhteys ON (pankkiyhteys.yhtio = yriti.yhtio
@@ -889,13 +851,12 @@ if (SEPA_PANKKIYHTEYS and !empty($pankkiyhteys_tiedosto)) {
             AND yriti.tunnus          = {$pankkitili_tunnus}";
   $result = pupe_query($query);
 
-  // Meillä on pankkiyhteys luotu, tehdään formi lähettämistä varten
   if (mysql_num_rows($result) == 1) {
     $row = mysql_fetch_assoc($result);
 
     echo "<br><br>";
     echo "<font class='message'>";
-    echo t("Lähetä maksuaineisto pankkiin");
+    echo t("Laheta maksuaineisto pankkiin");
     echo "</font>";
     echo "<hr>";
 
@@ -913,13 +874,13 @@ if (SEPA_PANKKIYHTEYS and !empty($pankkiyhteys_tiedosto)) {
     echo "</tr>";
 
     echo "<tr>";
-    echo "<th><label for='salasana'>" . t("Syötä pankkiyhteyden salasana") . "</label></th>";
+    echo "<th><label for='salasana'>" . t("Syota pankkiyhteyden salasana") . "</label></th>";
     echo "<td><input type='password' name='salasana' id='salasana'/></td>";
     echo "</tr>";
     echo "</table>";
 
     echo "<br>";
-    echo "<input type='submit' value='".t("Lähetä aineisto pankkiin")."'>";
+    echo "<input type='submit' value='".t("Laheta aineisto pankkiin")."'>";
     echo "</form>";
   }
 }
