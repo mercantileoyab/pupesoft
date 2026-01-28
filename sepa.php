@@ -10,13 +10,13 @@ Message Name: CustomerCreditTransferInitiationV03
 
 function sanitize_sepa_string($string) {
     $replacements = array(
-        '?' => 'A', '?' => 'a',
-        '?' => 'O', '?' => 'o',
-        '?' => 'A', '?' => 'a',
-        '?' => 'U', '?' => 'u',
-        '?' => 'O', '?' => 'o',
-        '?' => 'S', '?' => 's',
-        '?' => 'Z', '?' => 'z',
+        'Ä' => 'A', 'ä' => 'a',
+        'Ö' => 'O', 'ö' => 'o',
+        'Å' => 'A', 'å' => 'a',
+        'Ü' => 'U', 'ü' => 'u',
+        'Õ' => 'O', 'õ' => 'o',
+        'Š' => 'S', 'š' => 's',
+        'Ž' => 'Z', 'ž' => 'z',
         // Add other necessary replacements here
     );
     
@@ -245,31 +245,35 @@ function sepa_credittransfer($laskurow, $popvm_nyt, $netotetut_rivit = '') {
       $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $full_ustrd));
     }
     else {
+      // Logic for EE: If reference exists, use <Strd> (ISO standard), else <Ustrd>
       if ($yhtiorow['maa'] == 'EE') {
-        // REMOVED /RFB/ PREFIX LOGIC
         if (strlen(trim($laskurow["viite"])) > 0) {
-          $reference_number_and_message = $laskurow['viite'];
-          if ($laskurow['viesti'] != "" && $laskurow['viesti'] != $laskurow['viite']) {
-              $reference_number_and_message .= " " . $laskurow['viesti'];
-          }
-        }
-        elseif (strlen(trim($laskurow["laskunro"])) > 0) {
-          $reference_number_and_message = $laskurow['laskunro'];
-          if ($laskurow['viesti'] != "") {
-              $reference_number_and_message .= " " . $laskurow['viesti'];
-          }
-        } elseif ($laskurow['viesti'] != "") {
-          $reference_number_and_message = $laskurow['viesti'];
+          $Strd = $RmtInf->addChild('Strd', '');                                            
+          $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                                  
+          
+          $Tp = $CdtrRefInf->addChild('Tp', '');
+          $CdOrPrtry = $Tp->addChild('CdOrPrtry', '');
+          $CdOrPrtry->addChild('Cd', 'SCOR');                                               
+          
+          $CdtrRefInf->addChild('Ref', sprintf("%-1.35s", $laskurow['viite']));             
         } else {
-          $reference_number_and_message = "Invoice " . $laskurow['tunnus'];
+          // Fallback to unstructured if no viite
+          if (strlen(trim($laskurow["laskunro"])) > 0) {
+            $reference_number_and_message = $laskurow['laskunro'];
+            if ($laskurow['viesti'] != "" && $laskurow['viesti'] != $laskurow['viite']) {
+                $reference_number_and_message .= " " . $laskurow['viesti'];
+            }
+          } elseif ($laskurow['viesti'] != "") {
+            $reference_number_and_message = $laskurow['viesti'];
+          } else {
+            $reference_number_and_message = "Invoice " . $laskurow['tunnus'];
+          }
+          $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $reference_number_and_message));
         }
-        $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $reference_number_and_message)); // Unstructured
       }
       else {
-        if (strlen(trim($laskurow["viite"])) > 0 and $laskurow["tilaustyyppi"] == 'M') {
-          $Ustrd = $RmtInf->addChild('Ustrd', sprintf("%-1.140s", $laskurow['viite']));     // Unstructured
-        }
-        elseif (strlen(trim($laskurow["viite"])) > 0) {
+        // Standard/Foreign logic
+        if (strlen(trim($laskurow["viite"])) > 0) {
           $Strd = $RmtInf->addChild('Strd', '');                                            // Structured
           $CdtrRefInf = $Strd->addChild('CdtrRefInf', '');                                  // CreditorReferenceInformation
           
