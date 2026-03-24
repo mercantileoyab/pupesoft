@@ -887,8 +887,8 @@ if (
           }
 
           if (in_array($yhtiorow["tee_osto_myyntitilaukselta"], array('U', 'Y', 'W', 'J', 'B', 'C')) and in_array($krow["suoratoimitus"], array('', 'U')) and $tmp_asiakkaalle == 1 and 
-          ($sel1 or $krow['tehdas_saldo'] > 0)) {
-            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, 'tmp_asiakkaalle', $row['sopimuksen_lisatieto1'], $suoratoimitus_varastovalinta);
+          ($sel2 or $krow['tehdas_saldo'] > 0)) {
+            list($paikat, $paikatlask, $title) = tulosta_suoratoimitus_paikka($krow, $sel2, $paikat, $paikatlask, 'tmp_asiakkaalle', $row['sopimuksen_lisatieto1'], $suoratoimitus_varastovalinta);
           }
         }
       }

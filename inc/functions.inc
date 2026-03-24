@@ -34282,6 +34282,13 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
       $title = $krow['nimi'];
     }
 
+    if($mihin == 'tmp_varastoon') {
+      $title .= " --> ".t("tilaa")." ".t("varastoon");
+    }
+    if($mihin == 'tmp_asiakkaalle') {
+      $title .= " --> ".t("tilaa")." ".t("asiakkaalle");
+    }
+
     if($suoratoimitus_varastovalinta) {
       $addclass = "class='extpopt'";
     }
