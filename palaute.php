@@ -31,6 +31,8 @@ if (!isset($palaute_mail)) $palaute_mail = false;
 if($palaute_mail and file_exists($palaute_dl_tiedosto)) {
   $viikko_obj = new DateTime();
   $viikko = $viikko_obj->format("W");
+  $viikko = (int) $viikko;
+  $viikko = $viikko - 1;
   $params = array(
     "to"       => $yhtiorow["talhal_email"],
     "subject"     => t('Tuotepalautteet, viikko ').$viikko,
