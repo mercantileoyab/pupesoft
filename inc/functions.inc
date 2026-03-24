@@ -34269,7 +34269,7 @@ if (!function_exists("laske_korko")) {
 }
 
 if (!function_exists("tulosta_suoratoimitus_paikka")) {
-  function tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, $mihin, $sopimuksen_lisatieto1, $suoratoimitus_varastovalinta) {
+  function tulosta_suoratoimitus_paikka($krow, $sel1, $paikat, $paikatlask, $mihin, $sopimuksen_lisatieto1, $suoratoimitus_varastovalinta, $show_mihin_label = false) {
 
     if($mihin == 'tmp_varastoon') {
       $liitostunnus = '¡¡¡'.$krow["liitostunnus"];
@@ -34282,7 +34282,7 @@ if (!function_exists("tulosta_suoratoimitus_paikka")) {
       $title = $krow['nimi'];
     }
 
-    if($krow['suoratoimitus'] == '') {
+    if($show_mihin_label) {
       if($mihin == 'tmp_varastoon') {
         $title .= " --> ".t("tilaa")." ".t("varastoon");
       }
