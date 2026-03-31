@@ -383,7 +383,7 @@ if ($tee == "raportti") {
     $fhr = fopen("/tmp/".$file7, "w");
 
     fwrite($fh, "lasku_tunnus|laskunro|luontiaika|pvm|verollinen_summa|veroton_summa|verollinen_summa_valuutassa|veroton_summa_valuutassa|valuutta|toimitusehto|asiakasnumero|hyvitysviesti\n");
-    fwrite($fhr, "lasku_tunnus|toimitus_tunnus|tuoteno|nimitys|kpl|verollinen_rivihinta|veroton_rivihinta|vero|toimitettu\n");
+    fwrite($fhr, "lasku_tunnus|toimitus_tunnus|tuoteno|nimitys|kpl|verollinen_rivihinta|veroton_rivihinta|vero|toimitettu|varasto\n");
 
     $query = "SELECT lasku.tunnus, lasku.laskunro, lasku.luontiaika, lasku.tapvm, lasku.summa, asiakas.asiakasnro,
               concat_ws(' ', lasku.nimi, lasku.nimitark) nimi, if(lasku.clearing = 'HYVITYS', lasku.viesti,'') viesti,
@@ -409,7 +409,7 @@ if ($tee == "raportti") {
 
       fwrite($fh, "{$row['tunnus']}|{$row['laskunro']}|{$row['luontiaika']}|{$row['tapvm']}|{$row['summa']}|{$row['arvo']}|{$row['summa_valuutassa']}|{$row['arvo_valuutassa']}|{$row['valkoodi']}|{$row['toimitusehto']}|{$row['asiakasnro']}|{$row['viesti']}\n");
 
-      $query = "SELECT tilausrivi.uusiotunnus, tilausrivi.otunnus, tilausrivi.tuoteno, tilausrivi.nimitys, tilausrivi.kpl, tilausrivi.rivihinta, tilausrivi.alv, tilausrivi.toimitettuaika
+      $query = "SELECT tilausrivi.uusiotunnus, tilausrivi.otunnus, tilausrivi.tuoteno, tilausrivi.nimitys, tilausrivi.kpl, tilausrivi.rivihinta, tilausrivi.alv, tilausrivi.toimitettuaika, tilausrivi.varasto
                 FROM tilausrivi
                 WHERE tilausrivi.yhtio     = '{$kukarow['yhtio']}'
                 AND tilausrivi.uusiotunnus = '{$row['tunnus']}'
@@ -419,7 +419,7 @@ if ($tee == "raportti") {
       while ($rivirow = mysql_fetch_assoc($rivires)) {
         $verollinen_rivihinta = sprintf('%.2f', round($rivirow['rivihinta'] * (1+($rivirow['alv']/100)), 2));
 
-        fwrite($fhr, "{$rivirow['uusiotunnus']}|{$rivirow['otunnus']}|{$rivirow['tuoteno']}|{$rivirow['nimitys']}|{$rivirow['kpl']}|{$verollinen_rivihinta}|{$rivirow['rivihinta']}|{$rivirow['alv']}|{$rivirow['toimitettuaika']}\n");
+        fwrite($fhr, "{$rivirow['uusiotunnus']}|{$rivirow['otunnus']}|{$rivirow['tuoteno']}|{$rivirow['nimitys']}|{$rivirow['kpl']}|{$verollinen_rivihinta}|{$rivirow['rivihinta']}|{$rivirow['alv']}|{$rivirow['toimitettuaika']}|{$rivirow['varasto']}\n");
       }
     }
 
@@ -438,7 +438,7 @@ if ($tee == "raportti") {
     $fhr = fopen("/tmp/".$file9, "w");
 
     fwrite($fh, "lasku_tunnus|laskunro|luontiaika|pvm|summa|valuutta|summa_{$yhtiorow['valkoodi']}|toimittajanro|nimi|toimittajatyyppi|laskun_tyyppi|laskun_tila\n");
-    fwrite($fhr, "lasku_tunnus|tuoteno|nimitys|kpl|rivihinta|varastonarvo|saapuminen\n");
+    fwrite($fhr, "lasku_tunnus|tuoteno|nimitys|kpl|rivihinta|varastonarvo|saapuminen|varasto\n");
 
     $query = "SELECT lasku.tunnus, lasku.laskunro, lasku.luontiaika, lasku.tapvm,
               lasku.summa, round(lasku.summa * if(lasku.maksu_kurssi = 0, lasku.vienti_kurssi, lasku.maksu_kurssi), 2) kotisumma,
@@ -490,7 +490,7 @@ if ($tee == "raportti") {
 
             $query = "SELECT tilausrivi.uusiotunnus, tilausrivi.otunnus, tilausrivi.tuoteno, tilausrivi.nimitys, tilausrivi.kpl, tilausrivi.rivihinta, tilausrivi.alv, tilausrivi.toimitettuaika,
                       round((tilausrivi.varattu+tilausrivi.kpl)*tilausrivi.hinta*if($keikrow[vienti_kurssi]=0, 1, $keikrow[vienti_kurssi])*if(tuotteen_toimittajat.tuotekerroin=0 or tuotteen_toimittajat.tuotekerroin is null,1,tuotteen_toimittajat.tuotekerroin)*{$query_ale_lisa}, 2) rivihinta,
-                      round(tilausrivi.rivihinta, 2) varastonarvo
+                      round(tilausrivi.rivihinta, 2) varastonarvo, tilausrivi.varasto
                       FROM tilausrivi
                       LEFT JOIN tuotteen_toimittajat ON tuotteen_toimittajat.yhtio=tilausrivi.yhtio and tuotteen_toimittajat.tuoteno=tilausrivi.tuoteno and tuotteen_toimittajat.liitostunnus='$keikrow[liitostunnus]'
                       WHERE tilausrivi.yhtio     = '{$kukarow['yhtio']}'
@@ -499,7 +499,7 @@ if ($tee == "raportti") {
             $rivires = pupe_query($query);
 
             while ($rivirow = mysql_fetch_assoc($rivires)) {
-              fwrite($fhr, "{$row['tunnus']}|{$rivirow['tuoteno']}|{$rivirow['nimitys']}|{$rivirow['kpl']}|{$rivirow['rivihinta']}|{$rivirow['varastonarvo']}|{$keikrow['laskunro']}\n");
+              fwrite($fhr, "{$row['tunnus']}|{$rivirow['tuoteno']}|{$rivirow['nimitys']}|{$rivirow['kpl']}|{$rivirow['rivihinta']}|{$rivirow['varastonarvo']}|{$keikrow['laskunro']}|{$rivirow['varasto']}\n");
             }
           }
         }
