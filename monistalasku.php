@@ -1646,7 +1646,24 @@ if ($tee == 'MONISTA') {
           $_orig_kommentti = $rivirow['kommentti'];
 
           if (count($palautus) > 0) {
-            $rivirow['hinta'] = $palautus[0]["hinta"];
+            // Mercantile: jos yhtiolla on lippu reklamaation_alkuperainen_hinta = 'X',
+            // sailytetaan reklamaation hinta alkuperaiselta laskurivilta sen sijaan,
+            // etta hae_hyvityshinta() valitsisi sen asiakkaan ostohistoriasta.
+            // Ehto rajoittuu alennuksettomiin riveihin (ale1/ale2/erikoisale = 0, netto != 'N')
+            // jotta efektiivinen hinta == raaka hinta. Palautuskielto-tapauksissa kaytetaan
+            // edelleen hae_hyvityshinta() palauttamaa hintaa (joka on 0).
+            $kayta_alkuperaista_hintaa = (
+              !empty($yhtiorow['reklamaation_alkuperainen_hinta'])
+              and (!isset($rivirow['netto']) or $rivirow['netto'] != 'N')
+              and (float) $rivirow['ale1'] == 0
+              and (!isset($rivirow['ale2']) or (float) $rivirow['ale2'] == 0)
+              and (!isset($rivirow['erikoisale']) or (float) $rivirow['erikoisale'] == 0)
+            );
+            $alkuperainen_hinta = $rivirow['hinta'];
+
+            $rivirow['hinta'] = ($kayta_alkuperaista_hintaa and empty($palautus[0]['palautuskielto']))
+                                ? $alkuperainen_hinta
+                                : $palautus[0]["hinta"];
             $rivirow['kommentti'] = trim($rivirow['kommentti']) != '' ? "{$rivirow['kommentti']} {$palautus[0]['kommentti']}" : $palautus[0]['kommentti'];
             $rivirow['varattu'] = $palautus[0]["kpl"];
             $rivirow['kpl'] = 0;
@@ -1663,7 +1680,9 @@ if ($tee == 'MONISTA') {
 
               foreach ($palautus as $_palautusrow) {
                 $_arr = array(
-                  'hinta' => $_palautusrow['hinta'],
+                  'hinta' => ($kayta_alkuperaista_hintaa and empty($_palautusrow['palautuskielto']))
+                             ? $alkuperainen_hinta
+                             : $_palautusrow['hinta'],
                   'kommentti' => trim($_orig_kommentti) != '' ? "{$_orig_kommentti} {$_palautusrow['kommentti']}" : $_palautusrow['kommentti'],
                   'varattu' => $_palautusrow['kpl'],
                   'kpl' => 0,
