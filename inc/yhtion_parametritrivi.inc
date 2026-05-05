@@ -3879,6 +3879,24 @@ if ($fieldname == "reklamaation_hinnoittelu") {
   $jatko = 0;
 }
 
+if ($fieldname == "reklamaation_alkuperainen_hinta") {
+
+  $sela = $selb = "";
+
+  if ($trow[$i] == 'X') {
+    $selb = "selected";
+  }
+  else {
+    $sela = "selected";
+  }
+
+  $ulos = "<td><select name='$nimi' ".js_alasvetoMaxWidth($nimi, 400).">
+        <option value = '' $sela>".t("Reklamaation hinta haetaan asiakkaan ostohistoriasta")."</option>
+        <option value = 'X' $selb>".t("Reklamaation hinta s‰ilytet‰‰n alkuper‰iselt‰ laskurivilt‰")."</option>
+      </select></td>";
+  $jatko = 0;
+}
+
 if ($fieldname == "vak_kasittely") {
 
   $sel = "";
